@@ -6,7 +6,7 @@ import {
 } from "../../_actions";
 import Layout from '../../_components/layout';
 import logo from "../../_assets/logo.svg";
-import pdb from "../../_assets/pdb.svg";
+import rdb from "../../_assets/rdb.svg";
 
 class NotFound extends Component {
   constructor(props) {
@@ -45,7 +45,7 @@ class NotFound extends Component {
                 alt="Van Leeuwen Pipe and Tube"
               />
               <br />
-              <img src={pdb} className="img-fluid" alt="Project Database" />
+              <img src={rdb} className="img-fluid mt-2" alt="Reconciliation Database" />
               <hr />
               <h2>#404 Not Found</h2>
               <p>The page requested was not found!</p>

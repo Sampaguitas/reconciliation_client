@@ -7,7 +7,7 @@ import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
 import logo from "../../_assets/logo.svg";
-import pdb from "../../_assets/pdb.svg";
+import rdb from "../../_assets/rdb.svg";
 
 class Login extends Component {
   constructor(props) {
@@ -98,7 +98,7 @@ class Login extends Component {
                 alt="Van Leeuwen Pipe and Tube"
               />
               <br />
-              <img src={pdb} className="img-fluid" alt="Project Database" />
+              <img src={rdb} className="img-fluid mt-2" alt="Reconciliation Database" />
               <hr />
               <form
                 name="form"

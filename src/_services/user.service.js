@@ -10,7 +10,6 @@ export const userService = {
     update,
     changePwd,
     setAdmin,
-    setSpAdmin,
     requestPwd,
     resetPwd,
     delete: _delete
@@ -97,16 +96,6 @@ function setAdmin(user) {
     };
 
     return fetch(`${config.apiUrl}/user/setAdmin?id=${user.id}`, requestOptions).then(handleResponse);
-}
-
-function setSpAdmin(user) {
-    const requestOptions = {
-        method: 'PUT',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-    };
-
-    return fetch(`${config.apiUrl}/user/setSpAdmin?id=${user.id}`, requestOptions).then(handleResponse);
 }
 
 function requestPwd(email) {

@@ -2,10 +2,8 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  sidemenuActions,
-  userActions 
-} from "../../_actions";
+import config from 'config';
+import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
 import logo from "../../_assets/logo.svg";
@@ -14,48 +12,78 @@ import pdb from "../../_assets/pdb.svg";
 class Login extends Component {
   constructor(props) {
     super(props);
-    this.props.dispatch(userActions.logout());
     this.state = {
       email: "",
       password: "",
-      submitted: false,
-      menuItem: ''
+      loggingIn: false,
+      menuItem: '',
+      alert: {
+        type: '',
+        message: ''
+      }
     };
     this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
   }
 
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch(userActions.logout());
+    // dispatch(userActions.logout());
+    localStorage.removeItem('user');
     dispatch(sidemenuActions.restore());
   }
 
-  handleChange(e) {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
+  handleChange(event) {
+    const { name, value } = event.target;
+    this.setState({
+      [name]: value
+    });
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    this.setState({ submitted: true });
+  handleLogin(event) {
+    event.preventDefault();
     const { email, password } = this.state;
-    const { dispatch } = this.props;
-    if (email && password) {
-      dispatch(userActions.login(email, encodeURI(password)));
-    }
-  }
-
-  onKeyPress(event) {
-    if (event.which === 13 /* prevent form submit on key Enter */) {
-      event.preventDefault();
+    if (!!email && !!password) {
+      this.setState({
+        loggingIn: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        };
+        return fetch(`${config.apiUrl}/user/login`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            loggingIn: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const error = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else if (!!data.token) {
+              localStorage.setItem('user', JSON.stringify(data));
+              history.push('/');
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status === 200 ? 'alert-success' : 'alert-danger',
+                  message: error
+                }
+              });
+            }
+          });
+        }));
+      });
     }
   }
 
   render() {
-    const { alert, loggingIn, sidemenu  } = this.props;
-    const { email, menuItem, password, submitted } = this.state;
+    const { sidemenu } = this.props;
+    const { email, menuItem, password, loggingIn } = this.state;
+    const alert = this.state.alert.message ? this.state.alert : this.props.alert;
     return (
       <Layout sidemenu={sidemenu} menuItem={menuItem}>
         <div
@@ -75,7 +103,7 @@ class Login extends Component {
               <form
                 name="form"
                 onKeyPress={this.onKeyPress}
-                onSubmit={this.handleSubmit
+                onSubmit={this.handleLogin
               }>
                 <InputIcon
                   title="Email"
@@ -85,7 +113,7 @@ class Login extends Component {
                   onChange={this.handleChange}
                   placeholder="Email"
                   icon="user"
-                  submitted={submitted}
+                  submitted={loggingIn}
                   autoComplete="email"
                 />
                 <InputIcon
@@ -96,7 +124,7 @@ class Login extends Component {
                   onChange={this.handleChange}
                   placeholder="Password"
                   icon="lock"
-                  submitted={submitted}
+                  submitted={loggingIn}
                   autoComplete="current-password"
                 />
                 <hr />
@@ -126,11 +154,11 @@ class Login extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  const { loggingIn } = state.authentication;
+  // const { loggingIn } = state.authentication;
   return {
     alert,
     sidemenu,
-    loggingIn,
+    // loggingIn,
   };
 }
 

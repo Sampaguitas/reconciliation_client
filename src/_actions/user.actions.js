@@ -11,7 +11,6 @@ export const userActions = {
     update,
     changePwd,
     setAdmin,
-    setSpAdmin,
     requestPwd,
     resetPwd,
     delete: _delete
@@ -142,28 +141,6 @@ function setAdmin(user) {
     function request() { return { type: userConstants.SETADMIN_REQUEST } }
     function success(user) { return { type: userConstants.SETADMIN_SUCCESS, user } }
     function failure(error) { return { type: userConstants.SETADMIN_FAILURE, error } }
-}
-
-function setSpAdmin(user) {
-    return dispatch => {
-        dispatch(request(user));
-
-        userService.setSpAdmin(user)
-            .then(
-                user => {
-                    dispatch(success(user)),
-                    dispatch(userActions.getAll(user));
-                },
-                error => {
-                    dispatch(failure(error.toString()))
-                    dispatch(alertActions.error(error.toString()));
-                }
-            );
-    };
-
-    function request() { return { type: userConstants.SETSPADMIN_REQUEST } }
-    function success(user) { return { type: userConstants.SETSPADMIN_SUCCESS, user } }
-    function failure(error) { return { type: userConstants.SETSPADMIN_FAILURE, error } }
 }
 
 function requestPwd(email) {

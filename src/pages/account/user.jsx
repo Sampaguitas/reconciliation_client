@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { sidemenuActions, userActions } from '../../_actions';
-import { Input, Layout } from '../../_components';
+import Input from '../../_components/input';
+import Layout from '../../_components/layout';
 
 class User extends React.Component {
     constructor(props){

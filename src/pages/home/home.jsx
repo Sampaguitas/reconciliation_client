@@ -10,10 +10,8 @@ import {
     doesMatch,
     copyObject
 } from '../../_functions';
-import HeaderInput from '../../_components/project-table/header-input';
-import {
-    Layout
-} from '../../_components';
+import HeaderInput from '../../_components/table/header-input';
+import Layout from '../../_components/layout';
 import _ from 'lodash';
 
 function projectSorted(array, sort) {
@@ -354,13 +352,10 @@ class Home extends React.Component {
 }
 
 function mapStateToProps(state) {
-    const { alert, projects, sidemenu } = state;
-    const { projectLoading } = state.projects;
+    const { alert, sidemenu } = state;
     return {
         alert,
-        projects,
         sidemenu,
-        projectLoading,
     };
 }
 

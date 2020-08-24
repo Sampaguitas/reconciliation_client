@@ -1,7 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-export const InputIcon = (props) => (
+const InputIcon = (props) => (
     <div className={'form-group' + (props.submitted && !props.value ? ' has-error' : '')}>
         <div className="input-group input-group-lg">
             <div className="input-group-prepend">
@@ -25,4 +25,4 @@ export const InputIcon = (props) => (
     </div>
 );
 
-// export default InputIcon;
+export default InputIcon;

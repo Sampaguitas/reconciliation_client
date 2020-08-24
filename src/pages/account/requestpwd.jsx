@@ -6,10 +6,8 @@ import {
   userActions,
   sidemenuActions,
 } from "../../_actions";
-import {
-  InputIcon,
-  Layout
-} from "../../_components";
+import InputIcon from "../../_components/input-icon";
+import Layout from "../../_components/layout";
 import logo from "../../_assets/logo.svg";
 import pdb from "../../_assets/pdb.svg";
 

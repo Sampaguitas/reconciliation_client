@@ -4,7 +4,7 @@ import {
   userActions, 
   sidemenuActions
 } from "../../_actions";
-import {  Layout } from '../../_components';
+import Layout from '../../_components/layout';
 import logo from "../../_assets/logo.svg";
 import pdb from "../../_assets/pdb.svg";
 

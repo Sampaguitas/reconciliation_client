@@ -5,7 +5,7 @@ import Footer from "./footer.js";
 import "../_styles/bootstrap.min.css";
 import { callbackify, inherits } from 'util';
 
-export class Layout extends Component {
+class Layout extends Component {
     constructor(props) {
         super(props);
     }
@@ -28,4 +28,4 @@ export class Layout extends Component {
     }
 }
 
-// export default Layout;
+export default Layout;

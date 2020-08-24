@@ -11,7 +11,9 @@ import { doesMatch, arraySorted, copyObject } from '../../_functions';
 import HeaderCheckBox from "../../_components/table/header-check-box";
 import HeaderInput from "../../_components/table/header-input";
 import TableCheckBoxAdmin from "../../_components/table/table-check-box-admin";
-import { Input, Layout, Modal } from "../../_components";
+import Input from "../../_components/input";
+import Layout from "../../_components/layout";
+import Modal from "../../_components/modal";
 import _ from 'lodash';
 
 function settingSorted(array, sort) {

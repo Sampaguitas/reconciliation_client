@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { 
-  userActions, 
   sidemenuActions
 } from "../../_actions";
 import Layout from '../../_components/layout';
@@ -19,7 +18,7 @@ class NotFound extends Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch(userActions.logout());
+    localStorage.removeItem('user');
     dispatch(sidemenuActions.restore())
   }
 
@@ -68,11 +67,9 @@ class NotFound extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  const { loggingIn } = state.authentication;
   return {
     alert,
     sidemenu,
-    loggingIn
   };
 }
 

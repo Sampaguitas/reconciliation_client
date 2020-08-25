@@ -2,7 +2,7 @@ import config from 'config';
 import { authHeader } from '../_helpers';
 
 export const userService = {
-    login,
+    // login,
     logout,
     register,
     getAll,
@@ -10,30 +10,30 @@ export const userService = {
     update,
     changePwd,
     setAdmin,
-    requestPwd,
-    resetPwd,
+    // requestPwd,
+    // resetPwd,
     delete: _delete
 };
 
-function login(email, password) {
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    };
+// function login(email, password) {
+//     const requestOptions = {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ email, password })
+//     };
 
-    return fetch(`${config.apiUrl}/user/login`, requestOptions)
-        .then(handleResponse)
-        .then(user => {
-            // login successful if there's a jwt token in the response
-            if (user.token) {
-                // store user details and jwt token in local storage to keep user logged in between page refreshes
-                localStorage.setItem('user', JSON.stringify(user));
-            }
+//     return fetch(`${config.apiUrl}/user/login`, requestOptions)
+//         .then(handleResponse)
+//         .then(user => {
+//             // login successful if there's a jwt token in the response
+//             if (user.token) {
+//                 // store user details and jwt token in local storage to keep user logged in between page refreshes
+//                 localStorage.setItem('user', JSON.stringify(user));
+//             }
 
-            return user;
-        });
-}
+//             return user;
+//         });
+// }
 
 function logout() {
     // remove user from local storage to log user out
@@ -98,25 +98,25 @@ function setAdmin(user) {
     return fetch(`${config.apiUrl}/user/setAdmin?id=${user.id}`, requestOptions).then(handleResponse);
 }
 
-function requestPwd(email) {
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({email})
-    };
+// function requestPwd(email) {
+//     const requestOptions = {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({email})
+//     };
 
-    return fetch(`${config.apiUrl}/user/requestPwd`, requestOptions).then(handleResponse);
-}
+//     return fetch(`${config.apiUrl}/user/requestPwd`, requestOptions).then(handleResponse);
+// }
 
-function resetPwd(user) {
-    const requestOptions = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-    };
+// function resetPwd(user) {
+//     const requestOptions = {
+//         method: 'PUT',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(user)
+//     };
 
-    return fetch(`${config.apiUrl}/user/resetPwd`, requestOptions).then(handleResponse);
-}
+//     return fetch(`${config.apiUrl}/user/resetPwd`, requestOptions).then(handleResponse);
+// }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
 function _delete(id) {

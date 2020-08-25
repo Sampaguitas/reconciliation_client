@@ -121,6 +121,10 @@ class Home extends React.Component {
             name: '',
             opco:'',
             erp: '',
+            alert: {
+                type: '',
+                message: ''
+            },
             sort: {
                 name: '',
                 isAscending: true,
@@ -149,7 +153,12 @@ class Home extends React.Component {
     handleClearAlert(event){
         event.preventDefault;
         const { dispatch } = this.props;
-        dispatch(alertActions.clear());
+        this.setState({
+          alert: {
+            type: '',
+            message: ''
+          }
+        }, () => dispatch(alertActions.clear()));
     }
 
     toggleSort(event, name) {

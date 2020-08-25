@@ -14,6 +14,10 @@ class User extends React.Component {
                 oldPassword:'',
                 newPassword:'',
             },
+            alert: {
+                type: '',
+                message: ''
+            },
             submitted:false,
             menuItem: ''
         }
@@ -32,8 +36,14 @@ class User extends React.Component {
     handleClearAlert(event){
         event.preventDefault;
         const { dispatch } = this.props;
-        dispatch(alertActions.clear());
-    }
+        
+        this.setState({
+          alert: {
+            type: '',
+            message: ''
+          }
+        }, () => dispatch(alertActions.clear()));
+      }
 
     handleChange(event){
         const { name, value } = event.target;

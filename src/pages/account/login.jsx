@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import config from 'config';
+import { history } from '../../_helpers';
 import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
@@ -28,7 +29,6 @@ class Login extends Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    // dispatch(userActions.logout());
     localStorage.removeItem('user');
     dispatch(sidemenuActions.restore());
   }
@@ -42,8 +42,8 @@ class Login extends Component {
 
   handleLogin(event) {
     event.preventDefault();
-    const { email, password } = this.state;
-    if (!!email && !!password) {
+    const { email, password, loggingIn } = this.state;
+    if (!!email && !!password && !loggingIn) {
       this.setState({
         loggingIn: true
       }, () => {
@@ -58,7 +58,7 @@ class Login extends Component {
             loggingIn: false,
           }, () => {
             const data = text && JSON.parse(text);
-            const error = (data && data.message) || response.statusText;
+            const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
               // Unauthorized
               localStorage.removeItem('user');
@@ -70,7 +70,7 @@ class Login extends Component {
               this.setState({
                 alert: {
                   type: response.status === 200 ? 'alert-success' : 'alert-danger',
-                  message: error
+                  message: resMsg
                 }
               });
             }
@@ -102,7 +102,6 @@ class Login extends Component {
               <hr />
               <form
                 name="form"
-                onKeyPress={this.onKeyPress}
                 onSubmit={this.handleLogin
               }>
                 <InputIcon
@@ -154,11 +153,9 @@ class Login extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  // const { loggingIn } = state.authentication;
   return {
     alert,
     sidemenu,
-    // loggingIn,
   };
 }
 

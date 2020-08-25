@@ -3,10 +3,8 @@ import { connect } from "react-redux";
 import { NavLink } from 'react-router-dom';
 import queryString from 'query-string';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  sidemenuActions,
-  userActions 
-} from "../../_actions";
+import config from 'config';
+import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
 import logo from "../../_assets/logo.svg";
@@ -20,13 +18,16 @@ class ResetPwd extends React.Component {
             userId: '',
             token: '',
             newPassword: '',
-            menuItem: ''
         },
-        submitted: false,
+        resetting: false,
+        menuItem: '',
+        alert: {
+          type: '',
+          message: ''
+        }
     };
     this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
+    this.handleReset = this.handleReset.bind(this);
   }
 
   componentDidMount() {
@@ -42,13 +43,13 @@ class ResetPwd extends React.Component {
             }
         });
     }
-    dispatch(userActions.logout());
+    localStorage.removeItem('user');
     dispatch(sidemenuActions.restore());
   }
 
-  handleChange(e) {
+  handleChange(event) {
     const { user } = this.state;
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     this.setState({
         user: {
             ...user,
@@ -57,28 +58,48 @@ class ResetPwd extends React.Component {
     });
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    const { user } = this.state;
-    const { dispatch } = this.props;
-    this.setState({
-      ...this.state,
-      submitted: true
-    });
-    if (user.newPassword) {
-      dispatch(userActions.resetPwd(user));
-    }
-  }
-
-  onKeyPress(event) {
-    if (event.which === 13 /* prevent form submit on key Enter */) {
-      event.preventDefault();
+  handleReset(event) {
+    event.preventDefault();
+    const { user, resetting } = this.state;
+    // const { dispatch } = this.props;
+    if (!!user.userId && !!user.token && !!user.newPassword && !resetting) {
+      this.setState({
+        resetting: true
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        };
+        return fetch(`${config.apiUrl}/user/resetPwd`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            resetting: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status === 200 ? 'alert-success' : 'alert-danger',
+                  message: resMsg
+                }
+              });
+            }
+          });
+        }));
+      });
     }
   }
 
   render() {
-    const { alert, sidemenu, reseting } = this.props;
-    const { user, menuItem, submitted } = this.state;
+    const { sidemenu } = this.props;
+    const { user, menuItem, resetting } = this.state;
+    const alert = this.state.alert.message ? this.state.alert : this.props.alert;
     return (
       <Layout sidemenu={sidemenu} menuItem={menuItem}>
             <div
@@ -97,8 +118,7 @@ class ResetPwd extends React.Component {
                     <hr />
                     <form
                         name="form"
-                        onKeyPress={this.onKeyPress}
-                        onSubmit={this.handleSubmit}
+                        onSubmit={this.handleReset}
                     >
                         <InputIcon
                             title="New Password"
@@ -108,13 +128,13 @@ class ResetPwd extends React.Component {
                             onChange={this.handleChange}
                             placeholder="New Password"
                             icon="lock"
-                            submitted={submitted}
+                            resetting={resetting}
                             autoComplete="new-password"
                             required
                         />
                         <hr />
                         <button type="submit" className="btn btn-leeuwen btn-full btn-lg">
-                          <span><FontAwesomeIcon icon={reseting ? "spinner" : "hand-point-right"} className={reseting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Reset</span>
+                          <span><FontAwesomeIcon icon={resetting ? "spinner" : "hand-point-right"} className={resetting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Reset</span>
                         </button>
                         <NavLink to={{ pathname: "/login" }} className="btn btn-link" tag="a">Go back to login page</NavLink>
                         <br />
@@ -130,11 +150,9 @@ class ResetPwd extends React.Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  const { reseting } = state.resetpwd;
   return {
     alert,
     sidemenu,
-    reseting
   };
 }
 

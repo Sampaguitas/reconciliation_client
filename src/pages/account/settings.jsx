@@ -2,11 +2,9 @@ import React from "react";
 import { NavLink } from 'react-router-dom';
 import { connect } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  alertActions,
-  sidemenuActions,
-  userActions 
-} from "../../_actions";
+import config from 'config';
+import { authHeader } from '../../_helpers';
+import {  alertActions, sidemenuActions, userActions } from "../../_actions";
 import { doesMatch, arraySorted, copyObject } from '../../_functions';
 import HeaderCheckBox from "../../_components/table/header-check-box";
 import HeaderInput from "../../_components/table/header-input";
@@ -16,148 +14,177 @@ import Layout from "../../_components/layout";
 import Modal from "../../_components/modal";
 import _ from 'lodash';
 
-function settingSorted(array, sort) {
-  let tempArray = array.slice(0);
-  switch(sort.name) {
-    case 'userName':
-    case 'name':
-        if (sort.isAscending) {
-            return tempArray.sort(function (a, b) {
-                let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
-                let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
-                if (nameA < nameB) {
-                    return -1;
-                } else if (nameA > nameB) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            });
-        } else {
-            return tempArray.sort(function (a, b) {
-              let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
-              let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
-                if (nameA > nameB) {
-                    return -1;
-                } else if (nameA < nameB) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            });
-        }
-    case 'isAdmin':
-        if (sort.isAscending) {
-            return tempArray.sort(function (a, b) {
-                let nameA = a[sort.name];
-                let nameB = b[sort.name];
-                if (nameA === nameB) {
-                    return 0;
-                } else if (!!nameA) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            });
-        } else {
-            return tempArray.sort(function (a, b) {
-                let nameA = a[sort.name];
-                let nameB = b[sort.name];
-                if (nameA === nameB) {
-                    return 0;
-                } else if (!!nameA) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            });
-        }
-    default: return array; 
-  }
-}
-
-function canClick(found, currentUser) {
-  if (currentUser.isSuperAdmin) {
-    return true;
-  } else if (_.isEqual(currentUser.regionId, found.opco.regionId)){
-    return true;
-  } else {
-    return false;
-  }
+function upsertUser(user, create) {
+  return new Promise(function(resolve) {
+    const requestOptions = {
+      method: create ? 'POST' : 'PUT',
+      headers: {...authHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    };
+    return fetch(`${config.apiUrl}/user/${create ? 'create' : 'update'}`, requestOptions)
+    .then(response => response.text().then(text => {
+      const data = text && JSON.parse(text);
+      const resMsg = (data && data.message) || response.statusText;
+      resolve({
+        status: response.status,
+        message: resMsg
+      });
+    }));
+  });
 }
 
 class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentUser: {},
       user: {},
-      userName: '',
-      name: '',
-      isAdmin: 0,
+      users: [],
+      filter: {
+        userName: '',
+        name: '',
+        email: '',
+        isAdmin: 0,
+      },
       sort: {
         name: '',
         isAscending: true,
       },
+      alert: {
+        type: '',
+        message: ''
+      },
+      retrieving: false,
+      upserting: false,
       loaded: false,
       submitted: false,
-      show: false,
+      showUser: false,
       menuItem: '',
       settingsColWidth: {},
       
+      
     };
     this.handleClearAlert = this.handleClearAlert.bind(this);
+    this.setAlert = this.setAlert.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
     this.showModal = this.showModal.bind(this);
     this.hideModal = this.hideModal.bind(this);
     this.handleChangeUser = this.handleChangeUser.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
-    this.filterName = this.filterName.bind(this);
+    this.getUsers = this.getUsers.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
     this.handleOnclick = this.handleOnclick.bind(this);
-    this.accessibleArray = this.accessibleArray.bind(this);
-    this.checkBoxDisabled = this.checkBoxDisabled.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
   }
 
+  getUsers() {
+    const { filter, sort } = this.state;
+    this.setState({
+      retrieving: true
+    }, () => {
+      const requestOptions = {
+        method: 'POST',
+        headers: {...authHeader(), 'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          filter: filter,
+          sort: sort 
+        })
+      };
+      return fetch(`${config.apiUrl}/user/findAll`, requestOptions)
+      .then(response => response.text().then(text => {
+        this.setState({
+          retrieving: false,
+        }, () => {
+          const data = text && JSON.parse(text);
+          const resMsg = (data && data.message) || response.statusText;
+          if (response.status === 401) {
+            // Unauthorized
+            localStorage.removeItem('user');
+            location.reload(true);
+          } else if (response.status != 200) {
+            this.setState({
+              alert: {
+                type: 'alert-danger',
+                message: resMsg
+              }
+            });
+          } else {
+            this.setState({
+              users: data.users
+            });
+          }
+        });
+      }));
+    });
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    //Clear Selection
-    dispatch(userActions.getAll());
+    let currentUser = JSON.parse(localStorage.getItem('user'));
+    if (!!currentUser) {
+      this.setState({
+        currentUser: currentUser
+      }, () => this.getUsers());
+    } else {
+      localStorage.removeItem('user');
+      location.reload(true);
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { sort, filter } = this.state;
+    if (sort != prevState.sort || filter != prevState.filter) {
+      this.getUsers();
+    }
   }
 
   handleClearAlert(event){
     event.preventDefault;
     const { dispatch } = this.props;
-    dispatch(alertActions.clear());
+    
+    this.setState({
+      alert: {
+        type: '',
+        message: ''
+      }
+    }, () => dispatch(alertActions.clear()));
+  }
+
+  setAlert(type, message) {
+    this.setState({
+      alert: {
+        type: type,
+        message: message
+      }
+    })
   }
 
   toggleSort(event, name) {
     event.preventDefault();
     const { sort } = this.state;
     if (sort.name != name) {
-        this.setState({
-            sort: {
-                name: name,
-                isAscending: true
-            }
-        });
+      this.setState({
+          sort: {
+              name: name,
+              isAscending: true
+          }
+      });
     } else if (!!sort.isAscending) {
-        this.setState({
-            sort: {
-                name: name,
-                isAscending: false
-            }
-        });
+      this.setState({
+          sort: {
+              name: name,
+              isAscending: false
+          }
+      });
     } else {
-        this.setState({
-            sort: {
-                name: '',
-                isAscending: true
-            }
-        });
+      this.setState({
+          sort: {
+              name: '',
+              isAscending: true
+          }
+      });
     }
 }
 
@@ -169,7 +196,7 @@ class Settings extends React.Component {
         email: "",
         password: "",
       },
-      show: true
+      showUser: true
     });
   }
 
@@ -182,7 +209,7 @@ class Settings extends React.Component {
         password: "",
       },
       submitted: false,
-      show: false
+      showUser: false
     });
   }
 
@@ -198,94 +225,102 @@ class Settings extends React.Component {
   }
 
   handleChangeHeader(event) {
+    const { filter } = this.state;
     const { name, value } = event.target;
     this.setState({
+      filter: {
+        ...filter,
         [name]: value
+      }
     });
   }
 
-  filterName(array){
-    const { isAdmin, name, sort, userName } = this.state
-    if (array) {
-      return settingSorted(array, sort).filter(function (object) {
-        return (doesMatch(userName, object.userName, 'String', false) 
-        && doesMatch(name, object.name, 'String', false) 
-        && doesMatch(isAdmin, object.isAdmin, 'Boolean', false));
+  handleSubmit(event) {
+    event.preventDefault();
+    const { user, upserting } = this.state;
+    if ((!!user.id || !!user.password) && !!user.userName && !!user.name && !!user.email && !upserting) {
+      //update
+      this.setState({
+        upserting: true,
+      }, () => {
+        upsertUser(user, user.id ? false : true).then(response => {
+          this.setState({
+            upserting: false
+          }, () => {
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: response.message
+                }
+              }, () => {
+                this.getUsers();
+                this.hideModal();
+              });
+            }
+          });
+        });
       });
     }
   }
 
-  accessibleArray(items, sortBy) {
-    if (items) {
-        return arraySorted(items, sortBy);
-    }
-  }
-  
-  handleSubmit(event) {
-    event.preventDefault();
-    this.setState({ submitted: true });
-    const { user } = this.state;
-    const { dispatch } = this.props;
-    if (
-      user.id &&
-      user.userName &&
-      user.name &&
-      user.email
-    ) {
-      dispatch(userActions.update(user));
-      this.hideModal();
-      this.setState({ submitted: false });
-    } else if (
-      user.userName &&
-      user.name &&
-      user.email &&
-      user.password
-    ) {
-      dispatch(userActions.register(user));
-      this.hideModal();
-      this.setState({ submitted: false });
-    }
-  }
-
   handleOnclick(event, id) {
-    const { users } = this.props
-    let currentUser = JSON.parse(localStorage.getItem('user'));
-    //if (event.target.type != 'checkbox' && this.props.users.items) {
-    if (event.target.dataset['type'] != 'checkbox' && users.items) {
-      let found = users.items.find(element => element.id === id);
-      if (canClick(found, currentUser)) {
-        this.setState({
-          user: {
-            id: id,
-            userName: found.userName,
-            name: found.name,
-            email: found.email,
-          },
-          show: true
-        });
-      }
-    }
-  }
-
-  handleDeletUser(event, id) {
     event.preventDefault();
-    this.props.dispatch(userActions.delete(id));
-    this.hideModal();
-    this.setState({ submitted: false });
-  }
-
-  checkBoxDisabled(user, type) {
-    let currentUser = JSON.parse(localStorage.getItem('user'));
-    if (_.isEqual(user.id, currentUser.id)) {
-      return true;
-    } else {
-      return false;
+    const { users, currentUser } = this.state;
+    let found = users.find(element => _.isEqual(element._id, id));
+    if (!_.isUndefined(found) && !!currentUser.isAdmin) {
+      this.setState({
+        user: {
+          id: found._id,
+          userName: found.userName,
+          name: found.name,
+          email: found.email,
+        },
+        showUser: true
+      });
     }
   }
 
-  onKeyPress(event) {
-    if (event.which === 13 /* prevent form submit on key Enter */) {
-      event.preventDefault();
+  handleDelete(event, id) {
+    event.preventDefault();
+    const { deleting } = this.state;
+    if (!!id && !deleting) {
+      this.setState({
+        deleting: true
+      }, () => {
+        const requestOptions = {
+          method: 'DELETE',
+          headers: authHeader()
+        };
+        return fetch(`${config.apiUrl}/user/delete?id=${id}`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            deleting: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getUsers();
+                this.hideModal();
+              });
+            }
+          });
+        }));
+      });
     }
   }
 
@@ -322,8 +357,9 @@ class Settings extends React.Component {
   }
 
   render() {
-    const { menuItem, user, userName, name, isAdmin, sort, submitted, settingsColWidth } = this.state;
-    const { alert, sidemenu, registering, users, userUpdating, userDeleting } = this.props;
+    const { menuItem, currentUser, user, users, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
+    const { sidemenu } = this.props;
+    const alert = this.state.alert.message ? this.state.alert : this.props.alert;
 
     return (
       <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
@@ -349,7 +385,7 @@ class Settings extends React.Component {
                 </button>
           </div>
           <div className="body-section">
-            <div className="row ml-1 mr-1 full-height" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd'}}>
+            <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: 'calc(100% - 40.5px)'}}>
               <div className="table-responsive custom-table-container" >
                 <table className="table table-hover table-bordered table-sm">
                   <thead>
@@ -358,7 +394,7 @@ class Settings extends React.Component {
                           type="text"
                           title="Initials"
                           name="userName"
-                          value={userName}
+                          value={filter.userName}
                           onChange={this.handleChangeHeader}
                           width="10%"
                           sort={sort}
@@ -372,7 +408,7 @@ class Settings extends React.Component {
                           type="text"
                           title="Name"
                           name="name"
-                          value={name}
+                          value={filter.name}
                           onChange={this.handleChangeHeader}
                           width="30%"
                           sort={sort}
@@ -382,10 +418,24 @@ class Settings extends React.Component {
                           setColWidth={this.setColWidth}
                           settingsColWidth={settingsColWidth}
                       />
+                      <HeaderInput
+                          type="text"
+                          title="Email"
+                          name="email"
+                          value={filter.email}
+                          onChange={this.handleChangeHeader}
+                          width="30%"
+                          sort={sort}
+                          toggleSort={this.toggleSort}
+                          index="2"
+                          colDoubleClick={this.colDoubleClick}
+                          setColWidth={this.setColWidth}
+                          settingsColWidth={settingsColWidth}
+                      />
                       <HeaderCheckBox
                           title="Admin"
                           name="isAdmin"
-                          value={isAdmin}
+                          value={filter.isAdmin}
                           onChange={this.handleChangeHeader}
                           width="10%"
                           sort={sort}
@@ -394,16 +444,18 @@ class Settings extends React.Component {
                     </tr>
                   </thead>
                   <tbody className="full-height">
-                    {users.items && this.filterName(users.items).map((u) =>
+                    {users && users.map((u) => //this.filterName(users)
                       <tr key={u._id}>
                         <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.userName}</td>
                         <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.name}</td>
+                        <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.email}</td>
                         <td data-type="checkbox">
                             <TableCheckBoxAdmin
                                 id={u._id}
-                                checked={u.isAdmin}
-                                onChange={this.handleInputChange}
-                                disabled={this.checkBoxDisabled(u,'isAdmin')}
+                                checked={u.isAdmin || false}
+                                refreshStore={this.getUsers}
+                                setAlert={this.setAlert}
+                                disabled={_.isEqual(currentUser.id, u.id) || !currentUser.isAdmin ? true : false}
                                 data-type="checkbox"
                             />
                         </td>
@@ -413,17 +465,29 @@ class Settings extends React.Component {
                 </table>
               </div>
             </div>
+            <div className="row ml-1 mr-1">
+              <nav aria-label="Page navigation example ml-1 mr-1" style={{height: '31.5px'}}>
+                <ul className="pagination" style={{margin: '10px 0px 0px 0px'}}>
+                  <li className="page-item disabled"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>Previous</button></li>
+                  <li className="page-item active"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>1</button></li>
+                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>2</button></li>
+                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>3</button></li>
+                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>Next</button></li> 
+                </ul>
+              </nav>
+              {/* <span className="float-right">toto</span> */}
+            </div>
+            
           </div>
 
           <Modal
-            show={this.state.show}
+            show={showUser}
             hideModal={this.hideModal}
             title={this.state.user.id ? 'Update user' : 'Add user'}
           >
             <div className="col-12">
                   <form
                     name="form"
-                    onKeyPress={this.onKeyPress}
                     onSubmit={this.handleSubmit}
                   >
                     <Input
@@ -432,7 +496,7 @@ class Settings extends React.Component {
                       type="text"
                       value={user.userName}
                       onChange={this.handleChangeUser}
-                      submitted={submitted}
+                      submitted={upserting}
                       inline={false}
                       required={true}
                     />
@@ -442,7 +506,7 @@ class Settings extends React.Component {
                       type="text"
                       value={user.name}
                       onChange={this.handleChangeUser}
-                      submitted={submitted}
+                      submitted={upserting}
                       inline={false}
                       required={true}
                     />
@@ -452,7 +516,7 @@ class Settings extends React.Component {
                       type="email"
                       value={user.email}
                       onChange={this.handleChangeUser}
-                      submitted={submitted}
+                      submitted={upserting}
                       inline={false}
                       required={true}
                     />
@@ -464,7 +528,7 @@ class Settings extends React.Component {
                         type="password"
                         value={user.password}
                         onChange={this.handleChangeUser}
-                        submitted={submitted}
+                        submitted={upserting}
                         inline={false}
                         required={true}
                       />
@@ -473,16 +537,16 @@ class Settings extends React.Component {
                       <div className="modal-footer">
                       {this.state.user.id ?
                           <div className="row">
-                              <button className="btn btn-leeuwen btn-lg" onClick={(event) => {this.handleDeletUser(event, this.state.user.id)}}>
-                                <span><FontAwesomeIcon icon={userDeleting ? "spinner" : "trash-alt"} className={userDeleting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
+                              <button className="btn btn-leeuwen btn-lg" onClick={(event) => {this.handleDelete(event, this.state.user.id)}}>
+                                <span><FontAwesomeIcon icon={deleting ? "spinner" : "trash-alt"} className={deleting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
                               </button>
                               <button type="submit" className="btn btn-leeuwen-blue btn-lg">
-                                <span><FontAwesomeIcon icon={userUpdating ? "spinner" : "edit"} className={userUpdating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                                <span><FontAwesomeIcon icon={upserting ? "spinner" : "edit"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
                               </button>
                           </div>
                       :
                           <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                            <span><FontAwesomeIcon icon={registering ? "spinner" : "plus"} className={registering ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                            <span><FontAwesomeIcon icon={upserting ? "spinner" : "plus"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
                           </button>
                       }
                       </div>
@@ -496,17 +560,11 @@ class Settings extends React.Component {
 }
 
 function mapStateToProps(state) {
-  const { alert, sidemenu, users } = state;
-  const { userDeleting, userUpdating } = state.users;
-  const { registering } = state.registration;
+  const { alert, sidemenu } = state;
   
   return {
     alert,
-    registering,
     sidemenu,
-    users,
-    userDeleting,
-    userUpdating,
   };
 }
 

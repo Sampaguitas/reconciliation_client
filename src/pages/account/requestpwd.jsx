@@ -1,11 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  userActions,
-  sidemenuActions,
-} from "../../_actions";
+import config from 'config';
+import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
 import logo from "../../_assets/logo.svg";
@@ -16,44 +14,71 @@ class RequestPwd extends Component {
     super(props);
     this.state = {
       email: "",
-      submitted: false,
-      menuItem: ''
+      requesting: false,
+      menuItem: '',
+      alert: {
+        type: '',
+        message: ''
+      }
     };
     this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
+    this.handleRequest = this.handleRequest.bind(this);
   }
 
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch(userActions.logout());
+    localStorage.removeItem('user');
     dispatch(sidemenuActions.restore());
   }
 
-  handleChange(e) {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
+  handleChange(event) {
+    const { name, value } = event.target;
+    this.setState({
+      [name]: value
+    });
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    this.setState({ submitted: true });
-    const { email } = this.state;
-    const { dispatch } = this.props;
-    if (email) {
-      dispatch(userActions.requestPwd(email));
-    }
-  }
-
-  onKeyPress(event) {
-    if (event.which === 13 /* prevent form submit on key Enter */) {
-      event.preventDefault();
+  handleRequest(e) {
+    event.preventDefault();
+    const { email, requesting } = this.state;
+    if (!!email && !requesting) {
+      this.setState({
+        requesting: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({email})
+        };
+        return fetch(`${config.apiUrl}/user/requestPwd`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            requesting: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status === 200 ? 'alert-success' : 'alert-danger',
+                  message: resMsg
+                }
+              });
+            }
+          });
+        }));
+      });
     }
   }
 
   render() {
-    const { alert, requesting, sidemenu } = this.props;
-    const { email, menuItem, submitted } = this.state;
+    const { sidemenu } = this.props;
+    const { email, menuItem, requesting } = this.state;
+    const alert = this.state.alert.message ? this.state.alert : this.props.alert;
     return (
       <Layout sidemenu={sidemenu} menuItem={menuItem}>
             <div
@@ -73,19 +98,18 @@ class RequestPwd extends Component {
                     <p>Please provide your email address and we'll send you instructions on how to change your password.</p>
                     <form
                         name="form"
-                        onKeyPress={this.onKeyPress}
-                        onSubmit={this.handleSubmit}
+                        onSubmit={this.handleRequest}
                     >
                         <InputIcon
-                        title="Email"
-                        name="email"
-                        type="email"
-                        value={email}
-                        onChange={this.handleChange}
-                        placeholder="Email"
-                        icon="user"
-                        submitted={submitted}
-                        autoComplete="email"
+                          title="Email"
+                          name="email"
+                          type="email"
+                          value={email}
+                          onChange={this.handleChange}
+                          placeholder="Email"
+                          icon="user"
+                          requesting={requesting}
+                          autoComplete="email"
                         />
                         <hr />
                         <button type="submit" className="btn btn-leeuwen btn-full btn-lg">
@@ -105,11 +129,9 @@ class RequestPwd extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  const { requesting } = state.requestpwd;
   return {
     alert,
     sidemenu,
-    requesting
   };
 }
 

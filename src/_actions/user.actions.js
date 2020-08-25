@@ -11,8 +11,8 @@ export const userActions = {
     update,
     changePwd,
     setAdmin,
-    requestPwd,
-    resetPwd,
+    // requestPwd,
+    // resetPwd,
     delete: _delete
 };
 
@@ -143,49 +143,49 @@ function setAdmin(user) {
     function failure(error) { return { type: userConstants.SETADMIN_FAILURE, error } }
 }
 
-function requestPwd(email) {
-    return dispatch => {
-        dispatch(request(email));
+// function requestPwd(email) {
+//     return dispatch => {
+//         dispatch(request(email));
 
-        userService.requestPwd(email)
-            .then(
-                response => {
-                    dispatch(success(response)),
-                    dispatch(alertActions.success('Check your email to reset your password'));
-                },
-                error => {
-                    dispatch(failure(error.toString()))
-                    dispatch(alertActions.error(error.toString()));
-                }
-            );
-    };
+//         userService.requestPwd(email)
+//             .then(
+//                 response => {
+//                     dispatch(success(response)),
+//                     dispatch(alertActions.success('Check your email to reset your password'));
+//                 },
+//                 error => {
+//                     dispatch(failure(error.toString()))
+//                     dispatch(alertActions.error(error.toString()));
+//                 }
+//             );
+//     };
 
-    function request(email) { return { type: userConstants.REQUESTPWD_REQUEST, email } }
-    function success(email) { return { type: userConstants.REQUESTPWD_SUCCESS, email } }
-    function failure(email, error) { return { type: userConstants.REQUESTPWD_FAILURE, email, error } }
-}
+//     function request(email) { return { type: userConstants.REQUESTPWD_REQUEST, email } }
+//     function success(email) { return { type: userConstants.REQUESTPWD_SUCCESS, email } }
+//     function failure(email, error) { return { type: userConstants.REQUESTPWD_FAILURE, email, error } }
+// }
 
-function resetPwd(user) {
-    return dispatch => {
-        dispatch(request(user));
+// function resetPwd(user) {
+//     return dispatch => {
+//         dispatch(request(user));
 
-        userService.resetPwd(user)
-            .then(
-                response => {
-                    dispatch(success(response)),
-                    dispatch(alertActions.success('Your Password has been changed'));
-                },
-                error => {
-                    dispatch(failure(error.toString()))
-                    dispatch(alertActions.error(error.toString()));
-                }
-            );
-    };
+//         userService.resetPwd(user)
+//             .then(
+//                 response => {
+//                     dispatch(success(response)),
+//                     dispatch(alertActions.success('Your Password has been changed'));
+//                 },
+//                 error => {
+//                     dispatch(failure(error.toString()))
+//                     dispatch(alertActions.error(error.toString()));
+//                 }
+//             );
+//     };
 
-    function request(user) { return { type: userConstants.REQUESTPWD_REQUEST, user } }
-    function success(user) { return { type: userConstants.REQUESTPWD_SUCCESS, user } }
-    function failure(user, error) { return { type: userConstants.REQUESTPWD_FAILURE, user, error } }
-}
+//     function request(user) { return { type: userConstants.REQUESTPWD_REQUEST, user } }
+//     function success(user) { return { type: userConstants.REQUESTPWD_SUCCESS, user } }
+//     function failure(user, error) { return { type: userConstants.REQUESTPWD_FAILURE, user, error } }
+// }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
 function _delete(id) {

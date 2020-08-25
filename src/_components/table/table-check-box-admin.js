@@ -12,73 +12,73 @@ function logout() {
 class TableCheckBoxAdmin extends Component {
     constructor(props) {
         super(props);
+
         this.state = {
-            user:{
-                id: '',
-                isAdmin: false
-            }
+            checked: false,
+            updating: false
         };
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.setAdmin = this.setAdmin.bind(this);
-        this.handleResponse = this.handleResponse.bind(this);
+
+        this.handleChange = this.handleChange.bind(this);
     }
-    setAdmin(user) {
-        const requestOptions = {
-            method: 'PUT',
-            headers: { ...authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify(user)
-        };
-        return fetch(`${config.apiUrl}/user/setAdmin?id=${user.id}`, requestOptions).then(this.handleResponse);
+
+    componentDidMount() {
+        const { checked } = this.props;
+        this.setState({ checked: checked });
     }
-    
-    handleResponse(response) {
-        return response.text().then(text => {
-            const data = text && JSON.parse(text);
-            if (!response.ok) {
-                if (response.status === 401) {
-                    // auto logout if 401 response returned from api
-                    logout();
-                    location.reload(true);
-                }
-                const error = (data && data.message) || response.statusText;
-                return Promise.reject(error);
-            }
-            return data;
+
+    componentDidUpdate(prevProps, prevState) {
+        const { checked } = this.props;
+        if (checked != prevProps.checked) {
+            this.setState({ checked: checked });
+        }
+    }
+
+    handleChange(event) {
+        event.preventDefault();
+        const { checked } = this.state;
+        const { id, refreshStore, setAlert } = this.props;
+        this.setState({
+            updating: true,
+        }, () => {
+            const requestOptions = {
+                method: 'PUT',
+                headers: { ...authHeader(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, isAdmin: !checked })
+            };
+            return fetch(`${config.apiUrl}/user/setAdmin`, requestOptions)
+            .then(response => response.text().then(text => {
+                this.setState({
+                    updating: false,
+                }, () => {
+                    const data = text && JSON.parse(text);
+                    const resMsg = (data && data.message) || response.statusText;
+                    if (response.status === 401) {
+                        // Unauthorized
+                        localStorage.removeItem('user');
+                        location.reload(true);
+                    } else {
+                        this.setState({
+                            checked: response.status != 200 ? checked : !checked, 
+                        }, () => {
+                            setAlert(response.status != 200 ? 'alert-danger' : 'alert-success', resMsg);
+                            refreshStore();
+                        });
+                    }
+                });
+            }));
         });
     }
 
-    handleInputChange() {
-        const temp_user = {
-            id: this.props.id,
-            isAdmin: !this.state.user.isAdmin
-        };
-        this.setAdmin(temp_user).then(this.setState({
-            user: {
-                id: temp_user.id,
-                isAdmin: temp_user.isAdmin
-            }
-
-        }));
-    }
-
-    componentDidMount(){     
-        this.setState({ 
-            user: {
-                id: this.props.id,
-                isAdmin: this.props.checked
-            }
-        })
-    }
     render(){
-        const { user } = this.state
+        const { checked } = this.state
          const { disabled } = this.props;
         return (
             <label className="fancy-table-check-box-admin" data-type="checkbox">
             <input
                 name="isAdmin"
                 type="checkbox"
-                checked={user.isAdmin}
-                onChange={this.handleInputChange}
+                checked={checked}
+                onChange={event => this.handleChange(event)}
                 disabled={disabled}
                 data-type="checkbox"
             />

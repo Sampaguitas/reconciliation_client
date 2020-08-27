@@ -80,47 +80,6 @@ class Settings extends React.Component {
     this.setColWidth = this.setColWidth.bind(this);
   }
 
-  getUsers() {
-    const { filter, sort } = this.state;
-    this.setState({
-      retrieving: true
-    }, () => {
-      const requestOptions = {
-        method: 'POST',
-        headers: {...authHeader(), 'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          filter: filter,
-          sort: sort 
-        })
-      };
-      return fetch(`${config.apiUrl}/user/findAll`, requestOptions)
-      .then(response => response.text().then(text => {
-        this.setState({
-          retrieving: false,
-        }, () => {
-          const data = text && JSON.parse(text);
-          const resMsg = (data && data.message) || response.statusText;
-          if (response.status === 401) {
-            // Unauthorized
-            localStorage.removeItem('user');
-            location.reload(true);
-          } else if (response.status != 200) {
-            this.setState({
-              alert: {
-                type: 'alert-danger',
-                message: resMsg
-              }
-            });
-          } else {
-            this.setState({
-              users: data.users
-            });
-          }
-        });
-      }));
-    });
-  }
-
   componentDidMount() {
     let currentUser = JSON.parse(localStorage.getItem('user'));
     if (!!currentUser) {
@@ -235,6 +194,51 @@ class Settings extends React.Component {
     });
   }
 
+  getUsers() {
+    const { filter, sort } = this.state;
+    this.setState({
+      retrieving: true
+    }, () => {
+      const requestOptions = {
+        method: 'POST',
+        headers: {...authHeader(), 'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          filter: filter,
+          sort: sort 
+        })
+      };
+      return fetch(`${config.apiUrl}/user/findAll`, requestOptions)
+      .then(response => response.text().then(text => {
+        this.setState({
+          retrieving: false,
+        }, () => {
+          const data = text && JSON.parse(text);
+          const resMsg = (data && data.message) || response.statusText;
+          if (response.status === 401) {
+            // Unauthorized
+            localStorage.removeItem('user');
+            location.reload(true);
+          } else if (response.status != 200) {
+            this.setState({
+              alert: {
+                type: 'alert-danger',
+                message: resMsg
+              }
+            });
+          } else {
+            this.setState({
+              users: data.users
+            });
+          }
+        });
+      }))
+      .catch( () => {
+        localStorage.removeItem('user');
+        location.reload(true);
+      });
+    });
+  }
+
   handleSubmit(event) {
     event.preventDefault();
     const { user, upserting } = this.state;
@@ -263,24 +267,11 @@ class Settings extends React.Component {
               });
             }
           });
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
-      });
-    }
-  }
-
-  handleOnclick(event, id) {
-    event.preventDefault();
-    const { users, currentUser } = this.state;
-    let found = users.find(element => _.isEqual(element._id, id));
-    if (!_.isUndefined(found) && !!currentUser.isAdmin) {
-      this.setState({
-        user: {
-          id: found._id,
-          userName: found.userName,
-          name: found.name,
-          email: found.email,
-        },
-        showUser: true
       });
     }
   }
@@ -319,7 +310,28 @@ class Settings extends React.Component {
               });
             }
           });
-        }));
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  handleOnclick(event, id) {
+    event.preventDefault();
+    const { users, currentUser } = this.state;
+    let found = users.find(element => _.isEqual(element._id, id));
+    if (!_.isUndefined(found) && !!currentUser.isAdmin) {
+      this.setState({
+        user: {
+          id: found._id,
+          userName: found.userName,
+          name: found.name,
+          email: found.email,
+        },
+        showUser: true
       });
     }
   }

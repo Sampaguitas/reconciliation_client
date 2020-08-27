@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-// const InputIcon = (props) => (
 class InputIcon extends Component {
     constructor(props) {
         super(props);

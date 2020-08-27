@@ -10,6 +10,12 @@ class User extends React.Component {
     constructor(props){
         super(props);
         this.state = {
+            user: {
+                name: '',
+                userName: '',
+                email: '',
+                isAdmin: false,
+            },
             stateUser: {
                 oldPassword:'',
                 newPassword:'',
@@ -18,7 +24,7 @@ class User extends React.Component {
                 type: '',
                 message: ''
             },
-            submitted:false,
+            updating: false,
             menuItem: ''
         }
         this.handleClearAlert = this.handleClearAlert.bind(this);
@@ -29,8 +35,15 @@ class User extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
-        dispatch(userActions.getAll());
+        let user = JSON.parse(localStorage.getItem('user'));
+        if (!!user) {
+          this.setState({
+            user: user
+          });
+        } else {
+          localStorage.removeItem('user');
+          location.reload(true);
+        }
     }
 
     handleClearAlert(event){
@@ -61,7 +74,7 @@ class User extends React.Component {
         const { stateUser } = this.state
         const { dispatch } = this.props;
         this.setState({
-            submitted: true
+            updating: true
         });
         if (stateUser.oldPassword && stateUser.newPassword) {
             dispatch(userActions.changePwd(encodeURI(stateUser)));
@@ -80,8 +93,8 @@ class User extends React.Component {
     }
 
     render() {
-        const { alert, sidemenu, user, userUpdating } = this.props;
-        const { menuItem, submitted, stateUser } = this.state
+        const { alert, sidemenu } = this.props;
+        const { user, updating, menuItem, stateUser } = this.state
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
                 {alert.message && 
@@ -101,28 +114,37 @@ class User extends React.Component {
                 </nav>
                 <div id="user" className={alert.message ? "main-section-alert" : "main-section"}>
                     <div className="row">
-                        <div className="col-md-8 col-sm-12 mb-sm-3 pr-md-0">
-                            <div className="card mb-3">
-                                <div className="card-header">User Details</div>
-                                <div className="card-body">
-                                    <address>
-                                    <strong>{user.name}, {user.userName}</strong><br />
-                                    {user.opco}<br />
-                                    {user.email}
-                                    </address>
-                                </div>
-                            </div>
+                        <div className="col-lg-4 col-md-12 mb-3">
                             <div className="card">
-                                <div className="card-header">My Role</div>
+                                <div className="card-header">Profile Info</div>
                                 <div className="card-body">
-                                    <ul>
-                                        { user.isAdmin ? <li>Admin</li> :  <li>Regular User</li> }
-                                    </ul>
+                                    <div className="table-responsive">
+                                        <table className="table table-borderless" style={{textAlign: 'left'}}>
+                                            <tbody>
+                                                <tr>
+                                                    <th>User Name:</th>
+                                                    <td>{user.name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>E-mail:</th>
+                                                    <td>{user.email}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Role:</th>
+                                                    <td>{user.isAdmin ? 'Admin' : 'Regular User'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Initials:</th>
+                                                    <td>{user.userName}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="col-md-4 col-sm-12">
+                        <div className="col-lg-8 col-md-12">
                             <div className="card">
                                 <div className="card-header">Change Password</div>
                                 <div className="card-body">
@@ -136,10 +158,10 @@ class User extends React.Component {
                                             type="password"
                                             value={stateUser.oldPassword}
                                             onChange={this.handleChange}
-                                            submitted={submitted}
+                                            submitted={updating}
                                             inline={false}
                                             required={true}
-                                            autocomplete="current-password"
+                                            autoComplete="current-password"
                                         />
                                         <Input
                                             title="New Password"
@@ -147,14 +169,17 @@ class User extends React.Component {
                                             type="password"
                                             value={stateUser.newPassword}
                                             onChange={this.handleChange}
-                                            submitted={submitted}
+                                            submitted={updating}
                                             inline={false}
                                             required={true}
-                                            autocomplete="new-password"
+                                            autoComplete="new-password"
                                         />
-                                        <button type="submit" className="btn btn-leeuwen-blue btn-full btn-lg">
-                                            <span><FontAwesomeIcon icon={userUpdating ? "spinner" : "hand-point-right"} className={userUpdating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"} />Submit</span>
-                                        </button>
+                                        <div className="col-12 text-right p-0">
+                                            <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                                <span><FontAwesomeIcon icon={updating ? "spinner" : "hand-point-right"} className={updating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"} />Submit</span>
+                                            </button>
+                                        </div>
+                                        
                                     </form>
                                 </div>
                             </div>
@@ -168,14 +193,7 @@ class User extends React.Component {
 
 function mapStateToProps(state) {
     const { alert, sidemenu } = state;
-    const { userUpdating } = state.users;
-    const { user } = state.authentication;
-    return {
-        alert,
-        sidemenu,
-        user,
-        userUpdating,
-    };
+    return { alert, sidemenu };
 }
 
 const connectedUser = connect(mapStateToProps)(User);

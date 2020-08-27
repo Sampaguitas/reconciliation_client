@@ -8,6 +8,8 @@ import { alertActions } from '../_actions';
 // pages
 import { PrivateRoute } from '../_components/routes';
 import { Home } from '../pages/home/home.jsx';
+import { Export } from '../pages/home/export.jsx';
+import { Import } from '../pages/home/import.jsx';
 
 import { NotFound } from '../pages/account/notfound.jsx';
 import { Login } from '../pages/account/login.jsx';
@@ -15,6 +17,7 @@ import { RequestPwd } from '../pages/account/requestpwd';
 import { ResetPwd } from '../pages/account/resetpwd';
 import { User } from '../pages/account/user.jsx';
 import { Settings } from '../pages/account/settings.jsx';
+
 
 // Styles
 import '../_styles/custom-bootsrap.scss';
@@ -49,6 +52,8 @@ class App extends React.Component {
                         <Route path="/requestpwd" component={RequestPwd} user={user}/>
                         <Route path="/resetpwd" component={ResetPwd} user={user}/>
                         <PrivateRoute exact path="/" component={Home} user={user}/>
+                        <PrivateRoute exact path="/export" component={Export} user={user}/>
+                        <PrivateRoute exact path="/import" component={Import} user={user}/>
                         <PrivateRoute path="/user" component={User} user={user}/>
                         <PrivateRoute path="/settings" component={Settings} user={user}/>
                         <Route component={NotFound} user={user}/>

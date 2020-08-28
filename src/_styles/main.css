@@ -191,13 +191,21 @@ h5 {
   font-size: 1em; /* 1.25em 22.4px/16=1.4em */
 }
 
+.table {
+  margin-bottom: 0px;
+}
+
+.table-responsive {
+  margin: 0px;
+}
+
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
   padding: 5px;
-  line-height: 1.42857143;
+  /* line-height: 1.42857143; */
   vertical-align: middle;
   margin: 0px;
   min-width: 10px;
-  height: 24px;
+  height: 33px;
   font-size: 12px;
 }
 

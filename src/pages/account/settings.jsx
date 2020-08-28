@@ -13,6 +13,8 @@ import Input from "../../_components/input";
 import Layout from "../../_components/layout";
 import Modal from "../../_components/modal";
 import _ from 'lodash';
+import Skeleton from 'react-loading-skeleton';
+
 
 function upsertUser(user, create) {
   return new Promise(function(resolve) {
@@ -31,6 +33,10 @@ function upsertUser(user, create) {
       });
     }));
   });
+}
+
+function getPageSize(tableContainer) {
+  return Math.floor((tableContainer.clientHeight - 52.5) / 33);
 }
 
 class Settings extends React.Component {
@@ -61,8 +67,13 @@ class Settings extends React.Component {
       showUser: false,
       menuItem: '',
       settingsColWidth: {},
-      
-      
+      paginate: {
+        pageSize: 0,
+        currentPage: 1,
+        pageLast: 1,
+        totalItems: 0,
+        totalPages: 1,
+      }
     };
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.setAlert = this.setAlert.bind(this);
@@ -78,24 +89,52 @@ class Settings extends React.Component {
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
+    this.generateBody = this.generateBody.bind(this);
   }
 
   componentDidMount() {
+    const { paginate } = this.state;
     let currentUser = JSON.parse(localStorage.getItem('user'));
+    const tableContainer = document.getElementById('table-container');
+
     if (!!currentUser) {
       this.setState({
-        currentUser: currentUser
+        currentUser: currentUser,
+        paginate: {
+          ...paginate,
+          pageSize: getPageSize(tableContainer)
+        }
       }, () => this.getUsers());
     } else {
       localStorage.removeItem('user');
       location.reload(true);
     }
+
+    window.addEventListener('resize', e => this.setState({
+      paginate: {
+        ...paginate,
+        pageSize: getPageSize(tableContainer)
+      }
+    }));
+  }
+
+  componentWillUnmount() {
+    const { paginate } = this.state;
+    window.removeEventListener('resize', e => this.setState({
+      paginate: {
+        ...paginate,
+        pageSize: getPageSize(tableContainer)
+      }
+    }));
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { sort, filter } = this.state;
+    const { sort, filter, paginate } = this.state;
     if (sort != prevState.sort || filter != prevState.filter) {
       this.getUsers();
+    }
+    if (paginate.pageSize != prevState.paginate.pageSize) {
+      console.log(paginate.pageSize);
     }
   }
 
@@ -368,6 +407,44 @@ class Settings extends React.Component {
       });
   }
 
+  generateBody() {
+    const { users, retrieving, currentUser, paginate } = this.state;
+    let tempRows = [];
+    if (!_.isEmpty(users) || !retrieving) {
+      users.map((u) => {
+        tempRows.push(
+          <tr key={u._id}>
+            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.userName}</td>
+            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.name}</td>
+            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.email}</td>
+            <td data-type="checkbox">
+                <TableCheckBoxAdmin
+                    id={u._id}
+                    checked={u.isAdmin || false}
+                    refreshStore={this.getUsers}
+                    setAlert={this.setAlert}
+                    disabled={_.isEqual(currentUser.id, u.id) || !currentUser.isAdmin ? true : false}
+                    data-type="checkbox"
+                />
+            </td>
+          </tr> 
+        );
+      });
+    } else {
+      for (let i = 0; i < paginate.pageSize; i++) {
+        tempRows.push(
+          <tr key={i}>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+          </tr> 
+        );
+      }
+    }
+    return tempRows;
+  }
+
   render() {
     const { menuItem, currentUser, user, users, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
     const { sidemenu } = this.props;
@@ -397,8 +474,8 @@ class Settings extends React.Component {
                 </button>
           </div>
           <div className="body-section">
-            <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: 'calc(100% - 40.5px)'}}>
-              <div className="table-responsive custom-table-container" >
+            <div className="row ml-1 mr-1" style={{height: 'calc(100% - 41.5px)'}}> {/* borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', */}
+              <div id="table-container" className="table-responsive custom-table-container" >
                 <table className="table table-hover table-bordered table-sm">
                   <thead>
                     <tr>
@@ -456,29 +533,13 @@ class Settings extends React.Component {
                     </tr>
                   </thead>
                   <tbody className="full-height">
-                    {users && users.map((u) => //this.filterName(users)
-                      <tr key={u._id}>
-                        <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.userName}</td>
-                        <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.name}</td>
-                        <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.email}</td>
-                        <td data-type="checkbox">
-                            <TableCheckBoxAdmin
-                                id={u._id}
-                                checked={u.isAdmin || false}
-                                refreshStore={this.getUsers}
-                                setAlert={this.setAlert}
-                                disabled={_.isEqual(currentUser.id, u.id) || !currentUser.isAdmin ? true : false}
-                                data-type="checkbox"
-                            />
-                        </td>
-                      </tr>                      
-                    )}
+                    {this.generateBody()}
                   </tbody>
                 </table>
               </div>
             </div>
             <div className="row ml-1 mr-1">
-              <nav aria-label="Page navigation example ml-1 mr-1" style={{height: '31.5px'}}>
+              <nav aria-label="Page navigation example ml-1 mr-1" style={{height: '41.5px'}}>
                 <ul className="pagination" style={{margin: '10px 0px 0px 0px'}}>
                   <li className="page-item disabled"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>Previous</button></li>
                   <li className="page-item active"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>1</button></li>

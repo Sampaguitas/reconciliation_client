@@ -17,13 +17,14 @@ class User extends React.Component {
                 isAdmin: false,
             },
             stateUser: {
-                oldPassword:'',
+                // oldPassword:'',
                 newPassword:'',
             },
             alert: {
                 type: '',
                 message: ''
             },
+            show: false,
             updating: false,
             menuItem: ''
         }
@@ -32,6 +33,7 @@ class User extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.onKeyPress = this.onKeyPress.bind(this);
         this.toggleCollapse = this.toggleCollapse.bind(this);
+        this.togglePassword = this.togglePassword.bind(this);
     }
 
     componentDidMount() {
@@ -69,6 +71,12 @@ class User extends React.Component {
         });
     }
 
+    togglePassword(event) {
+        event.preventDefault();
+        const { show } = this.state;
+        this.setState({show: !show });
+    }
+
     handleSubmit(event){
         event.preventDefault();
         const { stateUser } = this.state
@@ -94,7 +102,7 @@ class User extends React.Component {
 
     render() {
         const { alert, sidemenu } = this.props;
-        const { user, updating, menuItem, stateUser } = this.state
+        const { user, updating, menuItem, stateUser, show } = this.state
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
                 {alert.message && 
@@ -114,66 +122,51 @@ class User extends React.Component {
                 </nav>
                 <div id="user" className={alert.message ? "main-section-alert" : "main-section"}>
                     <div className="row">
-                        <div className="col-lg-4 col-md-12 mb-3">
+                        <div className="col-lg-6 col-md-12 mb-3">
                             <div className="card">
                                 <div className="card-header">Profile Info</div>
-                                <div className="card-body">
-                                    <div className="table-responsive">
-                                        <table className="table table-borderless" style={{textAlign: 'left'}}>
-                                            <tbody>
-                                                <tr>
-                                                    <th>User Name:</th>
-                                                    <td>{user.name}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>E-mail:</th>
-                                                    <td>{user.email}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Role:</th>
-                                                    <td>{user.isAdmin ? 'Admin' : 'Regular User'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Initials:</th>
-                                                    <td>{user.userName}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div className="card-body" style={{height: '98px'}}>
+                                    {/* <h2>Profile Info</h2> */}
+                                    <address style={{fontSize: '14px'}}>
+                                        <strong>{user.name} ({user.userName})</strong>
+                                        <br/>
+                                        <a href={`mailto:${user.email}`}>{user.email}</a>
+                                        <br/>
+                                        {user.isAdmin ? 'Admin' : 'Regular User'}
+                                    </address>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="col-lg-8 col-md-12">
+                        <div className="col-lg-6 col-md-12"> 
                             <div className="card">
                                 <div className="card-header">Change Password</div>
-                                <div className="card-body">
+                                <div className="card-body" style={{height: '98px'}}>
+                                    {/* <h2>Change Password</h2> */}
                                     <form
                                         onKeyPress={this.onKeyPress}
                                         onSubmit={this.handleSubmit}
                                     >
-                                        <Input
-                                            title="Current Password"
-                                            name="oldPassword"
-                                            type="password"
-                                            value={stateUser.oldPassword}
-                                            onChange={this.handleChange}
-                                            submitted={updating}
-                                            inline={false}
-                                            required={true}
-                                            autoComplete="current-password"
-                                        />
-                                        <Input
-                                            title="New Password"
-                                            name="newPassword"
-                                            type="password"
-                                            value={stateUser.newPassword}
-                                            onChange={this.handleChange}
-                                            submitted={updating}
-                                            inline={false}
-                                            required={true}
-                                            autoComplete="new-password"
-                                        />
+                                        <div className="form-group">
+                                            <div className="input-group input-group-lg input-group-sm">
+                                                <input
+                                                    className="form-control"
+                                                    id="newPassword"
+                                                    name="newPassword"
+                                                    type={show ? 'text' : 'password'}
+                                                    value={stateUser.newPassword}
+                                                    onChange={this.handleChange}
+                                                    placeholder="New Password"
+                                                    required={true}
+                                                    autoComplete="new-password"
+                                                />
+                                                <div className="input-group-append">
+                                                    <div type="button" className="input-group-text" onClick={event => this.togglePassword(event)}>
+                                                        <FontAwesomeIcon icon={show ? "eye-slash" : "eye" }/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div className="col-12 text-right p-0">
                                             <button type="submit" className="btn btn-leeuwen-blue btn-lg">
                                                 <span><FontAwesomeIcon icon={updating ? "spinner" : "hand-point-right"} className={updating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"} />Submit</span>

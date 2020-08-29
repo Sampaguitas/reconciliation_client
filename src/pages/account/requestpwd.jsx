@@ -129,10 +129,7 @@ class RequestPwd extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  return {
-    alert,
-    sidemenu,
-  };
+  return { alert, sidemenu };
 }
 
 const connectedRequestPwd = connect(mapStateToProps)(RequestPwd);

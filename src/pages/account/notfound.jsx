@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { 
-  sidemenuActions
-} from "../../_actions";
+import { sidemenuActions } from "../../_actions";
 import Layout from '../../_components/layout';
 import logo from "../../_assets/logo.svg";
 import rdb from "../../_assets/rdb.svg";
@@ -67,10 +65,7 @@ class NotFound extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  return {
-    alert,
-    sidemenu,
-  };
+  return { alert, sidemenu };
 }
 
 const connectedNotFound = connect(mapStateToProps)(NotFound);

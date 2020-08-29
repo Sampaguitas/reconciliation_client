@@ -2,7 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { sidemenuActions, userActions } from '../../_actions';
+import config from 'config';
+import { authHeader } from '../../_helpers';
+import { alertActions, sidemenuActions } from '../../_actions';
 import Input from '../../_components/input';
 import Layout from '../../_components/layout';
 
@@ -16,10 +18,7 @@ class User extends React.Component {
                 email: '',
                 isAdmin: false,
             },
-            stateUser: {
-                // oldPassword:'',
-                newPassword:'',
-            },
+            newPassword: '',
             alert: {
                 type: '',
                 message: ''
@@ -58,17 +57,11 @@ class User extends React.Component {
             message: ''
           }
         }, () => dispatch(alertActions.clear()));
-      }
+    }
 
     handleChange(event){
-        const { name, value } = event.target;
-        const { stateUser } = this.state
-        this.setState({
-            stateUser: {
-                ...stateUser,
-                [name]:value
-            }
-        });
+        const { name, type, checked, value } = event.target;
+        this.setState({ [name]: type === 'checkbox' ? checked : value });
     }
 
     togglePassword(event) {
@@ -79,13 +72,41 @@ class User extends React.Component {
 
     handleSubmit(event){
         event.preventDefault();
-        const { stateUser } = this.state
-        const { dispatch } = this.props;
-        this.setState({
-            updating: true
-        });
-        if (stateUser.oldPassword && stateUser.newPassword) {
-            dispatch(userActions.changePwd(encodeURI(stateUser)));
+        const { newPassword } = this.state
+        if (newPassword) {
+            this.setState({
+                updating: true
+                }, () => {
+                const requestOptions = {
+                    method: 'PUT',
+                    headers: {...authHeader(), 'Content-Type': 'application/json'},
+                    body: JSON.stringify({ newPassword: newPassword })
+                };
+                return fetch(`${config.apiUrl}/user/updatePwd`, requestOptions)
+                .then(response => response.text().then(text => {
+                    this.setState({ updating: false }, () => {
+                        const data = text && JSON.parse(text);
+                        const resMsg = (data && data.message) || response.statusText;
+                        if (response.status === 401) {
+                            // Unauthorized
+                            localStorage.removeItem('user');
+                            location.reload(true);
+                        } else {
+                            this.setState({
+                                newPassword: '',
+                                alert: {
+                                    type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                                    message: resMsg
+                                }
+                            });
+                        }
+                    });
+                }))
+                .catch( () => {
+                    localStorage.removeItem('user');
+                    location.reload(true);
+                });
+            });
         }
     }
 
@@ -101,8 +122,9 @@ class User extends React.Component {
     }
 
     render() {
-        const { alert, sidemenu } = this.props;
-        const { user, updating, menuItem, stateUser, show } = this.state
+        const { sidemenu } = this.props;
+        const { user, updating, menuItem, newPassword, show } = this.state;
+        const alert = this.state.alert.message ? this.state.alert : this.props.alert;
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
                 {alert.message && 
@@ -154,7 +176,7 @@ class User extends React.Component {
                                                     id="newPassword"
                                                     name="newPassword"
                                                     type={show ? 'text' : 'password'}
-                                                    value={stateUser.newPassword}
+                                                    value={newPassword}
                                                     onChange={this.handleChange}
                                                     placeholder="New Password"
                                                     required={true}

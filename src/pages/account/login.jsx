@@ -75,6 +75,9 @@ class Login extends Component {
               });
             }
           });
+        }).catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         }));
       });
     }
@@ -153,10 +156,7 @@ class Login extends Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  return {
-    alert,
-    sidemenu,
-  };
+  return { alert, sidemenu };
 }
 
 const connectedLogin = connect(mapStateToProps)(Login);

@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import config from 'config';
 import { authHeader } from '../../_helpers';
-import {  alertActions, sidemenuActions, userActions } from "../../_actions";
+import {  alertActions, sidemenuActions } from "../../_actions";
 import { doesMatch, arraySorted, copyObject } from '../../_functions';
 import HeaderCheckBox from "../../_components/table/header-check-box";
 import HeaderInput from "../../_components/table/header-input";
@@ -70,9 +70,8 @@ class Settings extends React.Component {
       paginate: {
         pageSize: 0,
         currentPage: 1,
-        pageLast: 1,
+        pageLast: 5,
         totalItems: 0,
-        totalPages: 1,
       }
     };
     this.handleClearAlert = this.handleClearAlert.bind(this);
@@ -90,6 +89,7 @@ class Settings extends React.Component {
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
     this.generateBody = this.generateBody.bind(this);
+    this.changePage = this.changePage.bind(this);
   }
 
   componentDidMount() {
@@ -130,11 +130,8 @@ class Settings extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { sort, filter, paginate } = this.state;
-    if (sort != prevState.sort || filter != prevState.filter) {
+    if (sort != prevState.sort || filter != prevState.filter || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getUsers();
-    }
-    if (paginate.pageSize != prevState.paginate.pageSize) {
-      console.log(paginate.pageSize);
     }
   }
 
@@ -233,49 +230,63 @@ class Settings extends React.Component {
     });
   }
 
-  getUsers() {
-    const { filter, sort } = this.state;
-    this.setState({
-      retrieving: true
-    }, () => {
-      const requestOptions = {
-        method: 'POST',
-        headers: {...authHeader(), 'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          filter: filter,
-          sort: sort 
-        })
-      };
-      return fetch(`${config.apiUrl}/user/findAll`, requestOptions)
-      .then(response => response.text().then(text => {
-        this.setState({
-          retrieving: false,
-        }, () => {
-          const data = text && JSON.parse(text);
-          const resMsg = (data && data.message) || response.statusText;
-          if (response.status === 401) {
-            // Unauthorized
-            localStorage.removeItem('user');
-            location.reload(true);
-          } else if (response.status != 200) {
-            this.setState({
-              alert: {
-                type: 'alert-danger',
-                message: resMsg
-              }
-            });
-          } else {
-            this.setState({
-              users: data.users
-            });
-          }
+  getUsers(nextPage) {
+    const { filter, sort, paginate } = this.state;
+    if (!!paginate.pageSize) {
+      this.setState({
+        retrieving: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: {...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            filter: filter,
+            sort: sort,
+            nextPage: nextPage,
+            pageSize: paginate.pageSize
+          })
+        };
+        return fetch(`${config.apiUrl}/user/findAll`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            retrieving: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else if (response.status != 200) {
+              this.setState({
+                alert: {
+                  type: 'alert-danger',
+                  message: resMsg
+                }
+              });
+            } else {
+              this.setState({
+                users: data.users,
+                paginate: {
+                  ...paginate,
+                  currentPage: data.currentPage,
+                  totalItems: data.totalItems,
+                  pageLast: data.pageLast
+                }
+              }, () => console.log({
+                  currentPage: data.currentPage,
+                  totalItems: data.totalItems,
+                  pageLast: data.pageLast
+                }));
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
-      }))
-      .catch( () => {
-        localStorage.removeItem('user');
-        location.reload(true);
       });
-    });
+    }
   }
 
   handleSubmit(event) {
@@ -445,8 +456,17 @@ class Settings extends React.Component {
     return tempRows;
   }
 
+  changePage(event, nextPage) {
+    event.preventDefault();
+    const { paginate } = this.state;
+    if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
+      this.getUsers(nextPage);
+    }
+  }
+
   render() {
     const { menuItem, currentUser, user, users, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
+    const { pageSize, currentPage, pageLast, totalItems, } = this.state.paginate;
     const { sidemenu } = this.props;
     const alert = this.state.alert.message ? this.state.alert : this.props.alert;
 
@@ -539,13 +559,17 @@ class Settings extends React.Component {
               </div>
             </div>
             <div className="row ml-1 mr-1">
-              <nav aria-label="Page navigation example ml-1 mr-1" style={{height: '41.5px'}}>
-                <ul className="pagination" style={{margin: '10px 0px 0px 0px'}}>
-                  <li className="page-item disabled"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>Previous</button></li>
-                  <li className="page-item active"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>1</button></li>
-                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>2</button></li>
-                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>3</button></li>
-                  <li className="page-item"><button className="page-link" style={{height: '31.5px', padding: '6px 12px 6px 12px'}}>Next</button></li> 
+              <nav aria-label="Page navigation ml-1 mr-1" style={{height: '41.5px'}}>
+                <ul className="pagination">
+                  <li className={currentPage === 1 ? "page-item disabled" : "page-item"}>
+                    <button className="page-link" onClick={event => this.changePage(event, currentPage - 1)}>Previous</button>
+                  </li>
+                  <li className="page-item active"><button className="page-link" >1</button></li>
+                  <li className="page-item"><button className="page-link" >2</button></li>
+                  <li className="page-item"><button className="page-link" >3</button></li>
+                  <li className={currentPage === pageLast ? "page-item disabled" : "page-item"}>
+                    <button className="page-link" onClick={event => this.changePage(event, currentPage + 1)}>Next</button>
+                  </li> 
                 </ul>
               </nav>
               {/* <span className="float-right">toto</span> */}
@@ -635,10 +659,7 @@ class Settings extends React.Component {
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
   
-  return {
-    alert,
-    sidemenu,
-  };
+  return { alert, sidemenu };
 }
 
 const connectedSettings = connect(mapStateToProps)(Settings);

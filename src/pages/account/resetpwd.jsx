@@ -91,6 +91,9 @@ class ResetPwd extends React.Component {
               });
             }
           });
+        }).catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         }));
       });
     }
@@ -150,10 +153,7 @@ class ResetPwd extends React.Component {
 
 function mapStateToProps(state) {
   const { alert, sidemenu } = state;
-  return {
-    alert,
-    sidemenu,
-  };
+  return { alert, sidemenu };
 }
 
 const connectedResetPwd = connect(mapStateToProps)(ResetPwd);

@@ -541,3 +541,14 @@ ol.breadcrumb {
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
+
+
+
+.pagination {
+  margin: 10px 0px 0px 0px;
+}
+
+.page-link {
+  height: 31.5px;
+  padding: 6px 12px 6px 12px;
+}

@@ -2,10 +2,11 @@ import React from "react";
 import { NavLink } from 'react-router-dom';
 import { connect } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Skeleton from 'react-loading-skeleton';
 import config from 'config';
 import { authHeader } from '../../_helpers';
 import {  alertActions, sidemenuActions } from "../../_actions";
-import { doesMatch, arraySorted, copyObject } from '../../_functions';
+import { copyObject, getPageSize } from '../../_functions';
 import HeaderCheckBox from "../../_components/table/header-check-box";
 import HeaderInput from "../../_components/table/header-input";
 import TableCheckBoxAdmin from "../../_components/table/table-check-box-admin";
@@ -13,8 +14,6 @@ import Input from "../../_components/input";
 import Layout from "../../_components/layout";
 import Modal from "../../_components/modal";
 import _ from 'lodash';
-import Skeleton from 'react-loading-skeleton';
-
 
 function upsertUser(user, create) {
   return new Promise(function(resolve) {
@@ -35,9 +34,9 @@ function upsertUser(user, create) {
   });
 }
 
-function getPageSize(tableContainer) {
-  return Math.floor((tableContainer.clientHeight - 52.5) / 33);
-}
+// function getPageSize(tableContainer) {
+//   return Math.floor((tableContainer.clientHeight - 52.5) / 33);
+// }
 
 class Settings extends React.Component {
   constructor(props) {
@@ -79,27 +78,28 @@ class Settings extends React.Component {
     };
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.setAlert = this.setAlert.bind(this);
+    this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
     this.showModal = this.showModal.bind(this);
     this.hideModal = this.hideModal.bind(this);
     this.handleChangeUser = this.handleChangeUser.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
-    this.getUsers = this.getUsers.bind(this);
+    this.getDocuments = this.getDocuments.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
     this.handleOnclick = this.handleOnclick.bind(this);
-    this.toggleCollapse = this.toggleCollapse.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
-    this.generateBody = this.generateBody.bind(this);
     this.changePage = this.changePage.bind(this);
+    this.generateBody = this.generateBody.bind(this);
   }
 
   componentDidMount() {
-    const { paginate } = this.state;
+    const { dispatch } = this.props;
+    const { menuItem, paginate } = this.state;
     let currentUser = JSON.parse(localStorage.getItem('user'));
     const tableContainer = document.getElementById('table-container');
-
+    dispatch(sidemenuActions.select(menuItem));
     if (!!currentUser) {
       this.setState({
         currentUser: currentUser,
@@ -107,7 +107,7 @@ class Settings extends React.Component {
           ...paginate,
           pageSize: getPageSize(tableContainer)
         }
-      }, () => this.getUsers());
+      }, () => this.getDocuments());
     } else {
       localStorage.removeItem('user');
       location.reload(true);
@@ -134,7 +134,7 @@ class Settings extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const { sort, filter, paginate } = this.state;
     if (sort != prevState.sort || filter != prevState.filter || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
-      this.getUsers();
+      this.getDocuments();
     }
   }
 
@@ -157,6 +157,11 @@ class Settings extends React.Component {
         message: message
       }
     })
+  }
+
+  toggleCollapse() {
+    const { dispatch } = this.props;
+    dispatch(sidemenuActions.toggle());
   }
 
   toggleSort(event, name) {
@@ -184,7 +189,7 @@ class Settings extends React.Component {
           }
       });
     }
-}
+  }
 
   showModal() {
     this.setState({
@@ -233,7 +238,7 @@ class Settings extends React.Component {
     });
   }
 
-  getUsers(nextPage) {
+  getDocuments(nextPage) {
     const { filter, sort, paginate } = this.state;
     if (!!paginate.pageSize) {
       this.setState({
@@ -313,7 +318,7 @@ class Settings extends React.Component {
                   message: response.message
                 }
               }, () => {
-                this.getUsers();
+                this.getDocuments();
                 this.hideModal();
               });
             }
@@ -356,7 +361,7 @@ class Settings extends React.Component {
                   message: resMsg
                 }
               }, () => {
-                this.getUsers();
+                this.getDocuments();
                 this.hideModal();
               });
             }
@@ -387,11 +392,6 @@ class Settings extends React.Component {
     }
   }
 
-  toggleCollapse() {
-    const { dispatch } = this.props;
-    dispatch(sidemenuActions.toggle());
-  }
-
   colDoubleClick(event, index) {
     event.preventDefault();
     const { settingsColWidth } = this.state;
@@ -419,6 +419,14 @@ class Settings extends React.Component {
       });
   }
 
+  changePage(event, nextPage) {
+    event.preventDefault();
+    const { paginate } = this.state;
+    if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
+      this.getDocuments(nextPage);
+    }
+  }
+
   generateBody() {
     const { users, retrieving, currentUser, paginate } = this.state;
     let tempRows = [];
@@ -433,7 +441,7 @@ class Settings extends React.Component {
                 <TableCheckBoxAdmin
                     id={u._id}
                     checked={u.isAdmin || false}
-                    refreshStore={this.getUsers}
+                    refreshStore={this.getDocuments}
                     setAlert={this.setAlert}
                     disabled={_.isEqual(currentUser.id, u.id) || !currentUser.isAdmin ? true : false}
                     data-type="checkbox"
@@ -457,17 +465,9 @@ class Settings extends React.Component {
     return tempRows;
   }
 
-  changePage(event, nextPage) {
-    event.preventDefault();
-    const { paginate } = this.state;
-    if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
-      this.getUsers(nextPage);
-    }
-  }
-
   render() {
-    const { menuItem, currentUser, user, users, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
-    const { pageSize, currentPage, pageLast, totalItems, first, second, third} = this.state.paginate;
+    const { menuItem, user, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
+    const { currentPage, pageLast, first, second, third} = this.state.paginate;
     const { sidemenu } = this.props;
     const alert = this.state.alert.message ? this.state.alert : this.props.alert;
 

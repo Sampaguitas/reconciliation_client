@@ -31,6 +31,9 @@ class User extends React.Component {
     }
 
     componentDidMount() {
+        const { dispatch } = this.props;
+        const { menuItem } = this.state;
+        dispatch(sidemenuActions.select(menuItem));
         this.setState({
             loading: true
         }, () => {

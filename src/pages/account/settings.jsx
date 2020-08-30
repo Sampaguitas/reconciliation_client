@@ -70,8 +70,11 @@ class Settings extends React.Component {
       paginate: {
         pageSize: 0,
         currentPage: 1,
-        pageLast: 5,
+        pageLast: 1,
         totalItems: 0,
+        first: 1,
+        second: 2,
+        third: 3
       }
     };
     this.handleClearAlert = this.handleClearAlert.bind(this);
@@ -271,13 +274,12 @@ class Settings extends React.Component {
                   ...paginate,
                   currentPage: data.currentPage,
                   totalItems: data.totalItems,
-                  pageLast: data.pageLast
+                  pageLast: data.pageLast,
+                  first: data.first,
+                  second: data.second,
+                  third: data.third
                 }
-              }, () => console.log({
-                  currentPage: data.currentPage,
-                  totalItems: data.totalItems,
-                  pageLast: data.pageLast
-                }));
+              });
             }
           });
         }))
@@ -293,7 +295,6 @@ class Settings extends React.Component {
     event.preventDefault();
     const { user, upserting } = this.state;
     if ((!!user.id || !!user.password) && !!user.userName && !!user.name && !!user.email && !upserting) {
-      //update
       this.setState({
         upserting: true,
       }, () => {
@@ -466,7 +467,7 @@ class Settings extends React.Component {
 
   render() {
     const { menuItem, currentUser, user, users, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
-    const { pageSize, currentPage, pageLast, totalItems, } = this.state.paginate;
+    const { pageSize, currentPage, pageLast, totalItems, first, second, third} = this.state.paginate;
     const { sidemenu } = this.props;
     const alert = this.state.alert.message ? this.state.alert : this.props.alert;
 
@@ -564,9 +565,9 @@ class Settings extends React.Component {
                   <li className={currentPage === 1 ? "page-item disabled" : "page-item"}>
                     <button className="page-link" onClick={event => this.changePage(event, currentPage - 1)}>Previous</button>
                   </li>
-                  <li className="page-item active"><button className="page-link" >1</button></li>
-                  <li className="page-item"><button className="page-link" >2</button></li>
-                  <li className="page-item"><button className="page-link" >3</button></li>
+                  <li className={`page-item${currentPage === first && " active"}`}><button className="page-link" onClick={event => this.changePage(event, first)}>{first}</button></li>
+                  <li className={`page-item${currentPage === second ? " active": pageLast < 2  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, second)}>{second}</button></li>
+                  <li className={`page-item${currentPage === third ? " active" : pageLast < 3  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, third)}>{third}</button></li>
                   <li className={currentPage === pageLast ? "page-item disabled" : "page-item"}>
                     <button className="page-link" onClick={event => this.changePage(event, currentPage + 1)}>Next</button>
                   </li> 

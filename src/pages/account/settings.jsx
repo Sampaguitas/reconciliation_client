@@ -69,6 +69,9 @@ class Settings extends React.Component {
       paginate: {
         pageSize: 0,
         currentPage: 1,
+        firstItem: 0,
+        lastItem: 0,
+        pageItems: 0,
         pageLast: 1,
         totalItems: 0,
         first: 1,
@@ -278,8 +281,11 @@ class Settings extends React.Component {
                 paginate: {
                   ...paginate,
                   currentPage: data.currentPage,
-                  totalItems: data.totalItems,
+                  firstItem: data.firstItem,
+                  lastItem: data.lastItem,
+                  pageItems: data.pageItems,
                   pageLast: data.pageLast,
+                  totalItems: data.totalItems,
                   first: data.first,
                   second: data.second,
                   third: data.third
@@ -467,7 +473,7 @@ class Settings extends React.Component {
 
   render() {
     const { menuItem, user, filter , sort, showUser, settingsColWidth, upserting, deleting } = this.state;
-    const { currentPage, pageLast, first, second, third} = this.state.paginate;
+    const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
     const { sidemenu } = this.props;
     const alert = this.state.alert.message ? this.state.alert : this.props.alert;
 
@@ -559,21 +565,23 @@ class Settings extends React.Component {
                 </table>
               </div>
             </div>
-            <div className="row ml-1 mr-1">
-              <nav aria-label="Page navigation ml-1 mr-1" style={{height: '41.5px'}}>
-                <ul className="pagination">
-                  <li className={currentPage === 1 ? "page-item disabled" : "page-item"}>
-                    <button className="page-link" onClick={event => this.changePage(event, currentPage - 1)}>Previous</button>
-                  </li>
-                  <li className={`page-item${currentPage === first && " active"}`}><button className="page-link" onClick={event => this.changePage(event, first)}>{first}</button></li>
-                  <li className={`page-item${currentPage === second ? " active": pageLast < 2  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, second)}>{second}</button></li>
-                  <li className={`page-item${currentPage === third ? " active" : pageLast < 3  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, third)}>{third}</button></li>
-                  <li className={currentPage === pageLast ? "page-item disabled" : "page-item"}>
-                    <button className="page-link" onClick={event => this.changePage(event, currentPage + 1)}>Next</button>
-                  </li> 
-                </ul>
-              </nav>
-              {/* <span className="float-right">toto</span> */}
+            <div className="row ml-1 mr-1" style={{height: '41.5px', marginTop: '10px'}}>
+              <div className="col" style={{height: '31.5px', padding: '0px'}}>
+                <nav aria-label="Page navigation" style={{height: '31.5px'}}>
+                  <ul className="pagination">
+                    <li className={currentPage === 1 ? "page-item disabled" : "page-item"}>
+                      <button className="page-link" onClick={event => this.changePage(event, currentPage - 1)}>Previous</button>
+                    </li>
+                    <li className={`page-item${currentPage === first && " active"}`}><button className="page-link" onClick={event => this.changePage(event, first)}>{first}</button></li>
+                    <li className={`page-item${currentPage === second ? " active": pageLast < 2  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, second)}>{second}</button></li>
+                    <li className={`page-item${currentPage === third ? " active" : pageLast < 3  && " disabled"}`}><button className="page-link" onClick={event => this.changePage(event, third)}>{third}</button></li>
+                    <li className={currentPage === pageLast ? "page-item disabled" : "page-item"}>
+                      <button className="page-link" onClick={event => this.changePage(event, currentPage + 1)}>Next</button>
+                    </li> 
+                  </ul>
+                </nav>
+              </div>
+              <div className="col text-right" style={{height: '31.5px', padding: '0px'}}>Displaying<b> {firstItem} - {lastItem} </b><i>({pageItems})</i> entries out of {totalItems}</div>
             </div>
             
           </div>

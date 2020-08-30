@@ -199,6 +199,10 @@ h5 {
   margin: 0px;
 }
 
+.table-bordered {
+  border: 1px solid #dee2e6 !important;
+}
+
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
   padding: 5px;
   /* line-height: 1.42857143; */
@@ -545,7 +549,8 @@ ol.breadcrumb {
 
 
 .pagination {
-  margin: 10px 0px 0px 0px;
+  margin: 0px;
+  height: 31.5px;
 }
 
 .page-link {

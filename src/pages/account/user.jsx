@@ -2,49 +2,70 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Skeleton from 'react-loading-skeleton';
 import config from 'config';
 import { authHeader } from '../../_helpers';
 import { alertActions, sidemenuActions } from '../../_actions';
-import Input from '../../_components/input';
 import Layout from '../../_components/layout';
 
 class User extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            user: {
-                name: '',
-                userName: '',
-                email: '',
-                isAdmin: false,
-            },
+            user: {},
             newPassword: '',
             alert: {
                 type: '',
                 message: ''
             },
             show: false,
+            loading: false,
             updating: false,
             menuItem: ''
         }
         this.handleClearAlert = this.handleClearAlert.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.onKeyPress = this.onKeyPress.bind(this);
         this.toggleCollapse = this.toggleCollapse.bind(this);
         this.togglePassword = this.togglePassword.bind(this);
     }
 
     componentDidMount() {
-        let user = JSON.parse(localStorage.getItem('user'));
-        if (!!user) {
-          this.setState({
-            user: user
-          });
-        } else {
-          localStorage.removeItem('user');
-          location.reload(true);
-        }
+        this.setState({
+            loading: true
+        }, () => {
+            const requestOptions = {
+                method: 'GET',
+                headers: {...authHeader(), 'Content-Type': 'application/json'},
+            };
+            return fetch(`${config.apiUrl}/user/findOne`, requestOptions)
+            .then(response => response.text().then(text => {
+                this.setState({
+                    loading: false,
+                }, () => {
+                    const data = text && JSON.parse(text);
+                    const resMsg = (data && data.message) || response.statusText;
+                    if (response.status === 401) {
+                    localStorage.removeItem('user');
+                    location.reload(true);
+                        } else if (response.status != 200) {
+                        this.setState({
+                            alert: {
+                                type: 'alert-danger',
+                                message: resMsg
+                            }
+                        });
+                    } else {
+                        this.setState({
+                            user: data.user
+                        });
+                    }
+                });
+            }).catch( () => {
+                localStorage.removeItem('user');
+                location.reload(true);
+            }));
+        });
     }
 
     handleClearAlert(event){
@@ -109,12 +130,6 @@ class User extends React.Component {
             });
         }
     }
-
-    onKeyPress(event) {
-        if (event.which === 13 /* prevent form submit on key Enter */) {
-          event.preventDefault();
-        }
-    }
     
     toggleCollapse() {
         const { dispatch } = this.props;
@@ -148,13 +163,12 @@ class User extends React.Component {
                             <div className="card">
                                 <div className="card-header">Profile Info</div>
                                 <div className="card-body" style={{height: '98px'}}>
-                                    {/* <h2>Profile Info</h2> */}
                                     <address style={{fontSize: '14px'}}>
-                                        <strong>{user.name} ({user.userName})</strong>
+                                        <strong>{!user.hasOwnProperty('name') ?  <Skeleton/> : `${user.name}(${user.userName})`} </strong>
                                         <br/>
-                                        <a href={`mailto:${user.email}`}>{user.email}</a>
+                                        {!user.hasOwnProperty('email') ? <Skeleton/> : <a href={`mailto:${user.email}`}>{user.email}</a>}
                                         <br/>
-                                        {user.isAdmin ? 'Admin' : 'Regular User'}
+                                        {!user.hasOwnProperty('isAdmin') ? <Skeleton/> : user.isAdmin ? 'Admin' : 'Regular User'}
                                     </address>
                                 </div>
                             </div>
@@ -164,9 +178,7 @@ class User extends React.Component {
                             <div className="card">
                                 <div className="card-header">Change Password</div>
                                 <div className="card-body" style={{height: '98px'}}>
-                                    {/* <h2>Change Password</h2> */}
                                     <form
-                                        onKeyPress={this.onKeyPress}
                                         onSubmit={this.handleSubmit}
                                     >
                                         <div className="form-group">

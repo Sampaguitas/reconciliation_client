@@ -2,84 +2,80 @@ import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
-// export const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-// // export const options = Intl.DateTimeFormat(locale, {'year': 'numeric', 'month': '2-digit', day: '2-digit'})
-// export const options = {'year': 'numeric', 'month': '2-digit', day: '2-digit', timeZone: 'GMT'};
-// // export const myLocale = Intl.DateTimeFormat(locale, options);
+export const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+export const options = {'year': 'numeric', 'month': '2-digit', day: '2-digit', timeZone: 'GMT'};
+export const myLocale = Intl.DateTimeFormat(locale, options);
 
-// export function getDateFormat() {
-//     let tempDateFormat = ''
-//     Intl.DateTimeFormat(locale, options).formatToParts().map(function (element) {
-//         switch(element.type) {
-//             case 'month': 
-//                 tempDateFormat = tempDateFormat + 'MM';
-//                 break;
-//             case 'literal': 
-//                 tempDateFormat = tempDateFormat + element.value;
-//                 break;
-//             case 'day': 
-//                 tempDateFormat = tempDateFormat + 'DD';
-//                 break;
-//             case 'year': 
-//                 tempDateFormat = tempDateFormat + 'YYYY';
-//                 break;
-//         }
-//     });
-//     return tempDateFormat;
-// }
+export function getDateFormat() {
+    let tempDateFormat = ''
+    Intl.DateTimeFormat(locale, options).formatToParts().map(function (element) {
+        switch(element.type) {
+            case 'month': 
+                tempDateFormat = tempDateFormat + 'MM';
+                break;
+            case 'literal': 
+                tempDateFormat = tempDateFormat + element.value;
+                break;
+            case 'day': 
+                tempDateFormat = tempDateFormat + 'DD';
+                break;
+            case 'year': 
+                tempDateFormat = tempDateFormat + 'YYYY';
+                break;
+        }
+    });
+    return tempDateFormat;
+}
 
-// export function getLiteral() {
-//     let firstLiteral = Intl.DateTimeFormat(locale, options).formatToParts().find(function (element) {
-//       return element.type === 'literal';
-//     });
-//     if (firstLiteral) {
-//       return firstLiteral.value;
-//     } else {
-//       return '/';
-//     }
-// };
+export function getLiteral() {
+    let firstLiteral = Intl.DateTimeFormat(locale, options).formatToParts().find(function (element) {
+      return element.type === 'literal';
+    });
+    if (firstLiteral) {
+      return firstLiteral.value;
+    } else {
+      return '/';
+    }
+};
 
-// export function StirngToCache(fieldValue, myDateFormat) {
-//     if (!!fieldValue) {
-//         let separator = getLiteral();
-//         let cache = myDateFormat.replace('DD','00').replace('MM', '00').replace('YYYY', (new Date()).getFullYear()).split(separator);
-//         let valueArray = fieldValue.split(separator);
-//         return cache.reduce(function(acc, cur, idx) {
-//             if (valueArray.length > idx) {
-//               let curChars = cur.split("");
-//                 let valueChars = valueArray[idx].split("");
-//               let tempArray = curChars.reduce(function(accChar, curChar, idxChar) {
-//                   if (valueChars.length >= (curChars.length - idxChar)) {
-//                     accChar += valueChars[valueChars.length - curChars.length + idxChar];
-//                   } else {
-//                     accChar += curChar;
-//                   }
-//                 return accChar;
-//               }, '')
-//               acc.push(tempArray);
-//             } else {
-//               acc.push(cur);
-//             }
-//             return acc;
-//           }, []).join(separator);
-//     } else {
-//         return fieldValue;
-//     } 
-// }
+export function StirngToCache(fieldValue, myDateFormat) {
+    if (!!fieldValue) {
+        let separator = getLiteral();
+        let cache = myDateFormat.replace('DD','00').replace('MM', '00').replace('YYYY', (new Date()).getFullYear()).split(separator);
+        let valueArray = fieldValue.split(separator);
+        return cache.reduce(function(acc, cur, idx) {
+            if (valueArray.length > idx) {
+              let curChars = cur.split("");
+                let valueChars = valueArray[idx].split("");
+              let tempArray = curChars.reduce(function(accChar, curChar, idxChar) {
+                  if (valueChars.length >= (curChars.length - idxChar)) {
+                    accChar += valueChars[valueChars.length - curChars.length + idxChar];
+                  } else {
+                    accChar += curChar;
+                  }
+                return accChar;
+              }, '')
+              acc.push(tempArray);
+            } else {
+              acc.push(cur);
+            }
+            return acc;
+          }, []).join(separator);
+    } else {
+        return fieldValue;
+    } 
+}
 
-// export function StringToType (fieldValue, fieldType, myDateFormat) {
-//     if (fieldValue) {
-//         switch (fieldType) {
-//             case 'Date':
-//             case 'date': return moment.utc(StirngToCache(fieldValue, myDateFormat), myDateFormat).toDate();
-//             // case 'Number':
-//             // case 'number': return Number(fieldValue);
-//             default: return fieldValue;
-//         }
-//     } else {
-//         return '';
-//     }
-// }
+export function StringToType(fieldValue, fieldType, myDateFormat) {
+    if (fieldValue) {
+        switch (fieldType) {
+            case 'date': return moment.utc(StirngToCache(fieldValue, myDateFormat), myDateFormat).toDate();
+            default: return fieldValue;
+        }
+    } else {
+        return '';
+    }
+}
 
 // export function StringToDate (fieldValue, fieldType, myDateFormat) {
 //     if (fieldValue) {
@@ -93,37 +89,32 @@ import _ from 'lodash';
 //     }
 // }
 
-// export function isValidFormat (fieldValue, fieldType, myDateFormat) {
-//     if (fieldValue) {
-//         switch (fieldType) {
-//             case 'Date':
-//             case 'date': return moment.utc(StirngToCache(fieldValue, myDateFormat), myDateFormat, true).isValid();
-//             default: return true;
-//         }
-//     } else {
-//         return true;
-//     }
-    
-// }
+export function isValidFormat (fieldValue, fieldType, myDateFormat) {
+    if (fieldValue) {
+        switch (fieldType) {
+            case 'date': return moment.utc(StirngToCache(fieldValue, myDateFormat), myDateFormat, true).isValid();
+            default: return true;
+        }
+    } else {
+        return true;
+    }
+}
 
-// export function TypeToString (fieldValue, fieldType, myDateFormat) {
-//     if (fieldValue) {
-//         switch (fieldType) {
-//             case 'Date':
-//             case 'date': return String(moment.utc(fieldValue).format(myDateFormat));
-//             case 'Number':
-//             case 'number': return String(new Intl.NumberFormat().format(fieldValue));
-//             default: return fieldValue;
-//         }
-//     } else {
-//         return '';
-//     }
-// }
+export function TypeToString (fieldValue, fieldType, myDateFormat) {
+    if (fieldValue) {
+        switch (fieldType) {
+            case 'date': return String(moment.utc(fieldValue).format(myDateFormat));
+            case 'number': return String(new Intl.NumberFormat().format(fieldValue));
+            default: return fieldValue;
+        }
+    } else {
+        return '';
+    }
+}
 
 // export function DateToString (fieldValue, fieldType, myDateFormat) {
 //     if (fieldValue) {
 //         switch (fieldType) {
-//             case 'Date':
 //             case 'date': return String(moment.utc(fieldValue).format(myDateFormat)); 
 //             default: return fieldValue;
 //         }

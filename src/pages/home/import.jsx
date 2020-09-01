@@ -6,284 +6,395 @@ import Skeleton from 'react-loading-skeleton';
 import config from 'config';
 import { authHeader } from '../../_helpers';
 import {  alertActions, sidemenuActions } from '../../_actions';
-import { copyObject, getPageSize } from '../../_functions';
+import {
+  copyObject,
+  getPageSize,
+  StringToType,
+  TypeToString,
+  isValidFormat,
+  getDateFormat
+} from '../../_functions';
+import HeaderCheckBox from '../../_components/table/header-check-box';
 import HeaderInput from '../../_components/table/header-input';
+import Input from "../../_components/input";
 import Layout from '../../_components/layout';
+import Modal from "../../_components/modal";
 import _ from 'lodash';
 
 class Import extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            importDocs: [],
-            filter: {
-                decNr: '',
-                boeNr: '',
-                boeDate: '',
-                decDate: '',
-                grossWeight: '',
-                totPrice: '',
-                status: ''
-            },
-            sort: {
-                name: '',
-                isAscending: true,
-            },
-            alert: {
-                type: '',
-                message: ''
-            },
-            retrieving: false,
-            menuItem: 'Import Documents',
-            settingsColWidth: {},
-            paginate: {
-                pageSize: 0,
-                currentPage: 1,
-                firstItem: 0,
-                lastItem: 0,
-                pageItems: 0,
-                pageLast: 1,
-                totalItems: 0,
-                first: 1,
-                second: 2,
-                third: 3
-            }
+  constructor(props) {
+    super(props);
+    this.state = {
+      importDocs: [],
+      filter: {
+          decNr: '',
+          boeNr: '',
+          boeDate: '',
+          decDate: '',
+          grossWeight: '',
+          totPrice: '',
+          isClosed: ''
+      },
+      sort: {
+          name: '',
+          isAscending: true,
+      },
+      alert: {
+          type: '',
+          message: ''
+      },
+      newDoc: {
+        decNr: '',
+        boeNr: '',
+        boeDate: '',
+        decDate: '',
+        grossWeight: '',
+        totPrice: '',
+      },
+      showCreate: false,
+      creating: false,
+      retrieving: false,
+      menuItem: 'Import Documents',
+      settingsColWidth: {},
+      paginate: {
+        pageSize: 0,
+        currentPage: 1,
+        firstItem: 0,
+        lastItem: 0,
+        pageItems: 0,
+        pageLast: 1,
+        totalItems: 0,
+        first: 1,
+        second: 2,
+        third: 3
+      }
+    };
+    this.handleClearAlert = this.handleClearAlert.bind(this);
+    this.toggleCollapse = this.toggleCollapse.bind(this);
+    this.toggleSort = this.toggleSort.bind(this);
+    this.handleChangeHeader = this.handleChangeHeader.bind(this);
+    this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
+    this.getDocuments = this.getDocuments.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.colDoubleClick = this.colDoubleClick.bind(this);
+    this.setColWidth = this.setColWidth.bind(this);
+    this.changePage = this.changePage.bind(this);
+  }
+
+  componentDidMount() {
+    const { dispatch } = this.props;
+    const { menuItem, paginate } = this.state;
+    const tableContainer = document.getElementById('table-container');
+    dispatch(sidemenuActions.select(menuItem));
+    this.setState({
+      paginate: {
+        ...paginate,
+        pageSize: getPageSize(tableContainer)
+      }
+    }, () => this.getDocuments());
+
+    window.addEventListener('resize', e => this.setState({
+      paginate: {
+        ...paginate,
+        pageSize: getPageSize(tableContainer)
+      }
+    }));
+  }
+
+  componentWillUnmount() {
+    const { paginate } = this.state;
+    window.removeEventListener('resize', e => this.setState({
+      paginate: {
+        ...paginate,
+        pageSize: getPageSize(tableContainer)
+      }
+    }));
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { sort, filter, paginate } = this.state;
+    if (sort != prevState.sort || filter != prevState.filter || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
+      this.getDocuments();
+    }
+  }
+
+  handleClearAlert(event){
+    event.preventDefault;
+    const { dispatch } = this.props;
+    
+    this.setState({
+      alert: {
+        type: '',
+        message: ''
+      }
+    }, () => dispatch(alertActions.clear()));
+  }
+
+  toggleCollapse() {
+    const { dispatch } = this.props;
+    dispatch(sidemenuActions.toggle());
+  }
+
+  toggleSort(event, name) {
+    event.preventDefault();
+    const { sort } = this.state;
+    if (sort.name != name) {
+      this.setState({
+        sort: {
+          name: name,
+          isAscending: true
+        }
+      });
+    } else if (!!sort.isAscending) {
+      this.setState({
+        sort: {
+          name: name,
+          isAscending: false
+        }
+      });
+    } else {
+      this.setState({
+        sort: {
+          name: '',
+          isAscending: true
+        }
+      });
+    }
+  }
+
+  handleChangeHeader(event) {
+    const { filter } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      filter: {
+        ...filter,
+        [name]: value
+      }
+    });
+  }
+
+  handleChangeDoc(event) {
+    const { newDoc } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      newDoc: {
+        ...newDoc,
+        [name]: value
+      }
+    });
+  }
+
+  toggleModal() {
+    console.log('toto');
+    const { showCreate } = this.state;
+    this.setState({
+      showCreate: !showCreate,
+      newDoc: {
+        decNr: '',
+        boeNr: '',
+        boeDate: '',
+        decDate: '',
+        grossWeight: '',
+        totPrice: '',
+      },
+    });
+  }
+
+  getDocuments(nextPage) {
+    const { filter, sort, paginate } = this.state;
+    if (!!paginate.pageSize) {
+      this.setState({
+        retrieving: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: {...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            filter: filter,
+            sort: sort,
+            nextPage: nextPage,
+            pageSize: paginate.pageSize
+          })
         };
-        this.handleClearAlert = this.handleClearAlert.bind(this);
-        this.toggleCollapse = this.toggleCollapse.bind(this);
-        this.toggleSort = this.toggleSort.bind(this);
-        this.handleChangeHeader = this.handleChangeHeader.bind(this);
-        this.getDocuments = this.getDocuments.bind(this);
-        this.colDoubleClick = this.colDoubleClick.bind(this);
-        this.setColWidth = this.setColWidth.bind(this);
-        this.changePage = this.changePage.bind(this);
-    }
-
-    componentDidMount() {
-        const { dispatch } = this.props;
-        const { menuItem, paginate } = this.state;
-        const tableContainer = document.getElementById('table-container');
-        dispatch(sidemenuActions.select(menuItem));
-        this.setState({
-            paginate: {
-              ...paginate,
-              pageSize: getPageSize(tableContainer)
-            }
-        }, () => this.getDocuments());
-
-        window.addEventListener('resize', e => this.setState({
-            paginate: {
-              ...paginate,
-              pageSize: getPageSize(tableContainer)
-            }
-        }));
-    }
-
-    componentWillUnmount() {
-        const { paginate } = this.state;
-        window.removeEventListener('resize', e => this.setState({
-          paginate: {
-            ...paginate,
-            pageSize: getPageSize(tableContainer)
-          }
-        }));
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        const { sort, filter, paginate } = this.state;
-        if (sort != prevState.sort || filter != prevState.filter || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
-          this.getDocuments();
-        }
-    }
-
-    handleClearAlert(event){
-        event.preventDefault;
-        const { dispatch } = this.props;
-        
-        this.setState({
-          alert: {
-            type: '',
-            message: ''
-          }
-        }, () => dispatch(alertActions.clear()));
-    }
-
-    toggleCollapse() {
-        const { dispatch } = this.props;
-        dispatch(sidemenuActions.toggle());
-    }
-
-    toggleSort(event, name) {
-        event.preventDefault();
-        const { sort } = this.state;
-        if (sort.name != name) {
+        return fetch(`${config.apiUrl}/importdoc/findAll`, requestOptions)
+        .then(response => response.text().then(text => {
           this.setState({
-              sort: {
-                  name: name,
-                  isAscending: true
-              }
-          });
-        } else if (!!sort.isAscending) {
-          this.setState({
-              sort: {
-                  name: name,
-                  isAscending: false
-              }
-          });
-        } else {
-          this.setState({
-              sort: {
-                  name: '',
-                  isAscending: true
-              }
-          });
-        }
-    }
-
-    handleChangeHeader(event) {
-        const { filter } = this.state;
-        const { name, value } = event.target;
-        this.setState({
-          filter: {
-            ...filter,
-            [name]: value
-          }
-        });
-    }
-
-    getDocuments(nextPage) {
-        const { filter, sort, paginate } = this.state;
-        if (!!paginate.pageSize) {
-          this.setState({
-            retrieving: true
+            retrieving: false,
           }, () => {
-            const requestOptions = {
-              method: 'POST',
-              headers: {...authHeader(), 'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                filter: filter,
-                sort: sort,
-                nextPage: nextPage,
-                pageSize: paginate.pageSize
-              })
-            };
-            return fetch(`${config.apiUrl}/importdoc/findAll`, requestOptions)
-            .then(response => response.text().then(text => {
-              this.setState({
-                retrieving: false,
-              }, () => {
-                const data = text && JSON.parse(text);
-                const resMsg = (data && data.message) || response.statusText;
-                if (response.status === 401) {
-                  // Unauthorized
-                  localStorage.removeItem('user');
-                  location.reload(true);
-                } else if (response.status != 200) {
-                  this.setState({
-                    alert: {
-                      type: 'alert-danger',
-                      message: resMsg
-                    }
-                  });
-                } else {
-                  this.setState({
-                    importDocs: data.importDocs,
-                    paginate: {
-                        ...paginate,
-                        currentPage: data.currentPage,
-                        firstItem: data.firstItem,
-                        lastItem: data.lastItem,
-                        pageItems: data.pageItems,
-                        pageLast: data.pageLast,
-                        totalItems: data.totalItems,
-                        first: data.first,
-                        second: data.second,
-                        third: data.third
-                    }
-                  });
-                }
-              });
-            }))
-            .catch( () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
-            });
-          });
-        }
-      }
-
-    colDoubleClick(event, index) {
-        event.preventDefault();
-        const { settingsColWidth } = this.state;
-        if (settingsColWidth.hasOwnProperty(index)) {
-            let tempArray = copyObject(settingsColWidth);
-            delete tempArray[index];
-            this.setState({ settingsColWidth: tempArray });
-        } else {
-            this.setState({
-                settingsColWidth: {
-                    ...settingsColWidth,
-                    [index]: 10
+            } else if (response.status != 200) {
+              this.setState({
+                alert: {
+                  type: 'alert-danger',
+                  message: resMsg
                 }
-            });
-        }
-    }
-    
-    setColWidth(index, width) {
-    const { settingsColWidth } = this.state;
-        this.setState({
-            settingsColWidth: {
-                ...settingsColWidth,
-                [index]: width
+              });
+            } else {
+              this.setState({
+                importDocs: data.importDocs,
+                paginate: {
+                    ...paginate,
+                    currentPage: data.currentPage,
+                    firstItem: data.firstItem,
+                    lastItem: data.lastItem,
+                    pageItems: data.pageItems,
+                    pageLast: data.pageLast,
+                    totalItems: data.totalItems,
+                    first: data.first,
+                    second: data.second,
+                    third: data.third
+                }
+              });
             }
-        });
-    }
-
-    changePage(event, nextPage) {
-        event.preventDefault();
-        const { paginate } = this.state;
-        if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
-          this.getUsers(nextPage);
-        }
-    }
-
-    generateBody() {
-        const { importDocs, retrieving, paginate } = this.state;
-        let tempRows = [];
-        if (!_.isEmpty(importDocs) || !retrieving) {
-          importDocs.map((importDoc) => {
-            tempRows.push(
-              <tr key={importDoc._id}>
-                <td className="no-select">{importDoc.decNr}</td>
-                <td className="no-select">{importDoc.boeNr}</td>
-                <td className="no-select">{importDoc.boeDate}</td>
-                <td className="no-select">{importDoc.decDate}</td>
-                <td className="no-select">{importDoc.grossWeight}</td>
-                <td className="no-select">{importDoc.totPrice}</td>
-                <td className="no-select">{importDoc.status}</td>
-              </tr> 
-            );
           });
-        } else {
-          for (let i = 0; i < paginate.pageSize; i++) {
-            tempRows.push(
-              <tr key={i}>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-                <td className="no-select"><Skeleton/></td>
-              </tr> 
-            );
-          }
-        }
-        return tempRows;
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
     }
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    const { newDoc, creating } = this.state;
+    if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
+      this,setState({
+        type: 'alert-danger',
+        message: 'BOE Date does not have a proper Date Format.'
+      });
+    } else if (!isValidFormat(newDoc.decDate, 'date', getDateFormat())) {
+      this,setState({
+        type: 'alert-danger',
+        message: 'DEC Date does not have a proper Date Format.'
+      });
+    } else if (!creating) {
+      this.setState({
+        creating: true,
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            decNr: newDoc.decNr,
+            boeNr: newDoc.boeNr,
+            boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
+            decDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
+            grossWeight: newDoc.grossWeight,
+            totPrice: newDoc.totPrice
+          })
+        };
+        return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            creating: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocuments();
+                // this.toggleModal();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  colDoubleClick(event, index) {
+    event.preventDefault();
+    const { settingsColWidth } = this.state;
+    if (settingsColWidth.hasOwnProperty(index)) {
+        let tempArray = copyObject(settingsColWidth);
+        delete tempArray[index];
+        this.setState({ settingsColWidth: tempArray });
+    } else {
+      this.setState({
+        settingsColWidth: {
+            ...settingsColWidth,
+            [index]: 10
+        }
+      });
+    }
+  }
+    
+  setColWidth(index, width) {
+    const { settingsColWidth } = this.state;
+    this.setState({
+      settingsColWidth: {
+          ...settingsColWidth,
+          [index]: width
+      }
+    });
+  }
+
+  changePage(event, nextPage) {
+    event.preventDefault();
+    const { paginate } = this.state;
+    if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
+      this.getUsers(nextPage);
+    }
+  }
+
+  generateBody() {
+    const { importDocs, retrieving, paginate } = this.state;
+    let tempRows = [];
+    if (!_.isEmpty(importDocs) || !retrieving) {
+      importDocs.map((importDoc) => {
+        tempRows.push(
+          <tr key={importDoc._id}>
+            <td className="no-select">{importDoc.decNr}</td>
+            <td className="no-select">{importDoc.boeNr}</td>
+            <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
+            <td className="no-select">{TypeToString(importDoc.decDate, 'date', getDateFormat())}</td>
+            <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
+            <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
+            <td className="no-select">{importDoc.isClosed ? 'closed' : 'open'}</td>
+          </tr> 
+        );
+      });
+    } else {
+      for (let i = 0; i < paginate.pageSize; i++) {
+        tempRows.push(
+          <tr key={i}>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+          </tr> 
+        );
+      }
+    }
+    return tempRows;
+  }
 
     render() {
-        const { menuItem, filter, sort, settingsColWidth } = this.state;
+        const { menuItem, filter, sort, settingsColWidth, newDoc, showCreate, creating } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -307,7 +418,7 @@ class Import extends React.Component {
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
-                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg">
+                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
                                 <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create BOE</span>
                             </button>
                     </div>
@@ -395,15 +506,14 @@ class Import extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
-                                        <HeaderInput
-                                            type="text"
+                                        <HeaderCheckBox
                                             title="Status"
-                                            name="status"
-                                            value={filter.status}
+                                            name="isClosed"
+                                            value={filter.isClosed}
                                             onChange={this.handleChangeHeader}
+                                            width="10%"
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="6"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -434,8 +544,87 @@ class Import extends React.Component {
                             </div>
                             <div className="col text-right" style={{height: '31.5px', padding: '0px'}}>Displaying<b> {firstItem} - {lastItem} </b><i>({pageItems})</i> entries out of {totalItems}</div>
                         </div>
-                        
                     </div>
+                    <Modal
+                      show={showCreate}
+                      hideModal={this.toggleModal}
+                      title={'Add Import Document'}
+                    >
+                      <div className="col-12">
+                        <form
+                          name="form"
+                          onSubmit={this.handleSubmit}
+                        >
+                          <Input
+                            title="DEC Number"
+                            name="decNr"
+                            type="text"
+                            value={newDoc.decNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="BOE Number"
+                            name="boeNr"
+                            type="text"
+                            value={newDoc.boeNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="BOE Date"
+                            name="boeDate"
+                            type="text"
+                            value={newDoc.boeDate}
+                            onChange={this.handleChangeDoc}
+                            placeholder={getDateFormat()}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="DEC Date"
+                            name="decDate"
+                            type="text"
+                            value={newDoc.decDate}
+                            onChange={this.handleChangeDoc}
+                            placeholder={getDateFormat()}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight"
+                            name="grossWeight"
+                            type="number"
+                            value={newDoc.grossWeight}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Total Price"
+                            name="totPrice"
+                            type="number"
+                            value={newDoc.totPrice}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                            <div className="modal-footer">
+                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
+                                  <span><FontAwesomeIcon icon={creating ? "spinner" : "plus"} className={creating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                                </button>
+                            </div>
+                        </form>
+                      </div>
+                    </Modal>
                 </div>
             </Layout>
         );

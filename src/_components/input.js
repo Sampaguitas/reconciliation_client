@@ -21,7 +21,7 @@ class Input extends Component{
             <div className={'form-group' + (inline ? ' row' : '') + (submitted && required && !value ? ' has-error' : '')}>
                 <label htmlFor={name} className={inline ? "col-sm-2 col-form-label" : ''}>{title}</label>
                 <div className={inline ? "col-sm-10" : ''}>
-                    <div className="input-group input-group-lg">
+                    <div className="input-group input-group-lg input-group-sm">
                         <input
                             className="form-control"
                             id={name}

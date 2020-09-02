@@ -16,6 +16,7 @@ import {
 } from '../../_functions';
 import HeaderCheckBox from '../../_components/table/header-check-box';
 import HeaderInput from '../../_components/table/header-input';
+import HeaderSelect from '../../_components/table/header-select';
 import Input from "../../_components/input";
 import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
@@ -33,7 +34,7 @@ class Import extends React.Component {
           decDate: '',
           grossWeight: '',
           totPrice: '',
-          isClosed: ''
+          isClosed: '',
       },
       sort: {
           name: '',
@@ -371,7 +372,7 @@ class Import extends React.Component {
             <td className="no-select">{TypeToString(importDoc.decDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
-            <td className="no-select">{importDoc.isClosed ? 'closed' : 'open'}</td>
+            <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
           </tr> 
         );
       });
@@ -394,6 +395,10 @@ class Import extends React.Component {
   }
 
     render() {
+        const ArrIsClosed = [
+          { _id: 'true', name: 'Closed'},
+          { _id: 'false', name: 'Open'}
+        ];
         const { menuItem, filter, sort, settingsColWidth, newDoc, showCreate, creating } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
@@ -506,7 +511,7 @@ class Import extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
-                                        <HeaderCheckBox
+                                        {/* <HeaderCheckBox
                                             title="Status"
                                             name="isClosed"
                                             value={filter.isClosed}
@@ -517,7 +522,22 @@ class Import extends React.Component {
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
-                                        />
+                                        /> */}
+                                        <HeaderSelect
+                                            title="Status"
+                                            name="isClosed"
+                                            value={filter.isClosed}
+                                            options={ArrIsClosed}
+                                            optionText="name"
+                                            onChange={this.handleChangeHeader}
+                                            width ="15%"
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="6"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                          />
                                         </tr>
                                     </thead>
                                     <tbody className="full-height">

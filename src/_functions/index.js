@@ -184,39 +184,39 @@ export function TypeToString (fieldValue, fieldType, myDateFormat) {
 //     }
 // }
 
-// export function resolve(path, obj) {
-//     return path.split('.').reduce(function(prev, cur) {
-//         return prev ? prev[cur] : null
-//     }, obj || self)
-// }
+export function resolve(path, obj) {
+    return path.split('.').reduce(function(prev, cur) {
+        return prev ? prev[cur] : null
+    }, obj || self)
+}
 
-// export function arraySorted(array, fieldOne, fieldTwo, fieldThree, fieldFour) {
-//     if (array) {
-//         const newArray = array
-//         newArray.sort(function(a,b){
-//             if (resolve(fieldOne, a) < resolve(fieldOne, b)) {
-//                 return -1;
-//             } else if (resolve(fieldOne, a) > resolve(fieldOne, b)) {
-//                 return 1;
-//             } else if (fieldTwo && resolve(fieldTwo, a) < resolve(fieldTwo, b)) {
-//                 return -1;
-//             } else if (fieldTwo && resolve(fieldTwo, a) > resolve(fieldTwo, b)) {
-//                 return 1;
-//             } else if (fieldThree && resolve(fieldThree, a) < resolve(fieldThree, b)) {
-//                 return -1;
-//             } else if (fieldThree && resolve(fieldThree, a) > resolve(fieldThree, b)) {
-//                 return 1;
-//             } else if (fieldFour && resolve(fieldFour, a) < resolve(fieldFour, b)) {
-//                 return -1;
-//             } else if (fieldFour && resolve(fieldFour, a) > resolve(fieldFour, b)) {
-//                 return 1;
-//             } else {
-//                 return 0;
-//             }
-//         });
-//         return newArray;             
-//     }
-// }
+export function arraySorted(array, fieldOne, fieldTwo, fieldThree, fieldFour) {
+    if (array) {
+        const newArray = array
+        newArray.sort(function(a,b){
+            if (resolve(fieldOne, a) < resolve(fieldOne, b)) {
+                return -1;
+            } else if (resolve(fieldOne, a) > resolve(fieldOne, b)) {
+                return 1;
+            } else if (fieldTwo && resolve(fieldTwo, a) < resolve(fieldTwo, b)) {
+                return -1;
+            } else if (fieldTwo && resolve(fieldTwo, a) > resolve(fieldTwo, b)) {
+                return 1;
+            } else if (fieldThree && resolve(fieldThree, a) < resolve(fieldThree, b)) {
+                return -1;
+            } else if (fieldThree && resolve(fieldThree, a) > resolve(fieldThree, b)) {
+                return 1;
+            } else if (fieldFour && resolve(fieldFour, a) < resolve(fieldFour, b)) {
+                return -1;
+            } else if (fieldFour && resolve(fieldFour, a) > resolve(fieldFour, b)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        return newArray;             
+    }
+}
 
 // export function arrayRemove(arr, value) {
 //     return arr.filter(function(ele){

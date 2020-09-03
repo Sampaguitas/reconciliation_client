@@ -425,7 +425,7 @@ class Import extends React.Component {
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
                             <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create BOE</span>
+                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
                             </button>
                     </div>
                     <div className="body-section">

@@ -583,7 +583,6 @@ class Settings extends React.Component {
               </div>
               <div className="col text-right" style={{height: '31.5px', padding: '0px'}}>Displaying<b> {firstItem} - {lastItem} </b><i>({pageItems})</i> entries out of {totalItems}</div>
             </div>
-            
           </div>
 
           <Modal
@@ -592,71 +591,71 @@ class Settings extends React.Component {
             title={this.state.user.id ? 'Update user' : 'Add user'}
           >
             <div className="col-12">
-                  <form
-                    name="form"
-                    onSubmit={this.handleSubmit}
-                  >
-                    <Input
-                      title="Initials"
-                      name="userName"
-                      type="text"
-                      value={user.userName}
-                      onChange={this.handleChangeUser}
-                      submitted={upserting}
-                      inline={false}
-                      required={true}
-                    />
-                    <Input
-                      title="Full Name"
-                      name="name"
-                      type="text"
-                      value={user.name}
-                      onChange={this.handleChangeUser}
-                      submitted={upserting}
-                      inline={false}
-                      required={true}
-                    />
-                    <Input
-                      title="Email"
-                      name="email"
-                      type="email"
-                      value={user.email}
-                      onChange={this.handleChangeUser}
-                      submitted={upserting}
-                      inline={false}
-                      required={true}
-                    />
-                    {!this.state.user.id &&
-                    <div>
-                      <Input
-                        title="Password"
-                        name="password"
-                        type="password"
-                        value={user.password}
-                        onChange={this.handleChangeUser}
-                        submitted={upserting}
-                        inline={false}
-                        required={true}
-                      />
-                    </div>
-                    }
-                      <div className="modal-footer">
-                      {this.state.user.id ?
-                          <div className="row">
-                              <button className="btn btn-leeuwen btn-lg" onClick={(event) => {this.handleDelete(event, this.state.user.id)}}>
-                                <span><FontAwesomeIcon icon={deleting ? "spinner" : "trash-alt"} className={deleting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
-                              </button>
-                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
-                                <span><FontAwesomeIcon icon={upserting ? "spinner" : "edit"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
-                              </button>
-                          </div>
-                      :
-                          <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                            <span><FontAwesomeIcon icon={upserting ? "spinner" : "plus"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+              <form
+                name="form"
+                onSubmit={this.handleSubmit}
+              >
+                <Input
+                  title="Initials"
+                  name="userName"
+                  type="text"
+                  value={user.userName}
+                  onChange={this.handleChangeUser}
+                  submitted={upserting}
+                  inline={false}
+                  required={true}
+                />
+                <Input
+                  title="Full Name"
+                  name="name"
+                  type="text"
+                  value={user.name}
+                  onChange={this.handleChangeUser}
+                  submitted={upserting}
+                  inline={false}
+                  required={true}
+                />
+                <Input
+                  title="Email"
+                  name="email"
+                  type="email"
+                  value={user.email}
+                  onChange={this.handleChangeUser}
+                  submitted={upserting}
+                  inline={false}
+                  required={true}
+                />
+                {!this.state.user.id &&
+                <div>
+                  <Input
+                    title="Password"
+                    name="password"
+                    type="password"
+                    value={user.password}
+                    onChange={this.handleChangeUser}
+                    submitted={upserting}
+                    inline={false}
+                    required={true}
+                  />
+                </div>
+                }
+                  <div className="modal-footer">
+                  {this.state.user.id ?
+                      <div className="row">
+                          <button className="btn btn-leeuwen btn-lg" onClick={(event) => {this.handleDelete(event, this.state.user.id)}}>
+                            <span><FontAwesomeIcon icon={deleting ? "spinner" : "trash-alt"} className={deleting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
                           </button>
-                      }
+                          <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                            <span><FontAwesomeIcon icon={upserting ? "spinner" : "edit"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                          </button>
                       </div>
-                  </form>
+                  :
+                      <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
+                        <span><FontAwesomeIcon icon={upserting ? "spinner" : "plus"} className={upserting ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                      </button>
+                  }
+                  </div>
+              </form>
             </div>
           </Modal>
         </div>

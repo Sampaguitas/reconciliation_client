@@ -215,6 +215,7 @@ class Import extends React.Component {
             filter: filter,
             sort: sort,
             nextPage: nextPage,
+            dateFormat: getDateFormat(),
             pageSize: paginate.pageSize
           })
         };

@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
+import queryString from 'query-string';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Skeleton from 'react-loading-skeleton';
 import config from 'config';
-import { authHeader } from '../../_helpers';
+import { authHeader, history } from '../../_helpers';
 import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   copyObject,
@@ -22,18 +23,28 @@ import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
 import _ from 'lodash';
 
-class Export extends React.Component {
+class ImportItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      importDocs: [],
+      importDoc: {
+        decNr: '',
+        boeNr: '',
+        boeDate: '',
+        grossWeight: '',
+        totPrice: '',
+        isClosed: '',
+        items: [],
+      },
       filter: {
-          invNr: '',
-          decNr: '',
-          boeNr: '',
-          boeDate: '',
-          grossWeight: '',
-          totPrice: '',
+        srNr: '',
+        desc: '',
+        invNr: '',
+        unitWeight: '',
+        unitPrice: '',
+        hsCode: '',
+        country: '',
+        documentId: ''
       },
       sort: {
           name: '',
@@ -43,18 +54,19 @@ class Export extends React.Component {
           type: '',
           message: ''
       },
-      newDoc: {
+      newItem: {
+        srNr: '',
+        desc: '',
         invNr: '',
-        decNr: '',
-        boeNr: '',
-        boeDate: '',
-        grossWeight: '',
-        totPrice: '',
+        unitWeight: '',
+        unitPrice: '',
+        hsCode: '',
+        country: '',
       },
       showCreate: false,
       creating: false,
       retrieving: false,
-      menuItem: 'Export Documents',
+      menuItem: 'Import Documents',
       settingsColWidth: {},
       paginate: {
         pageSize: 0,
@@ -73,9 +85,9 @@ class Export extends React.Component {
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
-    this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.handleChangeItem = this.handleChangeItem.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
-    this.getDocuments = this.getDocuments.bind(this);
+    this.getDocument = this.getDocument.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -84,15 +96,22 @@ class Export extends React.Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    const { menuItem, paginate } = this.state;
+    const { filter, menuItem, paginate } = this.state;
     const tableContainer = document.getElementById('table-container');
+    var qs = queryString.parse(window.location.search);
     dispatch(sidemenuActions.select(menuItem));
+    console.log(qs.id);
     this.setState({
+      filter: {
+        ...filter,
+        documentId: qs.id
+      },
       paginate: {
         ...paginate,
         pageSize: getPageSize(tableContainer)
       }
-    }, () => this.getDocuments());
+    }, () => this.getDocument());
+    // });
 
     window.addEventListener('resize', e => this.setState({
       paginate: {
@@ -114,8 +133,8 @@ class Export extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { sort, filter, paginate } = this.state;
-    if (sort != prevState.sort || filter != prevState.filter || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
-      this.getDocuments();
+    if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
+      this.getDocument();
     }
   }
 
@@ -174,12 +193,12 @@ class Export extends React.Component {
     });
   }
 
-  handleChangeDoc(event) {
-    const { newDoc } = this.state;
+  handleChangeItem(event) {
+    const { newItem } = this.state;
     const { name, value } = event.target;
     this.setState({
-      newDoc: {
-        ...newDoc,
+      newItem: {
+        ...newItem,
         [name]: value
       }
     });
@@ -190,8 +209,7 @@ class Export extends React.Component {
     const { showCreate } = this.state;
     this.setState({
       showCreate: !showCreate,
-      newDoc: {
-        invNr: '',
+      newItem: {
         decNr: '',
         boeNr: '',
         boeDate: '',
@@ -201,7 +219,7 @@ class Export extends React.Component {
     });
   }
 
-  getDocuments(nextPage) {
+  getDocument(nextPage) {
     const { filter, sort, paginate } = this.state;
     if (!!paginate.pageSize) {
       this.setState({
@@ -218,7 +236,7 @@ class Export extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/exportdoc/findAll`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/getItems`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -237,8 +255,9 @@ class Export extends React.Component {
                 }
               });
             } else {
+              console.log(data.importDoc);
               this.setState({
-                importDocs: data.importDocs,
+                importDoc: data.importDoc,
                 paginate: {
                     ...paginate,
                     currentPage: data.currentPage,
@@ -265,8 +284,8 @@ class Export extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    const { newDoc, creating } = this.state;
-    if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
+    const { newItem, creating } = this.state;
+    if (!isValidFormat(newItem.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
@@ -279,15 +298,14 @@ class Export extends React.Component {
           method: 'POST',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            invNr: newDoc.invNr,
-            decNr: newDoc.decNr,
-            boeNr: newDoc.boeNr,
-            boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            grossWeight: newDoc.grossWeight,
-            totPrice: newDoc.totPrice
+            decNr: newItem.decNr,
+            boeNr: newItem.boeNr,
+            boeDate: StringToType(newItem.boeDate, 'date', getDateFormat()),
+            grossWeight: newItem.grossWeight,
+            totPrice: newItem.totPrice
           })
         };
-        return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/createItem`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creating: false
@@ -305,7 +323,7 @@ class Export extends React.Component {
                   message: resMsg
                 }
               }, () => {
-                this.getDocuments();
+                this.getDocument();
                 // this.toggleModal();
               });
             }
@@ -355,25 +373,27 @@ class Export extends React.Component {
   }
 
   generateBody() {
-    const { importDocs, retrieving, paginate } = this.state;
+    const { importDoc, retrieving, paginate } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(importDocs) || !retrieving) {
-      importDocs.map((importDoc) => {
+    if (!_.isEmpty(importDoc.items) || !retrieving) {
+      importDoc.items.map((importItem) => {
         tempRows.push(
-          <tr key={importDoc._id}>
-            <td className="no-select">{importDoc.invNr}</td>
-            <td className="no-select">{importDoc.decNr}</td>
-            <td className="no-select">{importDoc.boeNr}</td>
-            <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
-          </tr> 
+          <tr key={importItem._id}>
+            <td className="no-select">{importItem.srNr}</td>
+            <td className="no-select">{importItem.desc}</td>
+            <td className="no-select">{importItem.invNr}</td>
+            <td className="no-select">{TypeToString(importItem.unitWeight, 'number', getDateFormat())}</td>
+            <td className="no-select">{TypeToString(importItem.unitPrice, 'number', getDateFormat())}</td>
+            <td className="no-select">{importItem.hsCode}</td>
+            <td className="no-select">{importItem.country}</td>
+          </tr>
         );
       });
     } else {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
@@ -388,7 +408,7 @@ class Export extends React.Component {
   }
 
     render() {
-        const { menuItem, filter, sort, settingsColWidth, newDoc, showCreate, creating } = this.state;
+        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, showCreate, retrieving, creating } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -403,16 +423,27 @@ class Export extends React.Component {
                     </div>
                 }
                 <nav aria-label="breadcrumb">
-                    <ol className="breadcrumb">
-                        <li className="breadcrumb-item">
-                            <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
-                        </li>
-                        <li className="breadcrumb-item active" aria-current="page">Export Documents</li>
-                    </ol>
+                  {importDoc.boeNr && !retrieving ?
+                  <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
+                    </li>
+                    <li className="breadcrumb-item active flex-grow-1" aria-current="page">
+                      {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs - ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - status: ${importDoc.isClosed ? 'Closed' : 'Open'}`}
+                    </li>
+                  </ol> 
+                  :
+                    <div style={{height: '28.5px', paddingBottom: '7.5px'}}>
+                      <Skeleton/>
+                    </div>
+                  }
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
-                    <div className="action-row row">
-                            <button title="Create Export Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
+                    <div className="action-row row"> 
+                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
                                 <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
                             </button>
                     </div>
@@ -423,10 +454,10 @@ class Export extends React.Component {
                                     <thead>
                                         <tr>
                                         <HeaderInput
-                                            type="text"
-                                            title="INV Number"
-                                            name="invNr"
-                                            value={filter.invNr}
+                                            type="number"
+                                            title="Sr Number"
+                                            name="srNr"
+                                            value={filter.srNr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -437,22 +468,9 @@ class Export extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="DEC Number"
-                                            name="decNr"
-                                            value={filter.decNr}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="0"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="BOE Number"
-                                            name="boeNr"
-                                            value={filter.boeNr}
+                                            title="Descripion"
+                                            name="desc"
+                                            value={filter.desc}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -463,9 +481,9 @@ class Export extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="BOE Date"
-                                            name="boeDate"
-                                            value={filter.boeDate}
+                                            title="Inv Number"
+                                            name="invNr"
+                                            value={filter.invNr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -476,9 +494,22 @@ class Export extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Gross Weight"
-                                            name="grossWeight"
-                                            value={filter.grossWeight}
+                                            title="Unit Weight"
+                                            name="unitWeight"
+                                            value={filter.unitWeight}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="3"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Unit Price"
+                                            name="unitPrice"
+                                            value={filter.unitPrice}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -489,13 +520,26 @@ class Export extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Total Price"
-                                            name="totPrice"
-                                            value={filter.totPrice}
+                                            title="HS Code"
+                                            name="hsCode"
+                                            value={filter.hsCode}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="5"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
+                                            title="Country"
+                                            name="country"
+                                            value={filter.country}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="6"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -530,7 +574,7 @@ class Export extends React.Component {
                     <Modal
                       show={showCreate}
                       hideModal={this.toggleModal}
-                      title={'Add Export Document'}
+                      title={'Add Import Document'}
                     >
                       <div className="col-12">
                         <form
@@ -538,62 +582,72 @@ class Export extends React.Component {
                           onSubmit={this.handleSubmit}
                         >
                           <Input
-                            title="INV Number"
+                            title="Sr Number"
+                            name="srNr"
+                            type="text"
+                            value={newItem.srNr}
+                            onChange={this.handleChangeItem}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="desc"
+                            type="text"
+                            value={newItem.desc}
+                            onChange={this.handleChangeItem}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Inv Nr"
                             name="invNr"
                             type="text"
-                            value={newDoc.invNr}
-                            onChange={this.handleChangeDoc}
+                            value={newItem.invNr}
+                            onChange={this.handleChangeItem}
+                            // placeholder={getDateFormat()}
                             submitted={creating}
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="DEC Number"
-                            name="decNr"
-                            type="text"
-                            value={newDoc.decNr}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="BOE Number"
-                            name="boeNr"
-                            type="text"
-                            value={newDoc.boeNr}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="BOE Date"
-                            name="boeDate"
-                            type="text"
-                            value={newDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Gross Weight"
-                            name="grossWeight"
+                            title="Unit Weight"
+                            name="unitWeight"
                             type="number"
-                            value={newDoc.grossWeight}
-                            onChange={this.handleChangeDoc}
+                            value={newItem.unitWeight}
+                            onChange={this.handleChangeItem}
                             submitted={creating}
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="Total Price"
-                            name="totPrice"
+                            title="Unit Price"
+                            name="unitPrice"
                             type="number"
-                            value={newDoc.totPrice}
-                            onChange={this.handleChangeDoc}
+                            value={newItem.unitPrice}
+                            onChange={this.handleChangeItem}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="HS Code"
+                            name="hsCode"
+                            type="text"
+                            value={newItem.hsCode}
+                            onChange={this.handleChangeItem}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Country"
+                            name="country"
+                            type="text"
+                            value={newItem.country}
+                            onChange={this.handleChangeItem}
                             submitted={creating}
                             inline={false}
                             required={true}
@@ -620,5 +674,5 @@ function mapStateToProps(state) {
     };
 }
 
-const connectedExport = connect(mapStateToProps)(Export);
-export { connectedExport as Export };
+const connectedImportItem = connect(mapStateToProps)(ImportItem);
+export { connectedImportItem as ImportItem };

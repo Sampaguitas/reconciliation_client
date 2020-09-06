@@ -63,7 +63,7 @@ class Home extends React.Component {
                 <div id="home" className={alert.message ? "main-section-alert" : "main-section"}>
                     <div className="row justify-content-center" style={{maxHeight: '100%', overflowY: 'auto'}}>
                         <NavLink to={{ 
-                            pathname: "/import",
+                            pathname: "/import_doc",
                             }} className="card col-lg-5 m-lg-4 col-md-12 m-md-0 p-5" tag="a"
                         >
                             <div className="card-body">
@@ -78,7 +78,7 @@ class Home extends React.Component {
                             </div>
                         </NavLink>
                         <NavLink to={{ 
-                                pathname: "/export"
+                                pathname: "/export_doc"
                             }} className="card col-lg-5 m-lg-4 col-md-12 m-md-0 p-5" tag="a"
                         >
                             <div className="card-body">

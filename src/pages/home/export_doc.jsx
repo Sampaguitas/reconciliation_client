@@ -22,18 +22,18 @@ import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
 import _ from 'lodash';
 
-class Import extends React.Component {
+class ExportDoc extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       importDocs: [],
       filter: {
+          invNr: '',
           decNr: '',
           boeNr: '',
           boeDate: '',
           grossWeight: '',
           totPrice: '',
-          isClosed: '',
       },
       sort: {
           name: '',
@@ -44,6 +44,7 @@ class Import extends React.Component {
           message: ''
       },
       newDoc: {
+        invNr: '',
         decNr: '',
         boeNr: '',
         boeDate: '',
@@ -53,7 +54,7 @@ class Import extends React.Component {
       showCreate: false,
       creating: false,
       retrieving: false,
-      menuItem: 'Import Documents',
+      menuItem: 'Export Documents',
       settingsColWidth: {},
       paginate: {
         pageSize: 0,
@@ -190,6 +191,7 @@ class Import extends React.Component {
     this.setState({
       showCreate: !showCreate,
       newDoc: {
+        invNr: '',
         decNr: '',
         boeNr: '',
         boeDate: '',
@@ -216,7 +218,7 @@ class Import extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/findAll`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/findAll`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -277,6 +279,7 @@ class Import extends React.Component {
           method: 'POST',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            invNr: newDoc.invNr,
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
@@ -284,7 +287,7 @@ class Import extends React.Component {
             totPrice: newDoc.totPrice
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creating: false
@@ -358,12 +361,12 @@ class Import extends React.Component {
       importDocs.map((importDoc) => {
         tempRows.push(
           <tr key={importDoc._id}>
+            <td className="no-select">{importDoc.invNr}</td>
             <td className="no-select">{importDoc.decNr}</td>
             <td className="no-select">{importDoc.boeNr}</td>
             <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
-            <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
           </tr> 
         );
       });
@@ -371,7 +374,6 @@ class Import extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
-            <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
@@ -405,12 +407,12 @@ class Import extends React.Component {
                         <li className="breadcrumb-item">
                             <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
                         </li>
-                        <li className="breadcrumb-item active" aria-current="page">Import Documents</li>
+                        <li className="breadcrumb-item active" aria-current="page">Export Documents</li>
                     </ol>
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
-                    <div className="action-row row"> 
-                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
+                    <div className="action-row row">
+                            <button title="Create Export Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
                                 <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
                             </button>
                     </div>
@@ -420,6 +422,19 @@ class Import extends React.Component {
                                 <table className="table table-hover table-bordered table-sm">
                                     <thead>
                                         <tr>
+                                        <HeaderInput
+                                            type="text"
+                                            title="INV Number"
+                                            name="invNr"
+                                            value={filter.invNr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="0"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
                                         <HeaderInput
                                             type="text"
                                             title="DEC Number"
@@ -485,23 +500,6 @@ class Import extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
-                                        <HeaderSelect
-                                            title="Status"
-                                            name="isClosed"
-                                            value={filter.isClosed}
-                                            options={[
-                                              { _id: 'true', name: 'Closed'},
-                                              { _id: 'false', name: 'Open'}
-                                            ]}
-                                            optionText="name"
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="6"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                          />
                                         </tr>
                                     </thead>
                                     <tbody className="full-height">
@@ -532,13 +530,23 @@ class Import extends React.Component {
                     <Modal
                       show={showCreate}
                       hideModal={this.toggleModal}
-                      title={'Add Import Document'}
+                      title={'Add Export Document'}
                     >
                       <div className="col-12">
                         <form
                           name="form"
                           onSubmit={this.handleSubmit}
                         >
+                          <Input
+                            title="INV Number"
+                            name="invNr"
+                            type="text"
+                            value={newDoc.invNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
                           <Input
                             title="DEC Number"
                             name="decNr"
@@ -547,7 +555,6 @@ class Import extends React.Component {
                             onChange={this.handleChangeDoc}
                             submitted={creating}
                             inline={false}
-                            required={true}
                           />
                           <Input
                             title="BOE Number"
@@ -557,7 +564,6 @@ class Import extends React.Component {
                             onChange={this.handleChangeDoc}
                             submitted={creating}
                             inline={false}
-                            required={true}
                           />
                           <Input
                             title="BOE Date"
@@ -568,7 +574,6 @@ class Import extends React.Component {
                             placeholder={getDateFormat()}
                             submitted={creating}
                             inline={false}
-                            required={true}
                           />
                           <Input
                             title="Gross Weight"
@@ -612,5 +617,5 @@ function mapStateToProps(state) {
     };
 }
 
-const connectedImport = connect(mapStateToProps)(Import);
-export { connectedImport as Import };
+const connectedExportDoc = connect(mapStateToProps)(ExportDoc);
+export { connectedExportDoc as ExportDoc };

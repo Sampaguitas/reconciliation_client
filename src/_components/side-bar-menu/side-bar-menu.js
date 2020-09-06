@@ -19,8 +19,8 @@ import './side-bar-menu.scss'
 
 const home_menu = [
     { id: 0, title: 'Home', href: '/', icon: 'home' },
-    { id: 1, title: 'Import Documents', href: '/import', icon: 'file-import', roles: ['isAdmin'] },
-    { id: 2, title: 'Export Documents', href: '/export', icon: 'file-export', roles: ['isAdmin'] }
+    { id: 1, title: 'Import Documents', href: '/import_doc', icon: 'file-import', roles: ['isAdmin'] },
+    { id: 2, title: 'Export Documents', href: '/export_doc', icon: 'file-export', roles: ['isAdmin'] }
 ]
 
 const project_menu = [
@@ -93,8 +93,10 @@ class SideBarMenu extends Component {
             case '/':
             case '/user':
             case '/settings':
-            case '/import':
-            case '/export':
+            case '/import_doc':
+            case '/import_item':
+            case '/export_doc':
+            case '/export_item':
                 return true;
             case '/dashboard':
             case '/duf':

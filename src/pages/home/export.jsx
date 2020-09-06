@@ -34,7 +34,6 @@ class Export extends React.Component {
           boeDate: '',
           grossWeight: '',
           totPrice: '',
-          isClosed: '',
       },
       sort: {
           name: '',
@@ -368,7 +367,6 @@ class Export extends React.Component {
             <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
-            <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
           </tr> 
         );
       });
@@ -376,7 +374,6 @@ class Export extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
-            <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
@@ -391,10 +388,6 @@ class Export extends React.Component {
   }
 
     render() {
-        const ArrIsClosed = [
-          { _id: 'true', name: 'Closed'},
-          { _id: 'false', name: 'Open'}
-        ];
         const { menuItem, filter, sort, settingsColWidth, newDoc, showCreate, creating } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
@@ -507,33 +500,6 @@ class Export extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
-                                        {/* <HeaderCheckBox
-                                            title="Status"
-                                            name="isClosed"
-                                            value={filter.isClosed}
-                                            onChange={this.handleChangeHeader}
-                                            width="10%"
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        /> */}
-                                        <HeaderSelect
-                                            title="Status"
-                                            name="isClosed"
-                                            value={filter.isClosed}
-                                            options={ArrIsClosed}
-                                            optionText="name"
-                                            onChange={this.handleChangeHeader}
-                                            width ="15%"
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="6"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                          />
                                         </tr>
                                     </thead>
                                     <tbody className="full-height">
@@ -572,7 +538,7 @@ class Export extends React.Component {
                           onSubmit={this.handleSubmit}
                         >
                           <Input
-                            title="DEC Number"
+                            title="INV Number"
                             name="invNr"
                             type="text"
                             value={newDoc.invNr}

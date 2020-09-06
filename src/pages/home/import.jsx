@@ -386,10 +386,6 @@ class Import extends React.Component {
   }
 
     render() {
-        const ArrIsClosed = [
-          { _id: 'true', name: 'Closed'},
-          { _id: 'false', name: 'Open'}
-        ];
         const { menuItem, filter, sort, settingsColWidth, newDoc, showCreate, creating } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
@@ -489,26 +485,16 @@ class Import extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
-                                        {/* <HeaderCheckBox
-                                            title="Status"
-                                            name="isClosed"
-                                            value={filter.isClosed}
-                                            onChange={this.handleChangeHeader}
-                                            width="10%"
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        /> */}
                                         <HeaderSelect
                                             title="Status"
                                             name="isClosed"
                                             value={filter.isClosed}
-                                            options={ArrIsClosed}
+                                            options={[
+                                              { _id: 'true', name: 'Closed'},
+                                              { _id: 'false', name: 'Open'}
+                                            ]}
                                             optionText="name"
                                             onChange={this.handleChangeHeader}
-                                            width ="15%"
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="6"

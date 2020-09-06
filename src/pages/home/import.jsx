@@ -31,7 +31,6 @@ class Import extends React.Component {
           decNr: '',
           boeNr: '',
           boeDate: '',
-          decDate: '',
           grossWeight: '',
           totPrice: '',
           isClosed: '',
@@ -48,7 +47,6 @@ class Import extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        decDate: '',
         grossWeight: '',
         totPrice: '',
       },
@@ -195,7 +193,6 @@ class Import extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        decDate: '',
         grossWeight: '',
         totPrice: '',
       },
@@ -268,14 +265,9 @@ class Import extends React.Component {
     event.preventDefault();
     const { newDoc, creating } = this.state;
     if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
-      this,setState({
+      this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
-      });
-    } else if (!isValidFormat(newDoc.decDate, 'date', getDateFormat())) {
-      this,setState({
-        type: 'alert-danger',
-        message: 'DEC Date does not have a proper Date Format.'
       });
     } else if (!creating) {
       this.setState({
@@ -288,7 +280,6 @@ class Import extends React.Component {
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            decDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
             grossWeight: newDoc.grossWeight,
             totPrice: newDoc.totPrice
           })
@@ -370,7 +361,6 @@ class Import extends React.Component {
             <td className="no-select">{importDoc.decNr}</td>
             <td className="no-select">{importDoc.boeNr}</td>
             <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.decDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
             <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
@@ -469,19 +459,6 @@ class Import extends React.Component {
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="2"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="DEC Date"
-                                            name="decDate"
-                                            value={filter.decDate}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -601,17 +578,6 @@ class Import extends React.Component {
                             name="boeDate"
                             type="text"
                             value={newDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="DEC Date"
-                            name="decDate"
-                            type="text"
-                            value={newDoc.decDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
                             submitted={creating}

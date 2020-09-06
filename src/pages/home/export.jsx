@@ -28,10 +28,10 @@ class Export extends React.Component {
     this.state = {
       importDocs: [],
       filter: {
+          invNr: '',
           decNr: '',
           boeNr: '',
           boeDate: '',
-          decDate: '',
           grossWeight: '',
           totPrice: '',
           isClosed: '',
@@ -45,10 +45,10 @@ class Export extends React.Component {
           message: ''
       },
       newDoc: {
+        invNr: '',
         decNr: '',
         boeNr: '',
         boeDate: '',
-        decDate: '',
         grossWeight: '',
         totPrice: '',
       },
@@ -192,10 +192,10 @@ class Export extends React.Component {
     this.setState({
       showCreate: !showCreate,
       newDoc: {
+        invNr: '',
         decNr: '',
         boeNr: '',
         boeDate: '',
-        decDate: '',
         grossWeight: '',
         totPrice: '',
       },
@@ -219,7 +219,7 @@ class Export extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/findAll`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/findAll`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -268,14 +268,9 @@ class Export extends React.Component {
     event.preventDefault();
     const { newDoc, creating } = this.state;
     if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
-      this,setState({
+      this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
-      });
-    } else if (!isValidFormat(newDoc.decDate, 'date', getDateFormat())) {
-      this,setState({
-        type: 'alert-danger',
-        message: 'DEC Date does not have a proper Date Format.'
       });
     } else if (!creating) {
       this.setState({
@@ -285,15 +280,15 @@ class Export extends React.Component {
           method: 'POST',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            invNr: newDoc.invNr,
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            decDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
             grossWeight: newDoc.grossWeight,
             totPrice: newDoc.totPrice
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creating: false
@@ -367,10 +362,10 @@ class Export extends React.Component {
       importDocs.map((importDoc) => {
         tempRows.push(
           <tr key={importDoc._id}>
+            <td className="no-select">{importDoc.invNr}</td>
             <td className="no-select">{importDoc.decNr}</td>
             <td className="no-select">{importDoc.boeNr}</td>
             <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.decDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
             <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
@@ -436,6 +431,19 @@ class Export extends React.Component {
                                         <tr>
                                         <HeaderInput
                                             type="text"
+                                            title="INV Number"
+                                            name="invNr"
+                                            value={filter.invNr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="0"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
                                             title="DEC Number"
                                             name="decNr"
                                             value={filter.decNr}
@@ -469,19 +477,6 @@ class Export extends React.Component {
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="2"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="DEC Date"
-                                            name="decDate"
-                                            value={filter.decDate}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -578,6 +573,16 @@ class Export extends React.Component {
                         >
                           <Input
                             title="DEC Number"
+                            name="invNr"
+                            type="text"
+                            value={newDoc.invNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="DEC Number"
                             name="decNr"
                             type="text"
                             value={newDoc.decNr}
@@ -601,17 +606,6 @@ class Export extends React.Component {
                             name="boeDate"
                             type="text"
                             value={newDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="DEC Date"
-                            name="decDate"
-                            type="text"
-                            value={newDoc.decDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
                             submitted={creating}

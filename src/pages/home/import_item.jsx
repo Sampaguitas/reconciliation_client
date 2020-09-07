@@ -205,16 +205,17 @@ class ImportItem extends React.Component {
   }
 
   toggleModal() {
-    console.log('toto');
     const { showCreate } = this.state;
     this.setState({
       showCreate: !showCreate,
       newItem: {
-        decNr: '',
-        boeNr: '',
-        boeDate: '',
-        grossWeight: '',
-        totPrice: '',
+        srNr: '',
+        desc: '',
+        invNr: '',
+        unitWeight: '',
+        unitPrice: '',
+        hsCode: '',
+        country: '',
       },
     });
   }
@@ -284,7 +285,7 @@ class ImportItem extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    const { newItem, creating } = this.state;
+    const { newItem, filter, creating } = this.state;
     if (!isValidFormat(newItem.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
@@ -298,11 +299,14 @@ class ImportItem extends React.Component {
           method: 'POST',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            decNr: newItem.decNr,
-            boeNr: newItem.boeNr,
-            boeDate: StringToType(newItem.boeDate, 'date', getDateFormat()),
-            grossWeight: newItem.grossWeight,
-            totPrice: newItem.totPrice
+            srNr: newItem.srNr,
+            desc: newItem.desc,
+            invNr: newItem.invNr,
+            unitWeight: newItem.unitWeight,
+            unitPrice: newItem.unitPrice,
+            hsCode: newItem.hsCode,
+            country: newItem.country,
+            documentId: filter.documentId
           })
         };
         return fetch(`${config.apiUrl}/importdoc/createItem`, requestOptions)
@@ -324,7 +328,7 @@ class ImportItem extends React.Component {
                 }
               }, () => {
                 this.getDocument();
-                // this.toggleModal();
+                this.toggleModal();
               });
             }
           });
@@ -432,7 +436,7 @@ class ImportItem extends React.Component {
                         <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                     </li>
                     <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                      {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs - ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - status: ${importDoc.isClosed ? 'Closed' : 'Open'}`}
+                      {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
                     </li>
                   </ol> 
                   :

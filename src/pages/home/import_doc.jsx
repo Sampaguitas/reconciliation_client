@@ -30,6 +30,7 @@ class ImportDoc extends React.Component {
       filter: {
           decNr: '',
           boeNr: '',
+          invNrs: '',
           boeDate: '',
           grossWeight: '',
           totPrice: '',
@@ -186,7 +187,6 @@ class ImportDoc extends React.Component {
   }
 
   toggleModal() {
-    console.log('toto');
     const { showCreate } = this.state;
     this.setState({
       showCreate: !showCreate,
@@ -304,7 +304,7 @@ class ImportDoc extends React.Component {
                 }
               }, () => {
                 this.getDocuments();
-                // this.toggleModal();
+                this.toggleModal();
               });
             }
           });
@@ -361,6 +361,7 @@ class ImportDoc extends React.Component {
           <tr key={importDoc._id} style={{cursor: 'pointer'}} onClick={event => this.handleOnClick(event, importDoc._id)}>
             <td className="no-select">{importDoc.decNr}</td>
             <td className="no-select">{importDoc.boeNr}</td>
+            <td className="no-select">{importDoc.invNrs}</td>
             <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
             <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
@@ -444,6 +445,19 @@ class ImportDoc extends React.Component {
                                             title="BOE Number"
                                             name="boeNr"
                                             value={filter.boeNr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="1"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
+                                            title="INV Numbers"
+                                            name="invNrs"
+                                            value={filter.invNrs}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}

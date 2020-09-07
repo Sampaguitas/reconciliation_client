@@ -186,7 +186,6 @@ class ExportDoc extends React.Component {
   }
 
   toggleModal() {
-    console.log('toto');
     const { showCreate } = this.state;
     this.setState({
       showCreate: !showCreate,
@@ -306,7 +305,7 @@ class ExportDoc extends React.Component {
                 }
               }, () => {
                 this.getDocuments();
-                // this.toggleModal();
+                this.toggleModal();
               });
             }
           });

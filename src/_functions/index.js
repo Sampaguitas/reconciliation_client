@@ -112,16 +112,16 @@ export function TypeToString (fieldValue, fieldType, myDateFormat) {
     }
 }
 
-// export function DateToString (fieldValue, fieldType, myDateFormat) {
-//     if (fieldValue) {
-//         switch (fieldType) {
-//             case 'date': return String(moment.utc(fieldValue).format(myDateFormat)); 
-//             default: return fieldValue;
-//         }
-//     } else {
-//         return '';
-//     }
-// }
+export function DateToString (fieldValue, fieldType, myDateFormat) {
+    if (fieldValue) {
+        switch (fieldType) {
+            case 'date': return String(moment.utc(fieldValue).format(myDateFormat)); 
+            default: return fieldValue;
+        }
+    } else {
+        return '';
+    }
+}
 
 // export function doesMatch(search, value, type, isEqual) {
     

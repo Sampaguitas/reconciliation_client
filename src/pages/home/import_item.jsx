@@ -10,14 +10,12 @@ import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   copyObject,
   getPageSize,
-  StringToType,
   TypeToString,
   isValidFormat,
   getDateFormat
 } from '../../_functions';
-import HeaderCheckBox from '../../_components/table/header-check-box';
 import HeaderInput from '../../_components/table/header-input';
-import HeaderSelect from '../../_components/table/header-select';
+import TableData from '../../_components/table/table-data';
 import Input from "../../_components/input";
 import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
@@ -28,6 +26,7 @@ class ImportItem extends React.Component {
     super(props);
     this.state = {
       importDoc: {
+        _id: '',
         decNr: '',
         boeNr: '',
         boeDate: '',
@@ -63,8 +62,18 @@ class ImportItem extends React.Component {
         hsCode: '',
         country: '',
       },
-      showCreate: false,
-      creating: false,
+      updateDoc: {
+        decNr: '',
+        boeNr: '',
+        boeDate: '',
+        grossWeight: '',
+        totPrice: '',
+      },
+      showCreateLine: false,
+      showUpdateDoc: false,
+      creatingLine: false,
+      updatingDoc: false,
+      deleting: false,
       retrieving: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
@@ -86,9 +95,12 @@ class ImportItem extends React.Component {
     this.toggleSort = this.toggleSort.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
     this.handleChangeItem = this.handleChangeItem.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
+    this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.toggleNewLine = this.toggleNewLine.bind(this);
+    this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.getDocument = this.getDocument.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleCreateLine = this.handleCreateLine.bind(this);
+    this.handleUpdateDoc = this.handleUpdateDoc.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
     this.changePage = this.changePage.bind(this);
@@ -100,7 +112,6 @@ class ImportItem extends React.Component {
     const tableContainer = document.getElementById('table-container');
     var qs = queryString.parse(window.location.search);
     dispatch(sidemenuActions.select(menuItem));
-    console.log(qs.id);
     this.setState({
       filter: {
         ...filter,
@@ -204,10 +215,21 @@ class ImportItem extends React.Component {
     });
   }
 
-  toggleModal() {
-    const { showCreate } = this.state;
+  handleChangeDoc(event) {
+    const { updateDoc } = this.state;
+    const { name, value } = event.target;
     this.setState({
-      showCreate: !showCreate,
+      updateDoc: {
+        ...updateDoc,
+        [name]: value
+      }
+    });
+  }
+
+  toggleNewLine() {
+    const { showCreateLine } = this.state;
+    this.setState({
+      showCreateLine: !showCreateLine,
       newItem: {
         srNr: '',
         desc: '',
@@ -217,6 +239,21 @@ class ImportItem extends React.Component {
         hsCode: '',
         country: '',
       },
+    });
+  }
+
+  toggleEditDoc() {
+    const { showUpdateDoc, importDoc } = this.state;
+    this.setState({
+      showUpdateDoc: !showUpdateDoc,
+      updateDoc: {
+        _id: importDoc._id,
+        decNr: importDoc.decNr,
+        boeNr: importDoc.boeNr,
+        boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
+        grossWeight: importDoc.grossWeight,
+        totPrice: importDoc.totPrice,
+      }
     });
   }
 
@@ -256,7 +293,6 @@ class ImportItem extends React.Component {
                 }
               });
             } else {
-              console.log(data.importDoc);
               this.setState({
                 importDoc: data.importDoc,
                 paginate: {
@@ -283,17 +319,12 @@ class ImportItem extends React.Component {
     }
   }
 
-  handleSubmit(event) {
+  handleCreateLine(event) {
     event.preventDefault();
-    const { newItem, filter, creating } = this.state;
-    if (!isValidFormat(newItem.boeDate, 'date', getDateFormat())) {
+    const { newItem, filter, creatingLine } = this.state;
+    if (!creatingLine) {
       this.setState({
-        type: 'alert-danger',
-        message: 'BOE Date does not have a proper Date Format.'
-      });
-    } else if (!creating) {
-      this.setState({
-        creating: true,
+        creatingLine: true,
       }, () => {
         const requestOptions = {
           method: 'POST',
@@ -312,7 +343,7 @@ class ImportItem extends React.Component {
         return fetch(`${config.apiUrl}/importdoc/createItem`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
-            creating: false
+            creatingLine: false
           }, () => {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
@@ -328,7 +359,56 @@ class ImportItem extends React.Component {
                 }
               }, () => {
                 this.getDocument();
-                this.toggleModal();
+                this.toggleNewLine();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  handleUpdateDoc(event) {
+    event.preventDefault();
+    const { updateDoc } = this.state;
+    if (!isValidFormat(updateDoc.boeDate, 'date', getDateFormat())) {
+      this.setState({
+        type: 'alert-danger',
+        message: 'BOE Date does not have a proper Date Format.'
+      });
+    } else if (!updatingDoc) {
+      this.setState({
+        updatingDoc: true,
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(updateDoc)
+        };
+        return fetch(`${config.apiUrl}/importdoc/updateDoc`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            updatingDoc: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument();
+                this.toggleEditDoc();
               });
             }
           });
@@ -377,19 +457,19 @@ class ImportItem extends React.Component {
   }
 
   generateBody() {
-    const { importDoc, retrieving, paginate } = this.state;
+    const { importDoc, retrieving, paginate, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDoc.items) || !retrieving) {
       importDoc.items.map((importItem) => {
         tempRows.push(
           <tr key={importItem._id}>
-            <td className="no-select">{importItem.srNr}</td>
-            <td className="no-select">{importItem.desc}</td>
-            <td className="no-select">{importItem.invNr}</td>
-            <td className="no-select">{TypeToString(importItem.unitWeight, 'number', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importItem.unitPrice, 'number', getDateFormat())}</td>
-            <td className="no-select">{importItem.hsCode}</td>
-            <td className="no-select">{importItem.country}</td>
+            <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -397,13 +477,13 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
           </tr> 
         );
       }
@@ -412,7 +492,7 @@ class ImportItem extends React.Component {
   }
 
     render() {
-        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, showCreate, retrieving, creating } = this.state;
+        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, updateDoc, showCreateLine, showUpdateDoc, retrieving, updatingDoc, creatingLine } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -427,28 +507,31 @@ class ImportItem extends React.Component {
                     </div>
                 }
                 <nav aria-label="breadcrumb">
-                  {importDoc.boeNr && !retrieving ?
-                  <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
-                    </li>
-                    <li className="breadcrumb-item">
-                        <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
-                    </li>
-                    <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                      {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
-                    </li>
-                  </ol> 
-                  :
+                  {!importDoc.boeNr && !!retrieving ?
                     <div style={{height: '28.5px', paddingBottom: '7.5px'}}>
                       <Skeleton/>
                     </div>
+                  :
+                    <ol className="breadcrumb">
+                      <li className="breadcrumb-item">
+                          <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
+                      </li>
+                      <li className="breadcrumb-item">
+                          <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
+                      </li>
+                      <li className="breadcrumb-item active flex-grow-1" aria-current="page">
+                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
+                      </li>
+                    </ol>
                   }
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
-                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
+                            <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
+                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
+                            </button>
+                            <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleEditDoc}>
+                                <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
                             </button>
                     </div>
                     <div className="body-section">
@@ -459,7 +542,7 @@ class ImportItem extends React.Component {
                                         <tr>
                                         <HeaderInput
                                             type="number"
-                                            title="Sr Number"
+                                            title="SrNo"
                                             name="srNr"
                                             value={filter.srNr}
                                             onChange={this.handleChangeHeader}
@@ -523,7 +606,7 @@ class ImportItem extends React.Component {
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderInput
-                                            type="number"
+                                            type="text"
                                             title="HS Code"
                                             name="hsCode"
                                             value={filter.hsCode}
@@ -576,22 +659,22 @@ class ImportItem extends React.Component {
                         </div>
                     </div>
                     <Modal
-                      show={showCreate}
-                      hideModal={this.toggleModal}
-                      title={'Add Import Document'}
+                      show={showCreateLine}
+                      hideModal={this.toggleNewLine}
+                      title={'Add New Line'}
                     >
                       <div className="col-12">
                         <form
                           name="form"
-                          onSubmit={this.handleSubmit}
+                          onSubmit={this.handleCreateLine}
                         >
                           <Input
-                            title="Sr Number"
+                            title="SrNo"
                             name="srNr"
-                            type="text"
+                            type="number"
                             value={newItem.srNr}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -601,7 +684,7 @@ class ImportItem extends React.Component {
                             type="text"
                             value={newItem.desc}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -612,7 +695,7 @@ class ImportItem extends React.Component {
                             value={newItem.invNr}
                             onChange={this.handleChangeItem}
                             // placeholder={getDateFormat()}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -622,7 +705,7 @@ class ImportItem extends React.Component {
                             type="number"
                             value={newItem.unitWeight}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -632,7 +715,7 @@ class ImportItem extends React.Component {
                             type="number"
                             value={newItem.unitPrice}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -642,7 +725,7 @@ class ImportItem extends React.Component {
                             type="text"
                             value={newItem.hsCode}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
@@ -652,13 +735,83 @@ class ImportItem extends React.Component {
                             type="text"
                             value={newItem.country}
                             onChange={this.handleChangeItem}
-                            submitted={creating}
+                            submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
                             <div className="modal-footer">
                                 <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={creating ? "spinner" : "plus"} className={creating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                                  <span><FontAwesomeIcon icon={creatingLine ? "spinner" : "plus"} className={creatingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                                </button>
+                            </div>
+                        </form>
+                      </div>
+                    </Modal>
+
+                    <Modal
+                      show={showUpdateDoc}
+                      hideModal={this.toggleEditDoc}
+                      title={'Update Import Document'}
+                    >
+                      <div className="col-12">
+                        <form
+                          name="form"
+                          // onSubmit={this.handleCreateLine}
+                        >
+                          <Input
+                            title="SrNo"
+                            name="decNr"
+                            type="text"
+                            value={updateDoc.decNr}
+                            onChange={this.handleChangeItem}
+                            submitted={updatingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="boeNr"
+                            type="text"
+                            value={updateDoc.boeNr}
+                            onChange={this.handleChangeItem}
+                            submitted={updatingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Date"
+                            name="boeDate"
+                            type="text"
+                            value={updateDoc.boeDate}
+                            onChange={this.handleChangeItem}
+                            placeholder={getDateFormat()}
+                            submitted={updatingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight"
+                            name="grossWeight"
+                            type="number"
+                            value={updateDoc.grossWeight}
+                            onChange={this.handleChangeItem}
+                            submitted={updatingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Total Price"
+                            name="totPrice"
+                            type="number"
+                            value={updateDoc.totPrice}
+                            onChange={this.handleChangeItem}
+                            submitted={updatingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                            <div className="modal-footer">
+                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
+                                  <span><FontAwesomeIcon icon={updatingDoc ? "spinner" : "edit"} className={updatingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
                                 </button>
                             </div>
                         </form>

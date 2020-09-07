@@ -36,58 +36,58 @@ class TableInput extends Component{
 
     }
     
-    componentDidMount(){
-        const { 
-            collection,
-            objectId,
-            parentId,
-            fieldName,
-            fieldValue,
-            fieldType,
-        } = this.props;
+    // componentDidMount(){
+    //     const { 
+    //         collection,
+    //         objectId,
+    //         parentId,
+    //         fieldName,
+    //         fieldValue,
+    //         fieldType,
+    //     } = this.props;
 
-        this.setState({
-            collection: collection,
-            objectId: objectId,
-            parentId: parentId, //<--------parentId
-            fieldName: fieldName,
-            fieldValue: DateToString (fieldValue, fieldType, getDateFormat()),
-            fieldType: fieldType,
-        });  
-    }
+    //     this.setState({
+    //         collection: collection,
+    //         objectId: objectId,
+    //         parentId: parentId, //<--------parentId
+    //         fieldName: fieldName,
+    //         fieldValue: DateToString (fieldValue, fieldType, getDateFormat()),
+    //         fieldType: fieldType,
+    //     });  
+    // }
 
-    componentDidUpdate(prevProps, prevState) {
-        const { 
-            collection,
-            objectId,
-            parentId,
-            fieldName,
-            fieldValue,
-            fieldType,
-        } = this.props;
+    // componentDidUpdate(prevProps, prevState) {
+    //     const { 
+    //         collection,
+    //         objectId,
+    //         parentId,
+    //         fieldName,
+    //         fieldValue,
+    //         fieldType,
+    //     } = this.props;
 
-        if(fieldValue != prevProps.fieldValue) {
+    //     if(fieldValue != prevProps.fieldValue) {
 
-            this.setState({
-                collection: collection,
-                objectId: objectId,
-                parentId: parentId, //<--------parentId
-                fieldName: fieldName,
-                fieldValue: DateToString (fieldValue, fieldType, getDateFormat()),
-                fieldType: fieldType,
-                isEditing: false,
-                isSelected: false,
-                color: 'green',
-            }, () => {
-                setTimeout( () => {
-                    this.setState({
-                        ...this.state,
-                        color: '#0070C0'
-                    })
-                }, 1000);
-            });
-        }
-    }
+    //         this.setState({
+    //             collection: collection,
+    //             objectId: objectId,
+    //             parentId: parentId, //<--------parentId
+    //             fieldName: fieldName,
+    //             fieldValue: DateToString (fieldValue, fieldType, getDateFormat()),
+    //             fieldType: fieldType,
+    //             isEditing: false,
+    //             isSelected: false,
+    //             color: 'green',
+    //         }, () => {
+    //             setTimeout( () => {
+    //                 this.setState({
+    //                     ...this.state,
+    //                     color: '#0070C0'
+    //                 })
+    //             }, 1000);
+    //         });
+    //     }
+    // }
 
     onKeyDown(event) {
         const { isEditing } = this.state;

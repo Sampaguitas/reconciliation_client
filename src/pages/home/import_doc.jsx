@@ -10,11 +10,10 @@ import {
   copyObject,
   getPageSize,
   StringToType,
-  TypeToString,
   isValidFormat,
   getDateFormat
 } from '../../_functions';
-import HeaderCheckBox from '../../_components/table/header-check-box';
+import TableData from '../../_components/table/table-data';
 import HeaderInput from '../../_components/table/header-input';
 import HeaderSelect from '../../_components/table/header-select';
 import Input from "../../_components/input";
@@ -353,19 +352,19 @@ class ImportDoc extends React.Component {
   }
 
   generateBody() {
-    const { importDocs, retrieving, paginate } = this.state;
+    const { importDocs, retrieving, paginate, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDocs) || !retrieving) {
       importDocs.map((importDoc) => {
         tempRows.push(
           <tr key={importDoc._id} style={{cursor: 'pointer'}} onClick={event => this.handleOnClick(event, importDoc._id)}>
-            <td className="no-select">{importDoc.decNr}</td>
-            <td className="no-select">{importDoc.boeNr}</td>
-            <td className="no-select">{importDoc.invNrs}</td>
-            <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
-            <td className="no-select">{importDoc.isClosed ? 'Closed' : 'Open'}</td>
+            <TableData colIndex="0" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importDoc.grossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -373,13 +372,13 @@ class ImportDoc extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
-            <td className="no-select"><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
           </tr> 
         );
       }
@@ -417,9 +416,9 @@ class ImportDoc extends React.Component {
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
-                            <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
-                            </button>
+                      <button title="Create Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
+                          <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Doc</span>
+                      </button>
                     </div>
                     <div className="body-section">
                         <div className="row ml-1 mr-1" style={{height: 'calc(100% - 41.5px)'}}> {/* borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', */}
@@ -468,7 +467,7 @@ class ImportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="BOE Date"
+                                            title="Date"
                                             name="boeDate"
                                             value={filter.boeDate}
                                             onChange={this.handleChangeHeader}

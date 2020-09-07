@@ -14,9 +14,8 @@ import {
   isValidFormat,
   getDateFormat
 } from '../../_functions';
-import HeaderCheckBox from '../../_components/table/header-check-box';
 import HeaderInput from '../../_components/table/header-input';
-import HeaderSelect from '../../_components/table/header-select';
+import TableData from '../../_components/table/table-data';
 import Input from "../../_components/input";
 import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
@@ -354,18 +353,18 @@ class ExportDoc extends React.Component {
   }
 
   generateBody() {
-    const { importDocs, retrieving, paginate } = this.state;
+    const { importDocs, retrieving, paginate, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDocs) || !retrieving) {
       importDocs.map((importDoc) => {
         tempRows.push(
           <tr key={importDoc._id}>
-            <td className="no-select">{importDoc.invNr}</td>
-            <td className="no-select">{importDoc.decNr}</td>
-            <td className="no-select">{importDoc.boeNr}</td>
-            <td className="no-select">{TypeToString(importDoc.boeDate, 'date', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.grossWeight, 'number', getDateFormat())}</td>
-            <td className="no-select">{TypeToString(importDoc.totPrice, 'number', getDateFormat())}</td>
+            <TableData colIndex="0" value={importDoc.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importDoc.grossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
           </tr> 
         );
       });
@@ -412,7 +411,7 @@ class ExportDoc extends React.Component {
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row">
                             <button title="Create Export Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleModal}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>Create Document</span>
+                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Doc</span>
                             </button>
                     </div>
                     <div className="body-section">

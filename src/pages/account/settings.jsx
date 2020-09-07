@@ -9,6 +9,7 @@ import {  alertActions, sidemenuActions } from "../../_actions";
 import { copyObject, getPageSize } from '../../_functions';
 import HeaderCheckBox from "../../_components/table/header-check-box";
 import HeaderInput from "../../_components/table/header-input";
+import TableData from "../../_components/table/table-data";
 import TableCheckBoxAdmin from "../../_components/table/table-check-box-admin";
 import Input from "../../_components/input";
 import Layout from "../../_components/layout";
@@ -434,22 +435,22 @@ class Settings extends React.Component {
   }
 
   generateBody() {
-    const { users, retrieving, currentUser, paginate } = this.state;
+    const { users, retrieving, currentUser, paginate, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(users) || !retrieving) {
-      users.map((u) => {
+      users.map((user) => {
         tempRows.push(
-          <tr key={u._id}>
-            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.userName}</td>
-            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.name}</td>
-            <td className="no-select" onClick={(event) => this.handleOnclick(event, u._id)}>{u.email}</td>
+          <tr key={user._id}>
+            <TableData colIndex="0" value={user.userName} type="text" settingsColWidth={settingsColWidth} handleClick={this.handleOnclick} eventId={user._id}/>
+            <TableData colIndex="0" value={user.name} type="text" settingsColWidth={settingsColWidth} handleClick={this.handleOnclick} eventId={user._id}/>
+            <TableData colIndex="0" value={user.email} type="text" settingsColWidth={settingsColWidth} handleClick={this.handleOnclick} eventId={user._id}/>
             <td data-type="checkbox">
                 <TableCheckBoxAdmin
-                    id={u._id}
-                    checked={u.isAdmin || false}
+                    id={user._id}
+                    checked={user.isAdmin || false}
                     refreshStore={this.getDocuments}
                     setAlert={this.setAlert}
-                    disabled={_.isEqual(currentUser.id, u.id) || !currentUser.isAdmin ? true : false}
+                    disabled={_.isEqual(currentUser.id, user.id) || !currentUser.isAdmin ? true : false}
                     data-type="checkbox"
                 />
             </td>

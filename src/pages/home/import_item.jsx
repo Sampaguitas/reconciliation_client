@@ -11,6 +11,7 @@ import {
   copyObject,
   getPageSize,
   TypeToString,
+  StringToType,
   isValidFormat,
   getDateFormat
 } from '../../_functions';
@@ -243,7 +244,7 @@ class ImportItem extends React.Component {
   }
 
   toggleEditDoc() {
-    const { showUpdateDoc, importDoc } = this.state;
+    const { showUpdateDoc, importDoc, updateDoc } = this.state;
     this.setState({
       showUpdateDoc: !showUpdateDoc,
       updateDoc: {
@@ -254,7 +255,7 @@ class ImportItem extends React.Component {
         grossWeight: importDoc.grossWeight,
         totPrice: importDoc.totPrice,
       }
-    });
+    }, () => console.log(updateDoc));
   }
 
   getDocument(nextPage) {
@@ -374,7 +375,7 @@ class ImportItem extends React.Component {
 
   handleUpdateDoc(event) {
     event.preventDefault();
-    const { updateDoc } = this.state;
+    const { updateDoc, updatingDoc } = this.state;
     if (!isValidFormat(updateDoc.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
@@ -387,7 +388,14 @@ class ImportItem extends React.Component {
         const requestOptions = {
           method: 'PUT',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify(updateDoc)
+          body: JSON.stringify({
+            _id: updateDoc._id,
+            decNr: updateDoc.decNr,
+            boeNr: updateDoc.boeNr,
+            boeDate: StringToType(updateDoc.boeDate, 'date', getDateFormat()),
+            grossWeight: updateDoc.grossWeight,
+            totPrice: updateDoc.totPrice,
+          })
         };
         return fetch(`${config.apiUrl}/importdoc/updateDoc`, requestOptions)
         .then(response => response.text().then(text => {
@@ -756,7 +764,7 @@ class ImportItem extends React.Component {
                       <div className="col-12">
                         <form
                           name="form"
-                          // onSubmit={this.handleCreateLine}
+                          onSubmit={this.handleUpdateDoc}
                         >
                           <Input
                             title="SrNo"

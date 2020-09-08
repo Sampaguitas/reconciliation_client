@@ -216,7 +216,7 @@ class ImportDoc extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/getDocs`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/findAll`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -284,7 +284,7 @@ class ImportDoc extends React.Component {
             totPrice: newDoc.totPrice
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/createDoc`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creating: false

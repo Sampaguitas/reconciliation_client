@@ -66,7 +66,7 @@ class ImportItem extends React.Component {
         hsCode: '',
         country: '',
       },
-      updateDoc: {
+      editDoc: {
         decNr: '',
         boeNr: '',
         boeDate: '',
@@ -74,10 +74,10 @@ class ImportItem extends React.Component {
         totPrice: '',
       },
       showCreateLine: false,
-      showUpdateDoc: false,
+      showEditDoc: false,
       creatingLine: false,
-      updatingDoc: false,
-      deleting: false,
+      editingDoc: false,
+      deletingLine: false,
       retrieving: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
@@ -106,7 +106,8 @@ class ImportItem extends React.Component {
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleCreateLine = this.handleCreateLine.bind(this);
-    this.handleUpdateDoc = this.handleUpdateDoc.bind(this);
+    this.handleDeleteLine = this.handleDeleteLine.bind(this);
+    this.handleEditDoc = this.handleEditDoc.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
     this.changePage = this.changePage.bind(this);
@@ -230,11 +231,11 @@ class ImportItem extends React.Component {
   }
 
   handleChangeDoc(event) {
-    const { updateDoc } = this.state;
+    const { editDoc } = this.state;
     const { name, value } = event.target;
     this.setState({
-      updateDoc: {
-        ...updateDoc,
+      editDoc: {
+        ...editDoc,
         [name]: value
       }
     });
@@ -257,10 +258,10 @@ class ImportItem extends React.Component {
   }
 
   toggleEditDoc() {
-    const { showUpdateDoc, importDoc, updateDoc } = this.state;
+    const { showEditDoc, importDoc, editDoc } = this.state;
     this.setState({
-      showUpdateDoc: !showUpdateDoc,
-      updateDoc: {
+      showEditDoc: !showEditDoc,
+      editDoc: {
         _id: importDoc._id,
         decNr: importDoc.decNr,
         boeNr: importDoc.boeNr,
@@ -268,7 +269,7 @@ class ImportItem extends React.Component {
         grossWeight: importDoc.grossWeight,
         totPrice: importDoc.totPrice,
       }
-    }, () => console.log(updateDoc));
+    }, () => console.log(editDoc));
   }
 
   getDocument(nextPage) {
@@ -288,7 +289,7 @@ class ImportItem extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/getItems`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/findOne`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -354,7 +355,7 @@ class ImportItem extends React.Component {
             documentId: filter.documentId
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/createItem`, requestOptions)
+        return fetch(`${config.apiUrl}/importitem/create`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creatingLine: false
@@ -386,34 +387,82 @@ class ImportItem extends React.Component {
     }
   }
 
-  handleUpdateDoc(event) {
+  handleDeleteLine(event) {
     event.preventDefault();
-    const { updateDoc, updatingDoc } = this.state;
-    if (!isValidFormat(updateDoc.boeDate, 'date', getDateFormat())) {
+    const { selectedRows } = this.state;
+    if (_.isEmpty(selectedRows)) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'Select lines to be deleted.'
+        }
+      });
+    } else if (confirm(`you are about to delete ${selectedRows.length} lines. Click ok to proceed.`)) {
+      this.setState({
+        deletingLine: true
+      }, () => {
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({selectedIds: selectedRows})
+      };
+        return fetch(`${config.apiUrl}/importitem/delete`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            deleting: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => this.getDocument());
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      })
+    }
+  }
+
+  handleEditDoc(event) {
+    event.preventDefault();
+    const { editDoc, editingDoc } = this.state;
+    if (!isValidFormat(editDoc.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
       });
-    } else if (!updatingDoc) {
+    } else if (!editingDoc) {
       this.setState({
-        updatingDoc: true,
+        editingDoc: true,
       }, () => {
         const requestOptions = {
           method: 'PUT',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            _id: updateDoc._id,
-            decNr: updateDoc.decNr,
-            boeNr: updateDoc.boeNr,
-            boeDate: StringToType(updateDoc.boeDate, 'date', getDateFormat()),
-            grossWeight: updateDoc.grossWeight,
-            totPrice: updateDoc.totPrice,
+            _id: editDoc._id,
+            decNr: editDoc.decNr,
+            boeNr: editDoc.boeNr,
+            boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
+            grossWeight: editDoc.grossWeight,
+            totPrice: editDoc.totPrice,
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/updateDoc`, requestOptions)
+        return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
-            updatingDoc: false
+            editingDoc: false
           }, () => {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
@@ -546,7 +595,7 @@ class ImportItem extends React.Component {
   }
 
     render() {
-        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, updateDoc, showCreateLine, showUpdateDoc, retrieving, updatingDoc, creatingLine, selectAllRows } = this.state;
+        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, editDoc, showCreateLine, showEditDoc, retrieving, editingDoc, creatingLine, selectAllRows } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -584,8 +633,11 @@ class ImportItem extends React.Component {
                             <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
                                 <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
                             </button>
-                            <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleEditDoc}>
+                            <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                                 <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                            </button>
+                            <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
+                                <span><FontAwesomeIcon icon="trash-alt" className="fa mr-2"/>Delete Line(s)</span>
                             </button>
                     </div>
                     <div className="body-section">
@@ -807,22 +859,22 @@ class ImportItem extends React.Component {
                     </Modal>
 
                     <Modal
-                      show={showUpdateDoc}
+                      show={showEditDoc}
                       hideModal={this.toggleEditDoc}
                       title={'Update Import Document'}
                     >
                       <div className="col-12">
                         <form
                           name="form"
-                          onSubmit={this.handleUpdateDoc}
+                          onSubmit={this.handleEditDoc}
                         >
                           <Input
                             title="SrNo"
                             name="decNr"
                             type="text"
-                            value={updateDoc.decNr}
+                            value={editDoc.decNr}
                             onChange={this.handleChangeItem}
-                            submitted={updatingDoc}
+                            submitted={editingDoc}
                             inline={false}
                             required={true}
                           />
@@ -830,9 +882,9 @@ class ImportItem extends React.Component {
                             title="Description"
                             name="boeNr"
                             type="text"
-                            value={updateDoc.boeNr}
+                            value={editDoc.boeNr}
                             onChange={this.handleChangeItem}
-                            submitted={updatingDoc}
+                            submitted={editingDoc}
                             inline={false}
                             required={true}
                           />
@@ -840,10 +892,10 @@ class ImportItem extends React.Component {
                             title="Date"
                             name="boeDate"
                             type="text"
-                            value={updateDoc.boeDate}
+                            value={editDoc.boeDate}
                             onChange={this.handleChangeItem}
                             placeholder={getDateFormat()}
-                            submitted={updatingDoc}
+                            submitted={editingDoc}
                             inline={false}
                             required={true}
                           />
@@ -851,9 +903,9 @@ class ImportItem extends React.Component {
                             title="Gross Weight"
                             name="grossWeight"
                             type="number"
-                            value={updateDoc.grossWeight}
+                            value={editDoc.grossWeight}
                             onChange={this.handleChangeItem}
-                            submitted={updatingDoc}
+                            submitted={editingDoc}
                             inline={false}
                             required={true}
                           />
@@ -861,15 +913,15 @@ class ImportItem extends React.Component {
                             title="Total Price"
                             name="totPrice"
                             type="number"
-                            value={updateDoc.totPrice}
+                            value={editDoc.totPrice}
                             onChange={this.handleChangeItem}
-                            submitted={updatingDoc}
+                            submitted={editingDoc}
                             inline={false}
                             required={true}
                           />
                             <div className="modal-footer">
                                 <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={updatingDoc ? "spinner" : "edit"} className={updatingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                                  <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "edit"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
                                 </button>
                             </div>
                         </form>

@@ -216,7 +216,7 @@ class ExportDoc extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/exportdoc/getDocs`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/findAll`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -285,7 +285,7 @@ class ExportDoc extends React.Component {
             totPrice: newDoc.totPrice
           })
         };
-        return fetch(`${config.apiUrl}/exportdoc/createDoc`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             creating: false

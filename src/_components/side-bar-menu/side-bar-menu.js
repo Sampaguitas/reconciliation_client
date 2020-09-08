@@ -13,30 +13,13 @@ class SideBarMenu extends Component {
         super(props);
         this.state = {
             show: '',
-            listMenu: [],
+            listMenu: [
+                { id: 0, title: 'Home', href: '/', icon: 'home' },
+                { id: 1, title: 'Import Documents', href: '/import_doc', icon: 'file-import' },
+                { id: 2, title: 'Export Documents', href: '/export_doc', icon: 'file-export' }
+            ]
         }
         this.handleItemOver = this.handleItemOver.bind(this);
-    }
-
-    componentDidMount(){
-        let user = JSON.parse(localStorage.getItem('user'));
-        
-        const menu = [
-            { id: 0, title: 'Home', href: '/', icon: 'home' },
-            { id: 1, title: 'Import Documents', href: '/import_doc', icon: 'file-import', roles: ['isAdmin'] },
-            { id: 2, title: 'Export Documents', href: '/export_doc', icon: 'file-export', roles: ['isAdmin'] }
-        ];
-
-        let listMenu = menu.reduce(function(acc, cur) {
-            if (!cur.roles){
-                acc.push(cur);
-            } else if (cur.roles.includes('isAdmin') && user.isAdmin) {
-                acc.push(cur);
-            }
-            return acc;
-        }, []);
-        
-        this.setState({listMenu: listMenu});
     }
 
     handleItemOver(event, title){

@@ -460,8 +460,7 @@ class ImportItem extends React.Component {
             unitWeight: newItem.unitWeight,
             unitPrice: newItem.unitPrice,
             hsCode: newItem.hsCode,
-            country: newItem.country,
-            documentId: filter.documentId
+            country: newItem.country
           })
         };
         return fetch(`${config.apiUrl}/importitem/update`, requestOptions)

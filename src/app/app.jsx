@@ -43,11 +43,11 @@ class App extends React.Component {
         });
     }
 
-    // componentDidMount() {
-    //     if (location.protocol === 'http:') {
-    //         location.replace(`https:${location.href.substring(location.protocol.length)}`);
-    //     }
-    // }
+    componentDidMount() {
+        if (location.protocol != 'https:' && process.env.NODE_ENV != 'development') {
+            location.replace(`https:${location.href.substring(location.protocol.length)}`);
+        }
+    }
 
     render() {
         let user = localStorage.getItem("user");

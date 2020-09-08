@@ -12,8 +12,9 @@ import { ExportDoc } from '../pages/home/export_doc.jsx';
 import { ImportDoc } from '../pages/home/import_doc.jsx';
 import { ImportItem } from '../pages/home/import_item.jsx';
 
-import { NotFound } from '../pages/account/notfound.jsx';
+import { Error } from '../pages/account/error.jsx';
 import { Login } from '../pages/account/login.jsx';
+import { NotFound } from '../pages/account/notfound.jsx';
 import { RequestPwd } from '../pages/account/requestpwd';
 import { ResetPwd } from '../pages/account/resetpwd';
 import { User } from '../pages/account/user.jsx';
@@ -48,6 +49,7 @@ class App extends React.Component {
             <Router history={history}>
                 <div>
                     <Switch>
+                        <Route path="/error" component={Error} user={user}/>
                         <Route path="/notfound" component={NotFound} user={user}/>
                         <Route path="/login" component={Login} user={user}/>
                         <Route path="/requestpwd" component={RequestPwd} user={user}/>

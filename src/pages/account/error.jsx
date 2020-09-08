@@ -5,7 +5,7 @@ import Layout from '../../_components/layout';
 import logo from "../../_assets/logo.svg";
 import rdb from "../../_assets/rdb.svg";
 
-class NotFound extends Component {
+class Error extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -43,8 +43,8 @@ class NotFound extends Component {
               <br />
               <img src={rdb} className="img-fluid mt-2" alt="Reconciliation Database" />
               <hr />
-              <h2>#404 Not Found</h2>
-              <p>The page or document requested was not found!</p>
+              <h2>#500 Internal Server Error</h2>
+              <p>Ooops! An error has occured while hadeling your request.</p>
               <p>Click on the button below to go back to the home page.</p>
               <hr />
               <button
@@ -67,5 +67,5 @@ function mapStateToProps(state) {
   return { alert, sidemenu };
 }
 
-const connectedNotFound = connect(mapStateToProps)(NotFound);
-export { connectedNotFound as NotFound };
+const connectedError = connect(mapStateToProps)(Error);
+export { connectedError as Error };

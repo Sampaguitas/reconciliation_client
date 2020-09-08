@@ -300,6 +300,10 @@ class ImportItem extends React.Component {
               // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
+            } else if (response.status === 404) {
+              history.push({ pathname:'/notfound' });
+            } else if (response.status === 500) {
+              history.push({ pathname:'/error' });
             } else if (response.status != 200) {
               this.setState({
                 alert: {
@@ -630,11 +634,11 @@ class ImportItem extends React.Component {
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
-                            <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
-                            </button>
                             <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                                 <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                            </button>
+                            <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
+                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
                             </button>
                             <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
                                 <span><FontAwesomeIcon icon="trash-alt" className="fa mr-2"/>Delete Line(s)</span>

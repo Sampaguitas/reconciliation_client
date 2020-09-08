@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { sidemenuActions } from "../../_actions";
 import Layout from '../../_components/layout';
-import logo from "../../_assets/logo.svg";
+import logo from "../../_assets/logo.jpg"; //logo.svg
 import rdb from "../../_assets/rdb.svg";
 
 class NotFound extends Component {

@@ -7,7 +7,7 @@ import config from 'config';
 import { sidemenuActions } from "../../_actions";
 import InputIcon from "../../_components/input-icon";
 import Layout from "../../_components/layout";
-import logo from "../../_assets/logo.svg";
+import logo from "../../_assets/logo.jpg"; //logo.svg
 import rdb from "../../_assets/rdb.svg";
 
 class ResetPwd extends React.Component {

@@ -6,7 +6,7 @@ import queryString from 'query-string';
 //FontAwesome
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //Icons
-import logo from '../../_assets/logo.svg';
+import logo from '../../_assets/logo.jpg'; //logo.svg
 import icon from '../../_assets/icon.svg';
 
 //Components

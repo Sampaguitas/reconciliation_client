@@ -347,7 +347,7 @@ class ImportDoc extends React.Component {
     event.preventDefault();
     const { paginate } = this.state;
     if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
-      this.getUsers(nextPage);
+      this.getDocuments(nextPage);
     }
   }
 

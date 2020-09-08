@@ -218,11 +218,11 @@ export function arraySorted(array, fieldOne, fieldTwo, fieldThree, fieldFour) {
     }
 }
 
-// export function arrayRemove(arr, value) {
-//     return arr.filter(function(ele){
-//         return ele != value;
-//     });
-// }
+export function arrayRemove(arr, value) {
+    return arr.filter(function(ele){
+        return ele != value;
+    });
+}
 
 // export function docConf(array, typeOf) {
 //     if (array) {

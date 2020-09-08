@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import './table-selection-row.css'
+import './select-row.css'
 
-class TableSelectionRow extends Component {
+class SelectRow extends Component {
 
     constructor(props) {
         super(props);
@@ -92,4 +92,4 @@ class TableSelectionRow extends Component {
     }
 };
 
-export default TableSelectionRow;
+export default SelectRow;

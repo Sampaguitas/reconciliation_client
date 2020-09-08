@@ -8,6 +8,7 @@ import config from 'config';
 import { authHeader, history } from '../../_helpers';
 import {  alertActions, sidemenuActions } from '../../_actions';
 import {
+  arrayRemove,
   copyObject,
   getPageSize,
   TypeToString,
@@ -15,6 +16,8 @@ import {
   isValidFormat,
   getDateFormat
 } from '../../_functions';
+import SelectAll from '../../_components/table/select-all';
+import SelectRow from '../../_components/table/select-row';
 import HeaderInput from '../../_components/table/header-input';
 import TableData from '../../_components/table/table-data';
 import Input from "../../_components/input";
@@ -78,6 +81,8 @@ class ImportItem extends React.Component {
       retrieving: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
+      selectAllRows: false,
+      selectedRows: [],
       paginate: {
         pageSize: 0,
         currentPage: 1,
@@ -105,6 +110,8 @@ class ImportItem extends React.Component {
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
     this.changePage = this.changePage.bind(this);
+    this.toggleSelectAllRow = this.toggleSelectAllRow.bind(this);
+    this.updateSelectedRows = this.updateSelectedRows.bind(this);
   }
 
   componentDidMount() {
@@ -144,9 +151,15 @@ class ImportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { sort, filter, paginate } = this.state;
+    const { importDoc, sort, filter, paginate, selectedRows } = this.state;
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument();
+    }
+
+    if (importDoc.items != prevState.importDoc.items) {
+      this.setState({
+        selectAllRows: false,
+      });
     }
   }
 
@@ -460,17 +473,49 @@ class ImportItem extends React.Component {
     event.preventDefault();
     const { paginate } = this.state;
     if ( (nextPage > 0) && (nextPage < (paginate.pageLast + 1))) {
-      this.getUsers(nextPage);
+      this.getDocument(nextPage);
     }
   }
 
+  toggleSelectAllRow() {
+    const { selectAllRows, importDoc } = this.state;
+    if (!_.isEmpty(importDoc.items)) {
+      if (!!selectAllRows) {
+        this.setState({
+          selectedRows: [],
+          selectAllRows: false,
+        });
+      } else {
+        this.setState({
+          selectedRows: importDoc.items.map(importItem => importItem._id),
+          selectAllRows: true
+        });
+      }         
+    }
+  }
+
+  updateSelectedRows(id) {
+    const { selectedRows } = this.state;
+    if (selectedRows.includes(id)) {
+        this.setState({ selectedRows: arrayRemove(selectedRows, id) });
+    } else {
+      this.setState({ selectedRows: [...selectedRows, id] });
+    }       
+  }
+
   generateBody() {
-    const { importDoc, retrieving, paginate, settingsColWidth } = this.state;
+    const { importDoc, retrieving, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDoc.items) || !retrieving) {
-      importDoc.items.map((importItem) => {
+      importDoc.items.map(importItem => {
         tempRows.push(
           <tr key={importItem._id}>
+            <SelectRow
+              id={importItem._id}
+              selectAllRows={selectAllRows}
+              selectedRows={selectedRows}
+              callback={this.updateSelectedRows}
+            />
             <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="1" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="2" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
@@ -492,6 +537,7 @@ class ImportItem extends React.Component {
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
+            <td><Skeleton/></td>
           </tr> 
         );
       }
@@ -500,7 +546,7 @@ class ImportItem extends React.Component {
   }
 
     render() {
-        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, updateDoc, showCreateLine, showUpdateDoc, retrieving, updatingDoc, creatingLine } = this.state;
+        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, updateDoc, showCreateLine, showUpdateDoc, retrieving, updatingDoc, creatingLine, selectAllRows } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -548,6 +594,10 @@ class ImportItem extends React.Component {
                                 <table className="table table-hover table-bordered table-sm">
                                     <thead>
                                         <tr>
+                                        <SelectAll
+                                          checked={selectAllRows}
+                                          onChange={this.toggleSelectAllRow}
+                                        />
                                         <HeaderInput
                                             type="number"
                                             title="SrNo"

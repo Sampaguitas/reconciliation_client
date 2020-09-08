@@ -12,12 +12,12 @@ class Layout extends Component {
 
     render() {
 
-        const { accesses, menuItem, selection, sidemenu, toggleCollapse } = this.props;
+        const { menuItem, sidemenu, toggleCollapse } = this.props;
         return (
             <div className="full-height">
                 <div className="full-height">
                     <HeaderBarMenu id="headerbar" className={sidemenu.collapsed ? "collapsed" : ''} sidemenu={sidemenu} toggleCollapse={toggleCollapse}/>
-                    <SideBarMenu className={sidemenu.collapsed ? "collapsed" : ''} menuItem={menuItem} sidemenu={sidemenu} toggleCollapse={toggleCollapse} accesses={accesses} selection={selection}/>
+                    <SideBarMenu className={sidemenu.collapsed ? "collapsed" : ''} menuItem={menuItem} sidemenu={sidemenu} toggleCollapse={toggleCollapse}/>
                     <div id="content" className={sidemenu.collapsed ? "collapsed" : ''} style={{height: `calc(100% - 100px)`}}>
                         {this.props.children}
                     </div>

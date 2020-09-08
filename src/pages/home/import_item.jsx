@@ -73,12 +73,14 @@ class ImportItem extends React.Component {
         grossWeight: '',
         totPrice: '',
       },
-      showCreateLine: false,
-      showEditDoc: false,
-      creatingLine: false,
-      editingDoc: false,
-      deletingLine: false,
       retrieving: false,
+      showEditDoc: false,
+      showCreateLine: false,
+      showEditLine: false,
+      editingDoc: false,
+      creatingLine: false,
+      editingLine: false,
+      deletingLine: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
       selectAllRows: false,
@@ -103,9 +105,11 @@ class ImportItem extends React.Component {
     this.handleChangeItem = this.handleChangeItem.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.toggleNewLine = this.toggleNewLine.bind(this);
+    this.toggleEditLine = this.toggleEditLine.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleCreateLine = this.handleCreateLine.bind(this);
+    this.handleEditLine = this.handleEditLine.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
@@ -131,7 +135,6 @@ class ImportItem extends React.Component {
         pageSize: getPageSize(tableContainer)
       }
     }, () => this.getDocument());
-    // });
 
     window.addEventListener('resize', e => this.setState({
       paginate: {
@@ -257,6 +260,54 @@ class ImportItem extends React.Component {
     });
   }
 
+  toggleEditLine() {
+    const { selectedRows, importDoc, showEditLine } = this.state;
+    if (!!showEditLine) { 
+      this.setState({
+        showEditLine: false,
+        newItem: {
+          srNr: '',
+          desc: '',
+          invNr: '',
+          unitWeight: '',
+          unitPrice: '',
+          hsCode: '',
+          country: '',
+        },
+      });
+    } else if (_.isEmpty(selectedRows)) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'Select the line to be edited.'
+        }
+      });
+    } else if(selectedRows.length > 1) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'Select only one line.'
+        }
+      });
+    } else if (selectedRows.length === 1) {
+      let found = importDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(found)) {
+        this.setState({
+          showEditLine: true,
+          newItem: {
+            srNr: found.srNr || '',
+            desc: found.desc || '',
+            invNr: found.invNr || '',
+            unitWeight: found.unitWeight || '',
+            unitPrice: found.unitPrice || '',
+            hsCode: found.hsCode || '',
+            country: found.country || '',
+          },
+        });
+      }
+    }
+  }
+
   toggleEditDoc() {
     const { showEditDoc, importDoc, editDoc } = this.state;
     this.setState({
@@ -379,6 +430,60 @@ class ImportItem extends React.Component {
               }, () => {
                 this.getDocument();
                 this.toggleNewLine();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  handleEditLine(event) {
+    event.preventDefault();
+    const { selectedRows, newItem, filter, editingLine } = this.state;
+    if (selectedRows.length === 1 && !editingLine) {
+      this.setState({
+        editingLine: true,
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: selectedRows[0],
+            srNr: newItem.srNr,
+            desc: newItem.desc,
+            invNr: newItem.invNr,
+            unitWeight: newItem.unitWeight,
+            unitPrice: newItem.unitPrice,
+            hsCode: newItem.hsCode,
+            country: newItem.country,
+            documentId: filter.documentId
+          })
+        };
+        return fetch(`${config.apiUrl}/importitem/update`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            editingLine: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              // Unauthorized
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument();
+                this.toggleEditLine();
               });
             }
           });
@@ -599,7 +704,24 @@ class ImportItem extends React.Component {
   }
 
     render() {
-        const { importDoc, menuItem, filter, sort, settingsColWidth, newItem, editDoc, showCreateLine, showEditDoc, retrieving, editingDoc, creatingLine, selectAllRows } = this.state;
+        const {
+          menuItem,
+          filter,
+          sort,
+          settingsColWidth,
+          importDoc,
+          editDoc, 
+          newItem,
+          showEditDoc,
+          showCreateLine, 
+          showEditLine,
+          retrieving,
+          editingDoc,
+          creatingLine,
+          editingLine,
+          deletingLine,
+          selectAllRows
+        } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
         const alert = this.state.alert.message ? this.state.alert : this.props.alert;
@@ -634,15 +756,18 @@ class ImportItem extends React.Component {
                 </nav>
                 <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
-                            <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
-                                <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
-                            </button>
-                            <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
-                                <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
-                            </button>
-                            <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
-                                <span><FontAwesomeIcon icon="trash-alt" className="fa mr-2"/>Delete Line(s)</span>
-                            </button>
+                      <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
+                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                      </button>
+                      <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
+                          <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
+                      </button>
+                      <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditLine}>
+                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
+                      </button>
+                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
+                          <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
+                      </button>
                     </div>
                     <div className="body-section">
                         <div className="row ml-1 mr-1" style={{height: 'calc(100% - 41.5px)'}}> {/* borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', */}
@@ -856,6 +981,95 @@ class ImportItem extends React.Component {
                             <div className="modal-footer">
                                 <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
                                   <span><FontAwesomeIcon icon={creatingLine ? "spinner" : "plus"} className={creatingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                                </button>
+                            </div>
+                        </form>
+                      </div>
+                    </Modal>
+
+                    <Modal
+                      show={showEditLine}
+                      hideModal={this.toggleEditLine}
+                      title={'Edit Line'}
+                    >
+                      <div className="col-12">
+                        <form
+                          name="form"
+                          onSubmit={this.handleEditLine}
+                        >
+                          <Input
+                            title="SrNo"
+                            name="srNr"
+                            type="number"
+                            value={newItem.srNr}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="desc"
+                            type="text"
+                            value={newItem.desc}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Inv Nr"
+                            name="invNr"
+                            type="text"
+                            value={newItem.invNr}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Unit Weight"
+                            name="unitWeight"
+                            type="number"
+                            value={newItem.unitWeight}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Unit Price"
+                            name="unitPrice"
+                            type="number"
+                            value={newItem.unitPrice}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="HS Code"
+                            name="hsCode"
+                            type="text"
+                            value={newItem.hsCode}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Country"
+                            name="country"
+                            type="text"
+                            value={newItem.country}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                            <div className="modal-footer">
+                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
+                                  <span><FontAwesomeIcon icon={editingLine ? "spinner" : "edit"} className={editingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
                                 </button>
                             </div>
                         </form>

@@ -197,6 +197,7 @@ h5 {
 
 .table-responsive {
   margin: 0px;
+  border: none !important;
 }
 
 .table-bordered {
@@ -249,7 +250,7 @@ h5 {
   left: -1px !important;
   z-index: 2;
   background-size: 29px;
-  background-image: linear-gradient(to right, #f0f0ee, #f0f0ee 28px, rgba(38, 41, 44, 0.32) 29px);
+  background-image: linear-gradient(to right, #f0f0ee, #f0f0ee 30px, rgba(38, 41, 44, 0.32) 31px);
   border-bottom-style: none !important;
   border-bottom-width: '0px' !important;
 }

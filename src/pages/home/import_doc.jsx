@@ -361,8 +361,8 @@ class ImportDoc extends React.Component {
           <tr key={importDoc._id} style={{cursor: 'pointer'}} onClick={event => this.handleOnClick(event, importDoc._id)}>
             <TableData colIndex="0" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="1" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="4" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="5" value={importDoc.grossWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="6" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
@@ -458,8 +458,8 @@ class ImportDoc extends React.Component {
                                         <HeaderInput
                                             type="text"
                                             title="INV Numbers"
-                                            name="poNrs"
-                                            value={filter.poNrs}
+                                            name="invNrs"
+                                            value={filter.invNrs}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -470,9 +470,9 @@ class ImportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="INV Numbers"
-                                            name="invNrs"
-                                            value={filter.invNrs}
+                                            title="PO Numbers"
+                                            name="poNrs"
+                                            value={filter.poNrs}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}

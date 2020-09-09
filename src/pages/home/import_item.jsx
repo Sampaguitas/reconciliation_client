@@ -41,10 +41,10 @@ class ImportItem extends React.Component {
       },
       filter: {
         srNr: '',
+        invNr: '',
+        poNr: '',
         qty: '',
         desc: '',
-        poNr: '',
-        invNr: '',
         unitWeight: '',
         totWeight: '',
         unitPrice: '',
@@ -63,10 +63,10 @@ class ImportItem extends React.Component {
       },
       newItem: {
         srNr: '',
+        invNr: '',
+        poNr: '',
         qty: '',
         desc: '',
-        poNr: '',
-        invNr: '',
         totWeight: '',
         totPrice: '',
         hsCode: '',
@@ -256,10 +256,10 @@ class ImportItem extends React.Component {
       showCreateLine: !showCreateLine,
       newItem: {
         srNr: '',
+        invNr: '',
+        poNr: '',
         qty: '',
         desc: '',
-        poNr: '',
-        invNr: '',
         totWeight: '',
         totPrice: '',
         hsCode: '',
@@ -275,10 +275,10 @@ class ImportItem extends React.Component {
         showEditLine: false,
         newItem: {
           srNr: '',
+          invNr: '',
+          poNr: '',
           qty: '',
           desc: '',
-          poNr: '',
-          invNr: '',
           totWeight: '',
           totPrice: '',
           hsCode: '',
@@ -306,10 +306,10 @@ class ImportItem extends React.Component {
           showEditLine: true,
           newItem: {
             srNr: found.srNr || '',
+            invNr: found.invNr || '',
+            poNr: found.poNr || '',
             qty: found.qty || '',
             desc: found.desc || '',
-            poNr: found.poNr || '',
-            invNr: found.invNr || '',
             totWeight: found.totWeight || '',
             totPrice: found.totPrice || '',
             hsCode: found.hsCode || '',
@@ -413,10 +413,10 @@ class ImportItem extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             srNr: newItem.srNr,
+            invNr: newItem.invNr,
+            poNr: newItem.poNr,
             qty: newItem.qty,
             desc: newItem.desc,
-            poNr: newItem.poNr,
-            invNr: newItem.invNr,
             totWeight: newItem.totWeight,
             totPrice: newItem.totPrice,
             hsCode: newItem.hsCode,
@@ -468,11 +468,11 @@ class ImportItem extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             _id: selectedRows[0],
+            invNr: newItem.invNr,
+            poNr: newItem.poNr,
             qty: newItem.qty,
             srNr: newItem.srNr,
             desc: newItem.desc,
-            poNr: newItem.poNr,
-            invNr: newItem.invNr,
             totWeight: newItem.totWeight,
             totPrice: newItem.totPrice,
             hsCode: newItem.hsCode,
@@ -690,10 +690,10 @@ class ImportItem extends React.Component {
               callback={this.updateSelectedRows}
             />
             <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="1" value={importItem.qty} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importItem.poNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importItem.poNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importItem.qty} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="5" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="6" value={importItem.totWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="7" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
@@ -819,27 +819,14 @@ class ImportItem extends React.Component {
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderInput
-                                            type="number"
-                                            title="Qty"
-                                            name="qty"
-                                            value={filter.qty}
+                                            type="text"
+                                            title="Inv Number"
+                                            name="invNr"
+                                            value={filter.invNr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="1"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="Descripion"
-                                            name="desc"
-                                            value={filter.desc}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="2"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -852,6 +839,19 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
+                                            index="2"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Qty"
+                                            name="qty"
+                                            value={filter.qty}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
                                             index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
@@ -859,9 +859,9 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="Inv Number"
-                                            name="invNr"
-                                            value={filter.invNr}
+                                            title="Descripion"
+                                            name="desc"
+                                            value={filter.desc}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -996,6 +996,26 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
+                            title="Inv Nr"
+                            name="invNr"
+                            type="text"
+                            value={newItem.invNr}
+                            onChange={this.handleChangeItem}
+                            submitted={creatingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="PO Nr"
+                            name="poNr"
+                            type="text"
+                            value={newItem.poNr}
+                            onChange={this.handleChangeItem}
+                            submitted={creatingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
                             title="Qty"
                             name="qty"
                             type="number"
@@ -1011,28 +1031,6 @@ class ImportItem extends React.Component {
                             type="text"
                             value={newItem.desc}
                             onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="PO Nr"
-                            name="poNr"
-                            type="text"
-                            value={newItem.poNr}
-                            onChange={this.handleChangeItem}
-                            // placeholder={getDateFormat()}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Inv Nr"
-                            name="invNr"
-                            type="text"
-                            value={newItem.invNr}
-                            onChange={this.handleChangeItem}
-                            // placeholder={getDateFormat()}
                             submitted={creatingLine}
                             inline={false}
                             required={true}
@@ -1107,20 +1105,10 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
-                            title="Qty"
-                            name="qty"
-                            type="number"
-                            value={newItem.qty}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Description"
-                            name="desc"
+                            title="Inv Nr"
+                            name="invNr"
                             type="text"
-                            value={newItem.desc}
+                            value={newItem.invNr}
                             onChange={this.handleChangeItem}
                             submitted={editingLine}
                             inline={false}
@@ -1137,10 +1125,20 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
-                            title="Inv Nr"
-                            name="invNr"
+                            title="Qty"
+                            name="qty"
+                            type="number"
+                            value={newItem.qty}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="desc"
                             type="text"
-                            value={newItem.invNr}
+                            value={newItem.desc}
                             onChange={this.handleChangeItem}
                             submitted={editingLine}
                             inline={false}

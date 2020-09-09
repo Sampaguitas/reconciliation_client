@@ -43,6 +43,7 @@ class ImportItem extends React.Component {
         srNr: '',
         qty: '',
         desc: '',
+        poNr: '',
         invNr: '',
         unitWeight: '',
         totWeight: '',
@@ -64,6 +65,7 @@ class ImportItem extends React.Component {
         srNr: '',
         qty: '',
         desc: '',
+        poNr: '',
         invNr: '',
         totWeight: '',
         totPrice: '',
@@ -256,6 +258,7 @@ class ImportItem extends React.Component {
         srNr: '',
         qty: '',
         desc: '',
+        poNr: '',
         invNr: '',
         totWeight: '',
         totPrice: '',
@@ -274,6 +277,7 @@ class ImportItem extends React.Component {
           srNr: '',
           qty: '',
           desc: '',
+          poNr: '',
           invNr: '',
           totWeight: '',
           totPrice: '',
@@ -304,6 +308,7 @@ class ImportItem extends React.Component {
             srNr: found.srNr || '',
             qty: found.qty || '',
             desc: found.desc || '',
+            poNr: found.poNr || '',
             invNr: found.invNr || '',
             totWeight: found.totWeight || '',
             totPrice: found.totPrice || '',
@@ -410,6 +415,7 @@ class ImportItem extends React.Component {
             srNr: newItem.srNr,
             qty: newItem.qty,
             desc: newItem.desc,
+            poNr: newItem.poNr,
             invNr: newItem.invNr,
             totWeight: newItem.totWeight,
             totPrice: newItem.totPrice,
@@ -465,6 +471,7 @@ class ImportItem extends React.Component {
             qty: newItem.qty,
             srNr: newItem.srNr,
             desc: newItem.desc,
+            poNr: newItem.poNr,
             invNr: newItem.invNr,
             totWeight: newItem.totWeight,
             totPrice: newItem.totPrice,
@@ -511,10 +518,10 @@ class ImportItem extends React.Component {
       this.setState({
         alert: {
           type: 'alert-danger',
-          message: 'Select lines to be deleted.'
+          message: 'Select line(s) to be deleted.'
         }
       });
-    } else if (confirm(`you are about to delete ${selectedRows.length} lines. Click ok to proceed.`)) {
+    } else if (confirm(`You are about to permanently delete ${selectedRows.length} line(s). Click ok to proceed.`)) {
       this.setState({
         deletingLine: true
       }, () => {
@@ -685,13 +692,14 @@ class ImportItem extends React.Component {
             <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="1" value={importItem.qty} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="2" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importItem.totWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importItem.totPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="8" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="9" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importItem.poNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importItem.totWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importItem.totPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="10" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -699,6 +707,7 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -773,6 +782,9 @@ class ImportItem extends React.Component {
                       <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                           <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
                       </button>
+                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" > {/* onClick={this.toggleEditDoc} */}
+                          <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                      </button>
                       <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
                           <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
                       </button>
@@ -814,7 +826,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="0"
+                                            index="1"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -827,7 +839,20 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="1"
+                                            index="2"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
+                                            title="PO Number"
+                                            name="poNr"
+                                            value={filter.poNr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -840,7 +865,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="2"
+                                            index="4"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -853,7 +878,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="3"
+                                            index="5"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -866,7 +891,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="3"
+                                            index="6"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -879,7 +904,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="4"
+                                            index="7"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -892,7 +917,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="4"
+                                            index="8"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -905,7 +930,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="5"
+                                            index="9"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -918,7 +943,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="6"
+                                            index="10"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -986,6 +1011,17 @@ class ImportItem extends React.Component {
                             type="text"
                             value={newItem.desc}
                             onChange={this.handleChangeItem}
+                            submitted={creatingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="PO Nr"
+                            name="poNr"
+                            type="text"
+                            value={newItem.poNr}
+                            onChange={this.handleChangeItem}
+                            // placeholder={getDateFormat()}
                             submitted={creatingLine}
                             inline={false}
                             required={true}
@@ -1085,6 +1121,16 @@ class ImportItem extends React.Component {
                             name="desc"
                             type="text"
                             value={newItem.desc}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="PO Nr"
+                            name="poNr"
+                            type="text"
+                            value={newItem.poNr}
                             onChange={this.handleChangeItem}
                             submitted={editingLine}
                             inline={false}

@@ -320,7 +320,7 @@ class ImportItem extends React.Component {
         grossWeight: importDoc.grossWeight,
         totPrice: importDoc.totPrice,
       }
-    }, () => console.log(editDoc));
+    });
   }
 
   getDocument(nextPage) {
@@ -517,7 +517,7 @@ class ImportItem extends React.Component {
         return fetch(`${config.apiUrl}/importitem/delete`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
-            deleting: false,
+            deletingLine: false,
           }, () => {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
@@ -1090,7 +1090,7 @@ class ImportItem extends React.Component {
                             name="decNr"
                             type="text"
                             value={editDoc.decNr}
-                            onChange={this.handleChangeItem}
+                            onChange={this.handleChangeDoc}
                             submitted={editingDoc}
                             inline={false}
                             required={true}
@@ -1100,7 +1100,7 @@ class ImportItem extends React.Component {
                             name="boeNr"
                             type="text"
                             value={editDoc.boeNr}
-                            onChange={this.handleChangeItem}
+                            onChange={this.handleChangeDoc}
                             submitted={editingDoc}
                             inline={false}
                             required={true}
@@ -1110,7 +1110,7 @@ class ImportItem extends React.Component {
                             name="boeDate"
                             type="text"
                             value={editDoc.boeDate}
-                            onChange={this.handleChangeItem}
+                            onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
                             submitted={editingDoc}
                             inline={false}
@@ -1121,7 +1121,7 @@ class ImportItem extends React.Component {
                             name="grossWeight"
                             type="number"
                             value={editDoc.grossWeight}
-                            onChange={this.handleChangeItem}
+                            onChange={this.handleChangeDoc}
                             submitted={editingDoc}
                             inline={false}
                             required={true}
@@ -1131,7 +1131,7 @@ class ImportItem extends React.Component {
                             name="totPrice"
                             type="number"
                             value={editDoc.totPrice}
-                            onChange={this.handleChangeItem}
+                            onChange={this.handleChangeDoc}
                             submitted={editingDoc}
                             inline={false}
                             required={true}

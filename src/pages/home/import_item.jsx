@@ -41,10 +41,13 @@ class ImportItem extends React.Component {
       },
       filter: {
         srNr: '',
+        qty: '',
         desc: '',
         invNr: '',
         unitWeight: '',
+        totWeight: '',
         unitPrice: '',
+        totPrice: '',
         hsCode: '',
         country: '',
         documentId: ''
@@ -59,10 +62,11 @@ class ImportItem extends React.Component {
       },
       newItem: {
         srNr: '',
+        qty: '',
         desc: '',
         invNr: '',
-        unitWeight: '',
-        unitPrice: '',
+        totWeight: '',
+        totPrice: '',
         hsCode: '',
         country: '',
       },
@@ -250,10 +254,11 @@ class ImportItem extends React.Component {
       showCreateLine: !showCreateLine,
       newItem: {
         srNr: '',
+        qty: '',
         desc: '',
         invNr: '',
-        unitWeight: '',
-        unitPrice: '',
+        totWeight: '',
+        totPrice: '',
         hsCode: '',
         country: '',
       },
@@ -267,10 +272,11 @@ class ImportItem extends React.Component {
         showEditLine: false,
         newItem: {
           srNr: '',
+          qty: '',
           desc: '',
           invNr: '',
-          unitWeight: '',
-          unitPrice: '',
+          totWeight: '',
+          totPrice: '',
           hsCode: '',
           country: '',
         },
@@ -296,10 +302,11 @@ class ImportItem extends React.Component {
           showEditLine: true,
           newItem: {
             srNr: found.srNr || '',
+            qty: found.qty || '',
             desc: found.desc || '',
             invNr: found.invNr || '',
-            unitWeight: found.unitWeight || '',
-            unitPrice: found.unitPrice || '',
+            totWeight: found.totWeight || '',
+            totPrice: found.totPrice || '',
             hsCode: found.hsCode || '',
             country: found.country || '',
           },
@@ -401,10 +408,11 @@ class ImportItem extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             srNr: newItem.srNr,
+            qty: newItem.qty,
             desc: newItem.desc,
             invNr: newItem.invNr,
-            unitWeight: newItem.unitWeight,
-            unitPrice: newItem.unitPrice,
+            totWeight: newItem.totWeight,
+            totPrice: newItem.totPrice,
             hsCode: newItem.hsCode,
             country: newItem.country,
             documentId: filter.documentId
@@ -454,11 +462,12 @@ class ImportItem extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             _id: selectedRows[0],
+            qty: newItem.qty,
             srNr: newItem.srNr,
             desc: newItem.desc,
             invNr: newItem.invNr,
-            unitWeight: newItem.unitWeight,
-            unitPrice: newItem.unitPrice,
+            totWeight: newItem.totWeight,
+            totPrice: newItem.totPrice,
             hsCode: newItem.hsCode,
             country: newItem.country
           })
@@ -674,12 +683,15 @@ class ImportItem extends React.Component {
               callback={this.updateSelectedRows}
             />
             <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="1" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importItem.qty} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importItem.totWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importItem.totPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -687,6 +699,9 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -792,6 +807,19 @@ class ImportItem extends React.Component {
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderInput
+                                            type="number"
+                                            title="Qty"
+                                            name="qty"
+                                            value={filter.qty}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="0"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
                                             type="text"
                                             title="Descripion"
                                             name="desc"
@@ -832,9 +860,35 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
+                                            title="Total Weight"
+                                            name="totWeight"
+                                            value={filter.totWeight}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="3"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
                                             title="Unit Price"
                                             name="unitPrice"
                                             value={filter.unitPrice}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="4"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Total Price"
+                                            name="totPrice"
+                                            value={filter.totPrice}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -917,6 +971,16 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
+                            title="Qty"
+                            name="qty"
+                            type="number"
+                            value={newItem.qty}
+                            onChange={this.handleChangeItem}
+                            submitted={creatingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
                             title="Description"
                             name="desc"
                             type="text"
@@ -938,20 +1002,20 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
-                            title="Unit Weight"
-                            name="unitWeight"
+                            title="Total Weight"
+                            name="totWeight"
                             type="number"
-                            value={newItem.unitWeight}
+                            value={newItem.totWeight}
                             onChange={this.handleChangeItem}
                             submitted={creatingLine}
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="Unit Price"
-                            name="unitPrice"
+                            title="Total Price"
+                            name="totPrice"
                             type="number"
-                            value={newItem.unitPrice}
+                            value={newItem.totPrice}
                             onChange={this.handleChangeItem}
                             submitted={creatingLine}
                             inline={false}
@@ -1007,6 +1071,16 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
+                            title="Qty"
+                            name="qty"
+                            type="number"
+                            value={newItem.qty}
+                            onChange={this.handleChangeItem}
+                            submitted={editingLine}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
                             title="Description"
                             name="desc"
                             type="text"
@@ -1027,20 +1101,20 @@ class ImportItem extends React.Component {
                             required={true}
                           />
                           <Input
-                            title="Unit Weight"
-                            name="unitWeight"
+                            title="Total Weight"
+                            name="totWeight"
                             type="number"
-                            value={newItem.unitWeight}
+                            value={newItem.totWeight}
                             onChange={this.handleChangeItem}
                             submitted={editingLine}
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="Unit Price"
-                            name="unitPrice"
+                            title="Total Price"
+                            name="totPrice"
                             type="number"
-                            value={newItem.unitPrice}
+                            value={newItem.totPrice}
                             onChange={this.handleChangeItem}
                             submitted={editingLine}
                             inline={false}

@@ -38,6 +38,7 @@ class ImportItem extends React.Component {
         grossWeight: '',
         totPrice: '',
         isClosed: '',
+        fileName: '',
         items: [],
       },
       editDoc: {
@@ -47,6 +48,8 @@ class ImportItem extends React.Component {
         grossWeight: '',
         totPrice: '',
       },
+      fileName: '',
+      fileKey: Date.now(),
       dufName: '',
       dufKey: Date.now(),
       responce: {},
@@ -85,10 +88,13 @@ class ImportItem extends React.Component {
       },
       retrieving: false,
       showEditDoc: false,
+      showFile: false,
       showDuf: false,
       showCreateLine: false,
       showEditLine: false,
       editingDoc: false,
+      uploadingFile: false,
+      downloadingFile: false,
       downloadingDuf: false,
       uploadingDuf: false,
       creatingLine: false,
@@ -117,13 +123,17 @@ class ImportItem extends React.Component {
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
+    this.handleChangeFile = this.handleChangeFile.bind(this);
     this.handleChangeItem = this.handleChangeItem.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
+    this.toggleFile = this.toggleFile.bind(this);
     this.toggleNewLine = this.toggleNewLine.bind(this);
     this.toggleEditLine = this.toggleEditLine.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
+    this.handleUploadFile = this.handleUploadFile.bind(this);
+    this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
     this.handleCreateLine = this.handleCreateLine.bind(this);
@@ -135,6 +145,7 @@ class ImportItem extends React.Component {
     this.toggleSelectAllRow = this.toggleSelectAllRow.bind(this);
     this.updateSelectedRows = this.updateSelectedRows.bind(this);
     this.dufInput = React.createRef();
+    this.fileInput = React.createRef();
   }
 
   componentDidMount() {
@@ -271,6 +282,15 @@ class ImportItem extends React.Component {
     }
   }
 
+  handleChangeFile(event){
+    if(event.target.files.length > 0) {
+        this.setState({
+            ...this.state,
+            fileName: event.target.files[0].name
+        });
+    }
+  }
+
   generateRejectionDuf(responce){
     let temp =[]
     if (!_.isEmpty(responce.rejections)) {
@@ -380,7 +400,6 @@ class ImportItem extends React.Component {
 
   toggleDuf(event) {
     event.preventDefault();
-    console.log('toto');
     const { showDuf } = this.state;
     this.setState({
         showDuf: !showDuf,
@@ -391,6 +410,20 @@ class ImportItem extends React.Component {
         dufKey: Date.now(),
         dufName: '',
         responce:{}
+    });
+  }
+
+  toggleFile(event) {
+    event.preventDefault();
+    const { showFile, importDoc } = this.state;
+    this.setState({
+        showFile: !showFile,
+        alert: {
+            type:'',
+            message:''
+        },
+        fileKey: Date.now(),
+        fileName: importDoc.fileName || ''
     });
   }
 
@@ -516,6 +549,80 @@ class ImportItem extends React.Component {
     }
   }
 
+  handleDownloadFile(event) {
+    event.preventDefault();
+    const { importDoc } = this.state;
+    if (importDoc._id && importDoc.fileName) {
+      console.log('importDoc.fileName');
+      this.setState({
+          downloadingFile: true
+      }, () => {
+        const requestOptions = {
+            method: 'GET',
+            headers: { ...authHeader(), 'Content-Type': 'application/json'},
+        };
+        return fetch(`${config.apiUrl}/importdoc/downloadFile?documentId=${importDoc._id}`, requestOptions)
+        .then(responce => {
+          if (responce.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+          } else if (responce.status === 400) {
+              this.setState({
+                  downloadingFile: false,
+                  alert: {
+                      type: 'alert-danger',
+                      message: 'an error has occured'  
+                  }
+              });
+          } else {
+              this.setState({
+                  downloadingFile: false
+              }, () => responce.blob().then(blob => saveAs(blob, importDoc.fileName)));
+          }
+        });
+      });
+    }
+  }
+
+  handleUploadFile(event){
+    event.preventDefault();
+    const { importDoc, fileName } = this.state;
+    if(!!this.fileInput.current && !!importDoc._id && !!fileName) {
+      this.setState({
+          uploadingFile: true
+      }, () => {
+        var data = new FormData()
+        data.append('file', this.fileInput.current.files[0])
+        data.append('documentId', importDoc._id)
+        data.append('fileName', fileName)
+        const requestOptions = {
+          method: 'POST',
+          headers: { ...authHeader()}, //, 'Content-Type': 'application/json'
+          body: data
+        }
+        return fetch(`${config.apiUrl}/importdoc/uploadFile`, requestOptions)
+        .then(responce => responce.text().then(text => {
+          this.setState({
+            uploadingFile: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            if (responce.status === 401) {
+                    localStorage.removeItem('user');
+                    location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: responce.status === 200 ? 'alert-success' : 'alert-danger',
+                  message: data.message
+                }
+              }, () => this.getDocument());
+            }
+          });
+        }));
+      });           
+    }        
+  }
+
   handleDownloadDuf(event){
     event.preventDefault();
     const { downloadingDuf } = this.state;
@@ -553,7 +660,7 @@ class ImportItem extends React.Component {
   handleUploadDuf(event) {
     event.preventDefault();
     const { importDoc, dufName, uploadingDuf } = this.state
-    if(!uploadingDuf && this.dufInput.current.files[0] && importDoc._id && dufName) {
+    if(!uploadingDuf && !!this.dufInput.current && !!importDoc._id) {
       this.setState({uploadingDuf: true});
       var data = new FormData()
       data.append('file', this.dufInput.current.files[0]);
@@ -867,15 +974,20 @@ class ImportItem extends React.Component {
           importDoc,
           newItem,
           editDoc,
+          fileName,
+          fileKey,
           dufName,
           dufKey,
           responce,
           showEditDoc,
+          showFile,
           showDuf,
           showCreateLine, 
           showEditLine,
           retrieving,
           editingDoc,
+          downloadingFile,
+          uploadingFile,
           downloadingDuf,
           uploadingDuf,
           creatingLine,
@@ -919,6 +1031,9 @@ class ImportItem extends React.Component {
                     <div className="action-row row"> 
                       <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                           <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                      </button>
+                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
+                          <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
                       </button>
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
@@ -1114,6 +1229,44 @@ class ImportItem extends React.Component {
                         </div>
                     </div>
                     <Modal
+                      show={showFile}
+                      hideModal={this.toggleFile}
+                      title="Attachment"
+                      size="modal-xl"
+                    >
+                      <form
+                        className="col-12"
+                        encType="multipart/form-data"
+                        onSubmit={this.handleUploadFile}
+                        style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
+                      >
+                        <div className="input-group">
+                            <div className="input-group-prepend">
+                                <span className="input-group-text" style={{width: '95px'}}>Select Attachment:</span>
+                                <input
+                                    type="file"
+                                    name="fileInput"
+                                    id="fileInput"
+                                    ref={this.fileInput}
+                                    className="custom-file-input"
+                                    style={{opacity: 0, position: 'absolute', pointerEvents: 'none', width: '1px'}}
+                                    onChange={this.handleChangeFile}
+                                    key={fileKey}
+                                />
+                            </div>
+                            <label type="text" className="form-control text-left" htmlFor="fileInput" style={{display:'inline-block', height: '30px', padding: '5px'}}>{fileName ? fileName : 'Choose file...'}</label>
+                            <div className="input-group-append mr-2">
+                                <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current && "disabled"}`}>
+                                    <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" :"fa mr-2"}/>Upload</span>
+                                </button>
+                                <button className={`btn btn-outline-leeuwen-blue btn-lg${!importDoc.fileName && " disabled"}`} onClick={event => this.handleDownloadFile(event)}>
+                                    <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" :"fa mr-2"}/>Download</span>
+                                </button>   
+                            </div>
+                        </div>
+                      </form>
+                    </Modal>
+                    <Modal
                       show={showDuf}
                       hideModal={this.toggleDuf}
                       title="Download/Upload File"
@@ -1150,7 +1303,7 @@ class ImportItem extends React.Component {
                                       </div>
                                       <label type="text" className="form-control text-left" htmlFor="dufInput" style={{display:'inline-block', padding: '7px'}}>{dufName ? dufName : 'Choose file...'}</label>
                                       <div className="input-group-append">
-                                        <button type="submit" className="btn btn-outline-leeuwen-blue btn-lg">
+                                        <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.dufInput.current && "disabled"}`}>
                                             <span><FontAwesomeIcon icon={uploadingDuf ? "spinner" : "upload"} className={uploadingDuf ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                         </button>
                                         <button className="btn btn-outline-leeuwen-blue btn-lg" onClick={this.handleDownloadDuf}>

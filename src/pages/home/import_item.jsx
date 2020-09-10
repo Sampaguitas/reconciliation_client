@@ -557,7 +557,7 @@ class ImportItem extends React.Component {
       this.setState({uploadingDuf: true});
       var data = new FormData()
       data.append('file', this.dufInput.current.files[0]);
-      data.append('importdocId', importDoc._id);
+      data.append('documentId', importDoc._id);
       const requestOptions = {
           method: 'POST',
           headers: { ...authHeader()}, //, 'Content-Type': 'application/json'
@@ -566,6 +566,7 @@ class ImportItem extends React.Component {
       return fetch(`${config.apiUrl}/importitem/uploadDuf`, requestOptions)
       .then(responce => responce.text().then(text => {
           const data = text && JSON.parse(text);
+          console.log(responce.status);
           if (responce.status === 401) {
                   localStorage.removeItem('user');
                   location.reload(true);
@@ -577,7 +578,6 @@ class ImportItem extends React.Component {
                     nProcessed: data.nProcessed,
                     nRejected: data.nRejected,
                     nAdded: data.nAdded,
-                    nEdited: data.nEdited
                 },
                 alert: {
                     type: responce.status === 200 ? 'alert-success' : 'alert-danger',
@@ -1165,7 +1165,6 @@ class ImportItem extends React.Component {
                                   <div className="form-group table-resonsive">
                                     <strong>Total Processed:</strong> {responce.nProcessed}<br />
                                     <strong>Total Records Added:</strong> {responce.nAdded}<br />
-                                    <strong>Total Records Edited:</strong> {responce.nEdited}<br />
                                     <strong>Total Records Rejected:</strong> {responce.nRejected}<br />
                                     <hr />
                                   </div>

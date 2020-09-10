@@ -86,12 +86,13 @@ class ImportItem extends React.Component {
         hsCode: '',
         country: '',
       },
-      retrieving: false,
       showEditDoc: false,
       showFile: false,
       showDuf: false,
       showCreateLine: false,
       showEditLine: false,
+      retrieving: false,
+      deletingDoc: false,
       editingDoc: false,
       uploadingFile: false,
       downloadingFile: false,
@@ -131,6 +132,7 @@ class ImportItem extends React.Component {
     this.toggleNewLine = this.toggleNewLine.bind(this);
     this.toggleEditLine = this.toggleEditLine.bind(this);
     this.getDocument = this.getDocument.bind(this);
+    this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
@@ -549,11 +551,51 @@ class ImportItem extends React.Component {
     }
   }
 
+  handleDeleteDoc(event) {
+    event.preventDefault();
+    const { importDoc, deletingDoc } = this.state;
+    if (!!importDoc._id && !deletingDoc) {
+      this.setState({
+        deletingDoc
+      }, () => {
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            documentId: importDoc._id
+          })
+        }
+        return fetch(`${config.apiUrl}/importdoc/delete`, requestOptions)
+        .then(responce => {
+          if (responce.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+          } else if (responce.status != 200) {
+              this.setState({
+                  downloadingFile: false,
+                  alert: {
+                    type: 'alert-danger',
+                    message: 'An error has occured.'  
+                  }
+              });
+          } else {
+              this.setState({
+                  downloadingFile: false,
+                  alert: {
+                    type: 'alert-success',
+                    message: 'Document has successfully been deleted, we will redirect you in a second.'
+                  }
+              }, () => setTimeout( () => history.push({ pathname:'/importdoc' }), 1000));
+          }
+        });
+      })
+    }
+  }
+
   handleDownloadFile(event) {
     event.preventDefault();
-    const { importDoc } = this.state;
-    if (importDoc._id && importDoc.fileName) {
-      console.log('importDoc.fileName');
+    const { importDoc, downloadingFile } = this.state;
+    if (importDoc._id && importDoc.fileName && !downloadingFile) {
       this.setState({
           downloadingFile: true
       }, () => {
@@ -570,8 +612,8 @@ class ImportItem extends React.Component {
               this.setState({
                   downloadingFile: false,
                   alert: {
-                      type: 'alert-danger',
-                      message: 'an error has occured'  
+                    type: 'alert-danger',
+                    message: 'an error has occured'  
                   }
               });
           } else {
@@ -587,14 +629,13 @@ class ImportItem extends React.Component {
   handleUploadFile(event){
     event.preventDefault();
     const { importDoc, fileName } = this.state;
-    if(!!this.fileInput.current && !!importDoc._id && !!fileName) {
+    if(!!this.fileInput.current && !!importDoc._id && !!fileName && !uploadingFile) {
       this.setState({
           uploadingFile: true
       }, () => {
         var data = new FormData()
         data.append('file', this.fileInput.current.files[0])
         data.append('documentId', importDoc._id)
-        data.append('fileName', fileName)
         const requestOptions = {
           method: 'POST',
           headers: { ...authHeader()}, //, 'Content-Type': 'application/json'
@@ -660,7 +701,7 @@ class ImportItem extends React.Component {
   handleUploadDuf(event) {
     event.preventDefault();
     const { importDoc, dufName, uploadingDuf } = this.state
-    if(!uploadingDuf && !!this.dufInput.current && !!importDoc._id) {
+    if(!uploadingDuf && !!this.dufInput.current && !!importDoc._id && !uploadingDuf) {
       this.setState({uploadingDuf: true});
       var data = new FormData()
       data.append('file', this.dufInput.current.files[0]);
@@ -808,7 +849,7 @@ class ImportItem extends React.Component {
 
   handleDeleteLine(event) {
     event.preventDefault();
-    const { selectedRows } = this.state;
+    const { selectedRows, deletingLine } = this.state;
     if (_.isEmpty(selectedRows)) {
       this.setState({
         alert: {
@@ -816,7 +857,7 @@ class ImportItem extends React.Component {
           message: 'Select line(s) to be deleted.'
         }
       });
-    } else if (confirm(`You are about to permanently delete ${selectedRows.length} line(s). Click ok to proceed.`)) {
+    } else if (!deletingLine && confirm(`You are about to permanently delete ${selectedRows.length} line(s). Click ok to proceed.`)) {
       this.setState({
         deletingLine: true
       }, () => {
@@ -985,6 +1026,7 @@ class ImportItem extends React.Component {
           showCreateLine, 
           showEditLine,
           retrieving,
+          deletingDoc,
           editingDoc,
           downloadingFile,
           uploadingFile,
@@ -1229,6 +1271,78 @@ class ImportItem extends React.Component {
                         </div>
                     </div>
                     <Modal
+                      show={showEditDoc}
+                      hideModal={this.toggleEditDoc}
+                      title={'Update Import Document'}
+                    >
+                      <div className="col-12">
+                        <form
+                          name="form"
+                          onSubmit={this.handleEditDoc}
+                        >
+                          <Input
+                            title="SrNo"
+                            name="decNr"
+                            type="text"
+                            value={editDoc.decNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="boeNr"
+                            type="text"
+                            value={editDoc.boeNr}
+                            onChange={this.handleChangeDoc}
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Date"
+                            name="boeDate"
+                            type="text"
+                            value={editDoc.boeDate}
+                            onChange={this.handleChangeDoc}
+                            placeholder={getDateFormat()}
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight"
+                            name="grossWeight"
+                            type="number"
+                            value={editDoc.grossWeight}
+                            onChange={this.handleChangeDoc}
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Total Price (AED)"
+                            name="totPrice"
+                            type="number"
+                            value={editDoc.totPrice}
+                            onChange={this.handleChangeDoc}
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <div className="modal-footer">
+                              <button className="btn btn-leeuwen btn-lg mr-2" onClick={event => this.handleDeleteDoc(event)}>
+                                <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
+                              </button>
+                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "edit"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                              </button>
+                          </div>
+                        </form>
+                      </div>
+                    </Modal>
+                    <Modal
                       show={showFile}
                       hideModal={this.toggleFile}
                       title="Attachment"
@@ -1340,75 +1454,6 @@ class ImportItem extends React.Component {
                                 </div>
                               }
                         </div>
-                    </Modal>
-                    <Modal
-                      show={showEditDoc}
-                      hideModal={this.toggleEditDoc}
-                      title={'Update Import Document'}
-                    >
-                      <div className="col-12">
-                        <form
-                          name="form"
-                          onSubmit={this.handleEditDoc}
-                        >
-                          <Input
-                            title="SrNo"
-                            name="decNr"
-                            type="text"
-                            value={editDoc.decNr}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Description"
-                            name="boeNr"
-                            type="text"
-                            value={editDoc.boeNr}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Date"
-                            name="boeDate"
-                            type="text"
-                            value={editDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Gross Weight"
-                            name="grossWeight"
-                            type="number"
-                            value={editDoc.grossWeight}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price (AED)"
-                            name="totPrice"
-                            type="number"
-                            value={editDoc.totPrice}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                            <div className="modal-footer">
-                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "edit"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
-                                </button>
-                            </div>
-                        </form>
-                      </div>
                     </Modal>
                     <Modal
                       show={showCreateLine}

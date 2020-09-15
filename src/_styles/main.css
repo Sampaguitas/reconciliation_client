@@ -300,6 +300,13 @@ h5 {
     color: #fff;
   }
 
+  .modal-footer {
+    padding-top: 10px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+  }
+
   .no-padding {
     padding: 0;
   }
@@ -555,3 +562,4 @@ ol.breadcrumb {
   height: 31.5px;
   padding: 6px 12px 6px 12px;
 }
+

@@ -825,5 +825,5 @@ export function copyObject(mainObj) {
 }
 
 export function getPageSize(tableContainer) {
-    return Math.floor((tableContainer.clientHeight - 52.5) / 33);
+    return Math.floor(((tableContainer.clientHeight - 52.5) / 33));
 }

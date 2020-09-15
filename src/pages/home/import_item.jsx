@@ -35,7 +35,7 @@ class ImportItem extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
+        totWeight: '',
         totPrice: '',
         isClosed: '',
         fileName: '',
@@ -45,8 +45,6 @@ class ImportItem extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
-        totPrice: '',
       },
       fileName: '',
       fileKey: Date.now(),
@@ -75,22 +73,9 @@ class ImportItem extends React.Component {
           type: '',
           message: ''
       },
-      newItem: {
-        srNr: '',
-        invNr: '',
-        poNr: '',
-        qty: '',
-        desc: '',
-        totWeight: '',
-        totPrice: '',
-        hsCode: '',
-        country: '',
-      },
       showEditDoc: false,
       showFile: false,
       showDuf: false,
-      showCreateLine: false,
-      showEditLine: false,
       retrieving: false,
       deletingDoc: false,
       editingDoc: false,
@@ -98,8 +83,6 @@ class ImportItem extends React.Component {
       downloadingFile: false,
       downloadingDuf: false,
       uploadingDuf: false,
-      creatingLine: false,
-      editingLine: false,
       deletingLine: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
@@ -125,12 +108,9 @@ class ImportItem extends React.Component {
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
-    this.handleChangeItem = this.handleChangeItem.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
-    this.toggleNewLine = this.toggleNewLine.bind(this);
-    this.toggleEditLine = this.toggleEditLine.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
@@ -138,8 +118,6 @@ class ImportItem extends React.Component {
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
-    this.handleCreateLine = this.handleCreateLine.bind(this);
-    this.handleEditLine = this.handleEditLine.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -253,17 +231,6 @@ class ImportItem extends React.Component {
     });
   }
 
-  handleChangeItem(event) {
-    const { newItem } = this.state;
-    const { name, value } = event.target;
-    this.setState({
-      newItem: {
-        ...newItem,
-        [name]: value
-      }
-    });
-  }
-
   handleChangeDoc(event) {
     const { editDoc } = this.state;
     const { name, value } = event.target;
@@ -315,76 +282,6 @@ class ImportItem extends React.Component {
     }
   }
 
-  toggleNewLine() {
-    const { showCreateLine } = this.state;
-    this.setState({
-      showCreateLine: !showCreateLine,
-      newItem: {
-        srNr: '',
-        invNr: '',
-        poNr: '',
-        qty: '',
-        desc: '',
-        totWeight: '',
-        totPrice: '',
-        hsCode: '',
-        country: '',
-      },
-    });
-  }
-
-  toggleEditLine() {
-    const { selectedRows, importDoc, showEditLine } = this.state;
-    if (!!showEditLine) { 
-      this.setState({
-        showEditLine: false,
-        newItem: {
-          srNr: '',
-          invNr: '',
-          poNr: '',
-          qty: '',
-          desc: '',
-          totWeight: '',
-          totPrice: '',
-          hsCode: '',
-          country: '',
-        },
-      });
-    } else if (_.isEmpty(selectedRows)) {
-      this.setState({
-        alert: {
-          type: 'alert-danger',
-          message: 'Select the line to be edited.'
-        }
-      });
-    } else if(selectedRows.length > 1) {
-      this.setState({
-        alert: {
-          type: 'alert-danger',
-          message: 'Select only one line.'
-        }
-      });
-    } else if (selectedRows.length === 1) {
-      let found = importDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
-      if (!_.isUndefined(found)) {
-        this.setState({
-          showEditLine: true,
-          newItem: {
-            srNr: found.srNr || '',
-            invNr: found.invNr || '',
-            poNr: found.poNr || '',
-            qty: found.qty || '',
-            desc: found.desc || '',
-            totWeight: found.totWeight || '',
-            totPrice: found.totPrice || '',
-            hsCode: found.hsCode || '',
-            country: found.country || '',
-          },
-        });
-      }
-    }
-  }
-
   toggleEditDoc() {
     const { showEditDoc, importDoc, editDoc } = this.state;
     this.setState({
@@ -394,8 +291,6 @@ class ImportItem extends React.Component {
         decNr: importDoc.decNr,
         boeNr: importDoc.boeNr,
         boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
-        grossWeight: importDoc.grossWeight,
-        totPrice: importDoc.totPrice,
       }
     });
   }
@@ -454,7 +349,6 @@ class ImportItem extends React.Component {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
-              // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
             } else if (response.status === 404) {
@@ -515,8 +409,6 @@ class ImportItem extends React.Component {
             decNr: editDoc.decNr,
             boeNr: editDoc.boeNr,
             boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
-            grossWeight: editDoc.grossWeight,
-            totPrice: editDoc.totPrice,
           })
         };
         return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
@@ -527,7 +419,6 @@ class ImportItem extends React.Component {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
-              // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
             } else {
@@ -628,7 +519,7 @@ class ImportItem extends React.Component {
 
   handleUploadFile(event){
     event.preventDefault();
-    const { importDoc, fileName } = this.state;
+    const { importDoc, fileName, uploadingFile } = this.state;
     if(!!this.fileInput.current && !!importDoc._id && !!fileName && !uploadingFile) {
       this.setState({
           uploadingFile: true
@@ -737,116 +628,6 @@ class ImportItem extends React.Component {
     }
   }
 
-  handleCreateLine(event) {
-    event.preventDefault();
-    const { newItem, filter, creatingLine } = this.state;
-    if (!creatingLine) {
-      this.setState({
-        creatingLine: true,
-      }, () => {
-        const requestOptions = {
-          method: 'POST',
-          headers: {...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            srNr: newItem.srNr,
-            invNr: newItem.invNr,
-            poNr: newItem.poNr,
-            qty: newItem.qty,
-            desc: newItem.desc,
-            totWeight: newItem.totWeight,
-            totPrice: newItem.totPrice,
-            hsCode: newItem.hsCode,
-            country: newItem.country,
-            documentId: filter.documentId
-          })
-        };
-        return fetch(`${config.apiUrl}/importitem/create`, requestOptions)
-        .then(response => response.text().then(text => {
-          this.setState({
-            creatingLine: false
-          }, () => {
-            const data = text && JSON.parse(text);
-            const resMsg = (data && data.message) || response.statusText;
-            if (response.status === 401) {
-              // Unauthorized
-              localStorage.removeItem('user');
-              location.reload(true);
-            } else {
-              this.setState({
-                alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
-                  message: resMsg
-                }
-              }, () => {
-                this.getDocument();
-                this.toggleNewLine();
-              });
-            }
-          });
-        }))
-        .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
-        });
-      });
-    }
-  }
-
-  handleEditLine(event) {
-    event.preventDefault();
-    const { selectedRows, newItem, filter, editingLine } = this.state;
-    if (selectedRows.length === 1 && !editingLine) {
-      this.setState({
-        editingLine: true,
-      }, () => {
-        const requestOptions = {
-          method: 'PUT',
-          headers: {...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            _id: selectedRows[0],
-            invNr: newItem.invNr,
-            poNr: newItem.poNr,
-            qty: newItem.qty,
-            srNr: newItem.srNr,
-            desc: newItem.desc,
-            totWeight: newItem.totWeight,
-            totPrice: newItem.totPrice,
-            hsCode: newItem.hsCode,
-            country: newItem.country
-          })
-        };
-        return fetch(`${config.apiUrl}/importitem/update`, requestOptions)
-        .then(response => response.text().then(text => {
-          this.setState({
-            editingLine: false
-          }, () => {
-            const data = text && JSON.parse(text);
-            const resMsg = (data && data.message) || response.statusText;
-            if (response.status === 401) {
-              // Unauthorized
-              localStorage.removeItem('user');
-              location.reload(true);
-            } else {
-              this.setState({
-                alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
-                  message: resMsg
-                }
-              }, () => {
-                this.getDocument();
-                this.toggleEditLine();
-              });
-            }
-          });
-        }))
-        .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
-        });
-      });
-    }
-  }
-
   handleDeleteLine(event) {
     event.preventDefault();
     const { selectedRows, deletingLine } = this.state;
@@ -874,7 +655,6 @@ class ImportItem extends React.Component {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
-              // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
             } else {
@@ -1013,7 +793,6 @@ class ImportItem extends React.Component {
           sort,
           settingsColWidth,
           importDoc,
-          newItem,
           editDoc,
           fileName,
           fileKey,
@@ -1023,8 +802,6 @@ class ImportItem extends React.Component {
           showEditDoc,
           showFile,
           showDuf,
-          showCreateLine, 
-          showEditLine,
           retrieving,
           deletingDoc,
           editingDoc,
@@ -1032,8 +809,6 @@ class ImportItem extends React.Component {
           uploadingFile,
           downloadingDuf,
           uploadingDuf,
-          creatingLine,
-          editingLine,
           deletingLine,
           selectAllRows
         } = this.state;
@@ -1043,7 +818,7 @@ class ImportItem extends React.Component {
 
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
-                {alert.message && 
+                {alert.message && !showEditDoc && !showFile && !showDuf &&
                     <div className={`alert ${alert.type}`}>{alert.message}
                         <button className="close" onClick={(event) => this.handleClearAlert(event)}>
                             <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
@@ -1064,12 +839,12 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.grossWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
+                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.totWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
                       </li>
                     </ol>
                   }
                 </nav>
-                <div id="import" className={alert.message ? "main-section-alert" : "main-section"}> 
+                <div id="import" className={alert.message && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row"> 
                       <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                           <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
@@ -1079,12 +854,6 @@ class ImportItem extends React.Component {
                       </button>
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
-                      </button>
-                      <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleNewLine}>
-                          <span><FontAwesomeIcon icon="plus" className="fa mr-2"/>New Line</span>
-                      </button>
-                      <button title="New Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditLine}>
-                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
                       </button>
                       <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
@@ -1275,9 +1044,10 @@ class ImportItem extends React.Component {
                       hideModal={this.toggleEditDoc}
                       title={'Update Import Document'}
                     >
-                      <div className="col-12">
                         <form
                           name="form"
+                          className="col-12"
+                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
                           onSubmit={this.handleEditDoc}
                         >
                           <Input
@@ -1311,26 +1081,6 @@ class ImportItem extends React.Component {
                             inline={false}
                             required={true}
                           />
-                          <Input
-                            title="Gross Weight"
-                            name="grossWeight"
-                            type="number"
-                            value={editDoc.grossWeight}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price (AED)"
-                            name="totPrice"
-                            type="number"
-                            value={editDoc.totPrice}
-                            onChange={this.handleChangeDoc}
-                            submitted={editingDoc}
-                            inline={false}
-                            required={true}
-                          />
                           <div className="modal-footer">
                               <button className="btn btn-leeuwen btn-lg mr-2" onClick={event => this.handleDeleteDoc(event)}>
                                 <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
@@ -1340,61 +1090,80 @@ class ImportItem extends React.Component {
                               </button>
                           </div>
                         </form>
-                      </div>
                     </Modal>
                     <Modal
                       show={showFile}
                       hideModal={this.toggleFile}
                       title="Attachment"
-                      size="modal-xl"
+                      size="modal-lg"
                     >
-                      <form
-                        className="col-12"
-                        encType="multipart/form-data"
-                        onSubmit={this.handleUploadFile}
-                        style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
-                      >
-                        <div className="input-group">
-                            <div className="input-group-prepend">
-                                <span className="input-group-text" style={{width: '95px'}}>Select Attachment:</span>
-                                <input
-                                    type="file"
-                                    name="fileInput"
-                                    id="fileInput"
-                                    ref={this.fileInput}
-                                    className="custom-file-input"
-                                    style={{opacity: 0, position: 'absolute', pointerEvents: 'none', width: '1px'}}
-                                    onChange={this.handleChangeFile}
-                                    key={fileKey}
-                                />
-                            </div>
-                            <label type="text" className="form-control text-left" htmlFor="fileInput" style={{display:'inline-block', height: '30px', padding: '5px'}}>{fileName ? fileName : 'Choose file...'}</label>
-                            <div className="input-group-append mr-2">
-                                <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current && "disabled"}`}>
-                                    <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" :"fa mr-2"}/>Upload</span>
+                      <div className="col-12">
+                        {alert.message &&
+                          <div className="row">
+                            <div className="col-12" style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}>
+                              <div className={`alert ${alert.type}`}> {alert.message}
+                                <button className="close" onClick={(event) => this.handleClearAlert(event)}>
+                                    <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
                                 </button>
-                                <button className={`btn btn-outline-leeuwen-blue btn-lg${!importDoc.fileName && " disabled"}`} onClick={event => this.handleDownloadFile(event)}>
-                                    <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" :"fa mr-2"}/>Download</span>
-                                </button>   
+                              </div>
                             </div>
+                          </div>
+                        }
+                        <div className="row">
+                          <form
+                            className="col-12"
+                            encType="multipart/form-data"
+                            onSubmit={this.handleUploadFile}
+                            style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
+                          >
+                            <div className="input-group">
+                                <div className="input-group-prepend">
+                                    <span className="input-group-text" style={{width: '95px'}}>Select Document</span>
+                                    <input
+                                        type="file"
+                                        name="fileInput"
+                                        id="fileInput"
+                                        ref={this.fileInput}
+                                        className="custom-file-input"
+                                        style={{opacity: 0, position: 'absolute', pointerEvents: 'none', width: '1px'}}
+                                        onChange={this.handleChangeFile}
+                                        key={fileKey}
+                                    />
+                                </div>
+                                <label type="text" className="form-control text-left" htmlFor="fileInput" style={{display:'inline-block', padding: '7px'}}>{fileName ? fileName : 'Choose file...'}</label>
+                                <div className="input-group-append">
+                                    <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current ? " disabled" : ""}`}>
+                                        <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
+                                    </button>
+                                    <button className={`btn btn-outline-leeuwen-blue btn-lg${!importDoc.fileName ? " disabled" : ""}`} onClick={event => this.handleDownloadFile(event)}>
+                                        <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Download</span>
+                                    </button>   
+                                </div>
+                            </div>
+                          </form>
                         </div>
-                      </form>
+                      </div>
+                      
                     </Modal>
                     <Modal
                       show={showDuf}
                       hideModal={this.toggleDuf}
                       title="Download/Upload File"
-                      size="modal-xl"
+                      size="modal-lg"
                     >
                         <div className="col-12">
-                            {alert.message && 
-                              <div className={`alert ${alert.type} mb-2`}>{alert.message}
-                                <button className="close" onClick={(event) => this.handleClearAlert(event)}>
-                                    <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
-                                </button>
+                            {alert.message &&
+                              <div className="row">
+                                <div className="col-12" style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}>
+                                  <div className={`alert ${alert.type}`}> {alert.message}
+                                    <button className="close" onClick={(event) => this.handleClearAlert(event)}>
+                                        <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             }
-                            <div className="action-row row ml-1 mb-3 mr-1" style={{height: '34px'}}>
+                            <div className="row">
                                 <form
                                   className="col-12"
                                   encType="multipart/form-data"
@@ -1417,7 +1186,7 @@ class ImportItem extends React.Component {
                                       </div>
                                       <label type="text" className="form-control text-left" htmlFor="dufInput" style={{display:'inline-block', padding: '7px'}}>{dufName ? dufName : 'Choose file...'}</label>
                                       <div className="input-group-append">
-                                        <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.dufInput.current && "disabled"}`}>
+                                        <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.dufInput.current ? " disabled" : ""}`}>
                                             <span><FontAwesomeIcon icon={uploadingDuf ? "spinner" : "upload"} className={uploadingDuf ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                         </button>
                                         <button className="btn btn-outline-leeuwen-blue btn-lg" onClick={this.handleDownloadDuf}>
@@ -1427,16 +1196,16 @@ class ImportItem extends React.Component {
                                     </div>
                                 </form>                    
                             </div>
-                              {!_.isEmpty(responce) &&
-                                <div className="ml-1 mr-1">
-                                  <div className="form-group table-resonsive">
+                            {!_.isEmpty(responce) &&
+                              <div className="row">
+                                <div className="col-12" style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}>
+                                  <div className="form-group mt-2 mb-0">
                                     <strong>Total Processed:</strong> {responce.nProcessed}<br />
                                     <strong>Total Records Added:</strong> {responce.nAdded}<br />
                                     <strong>Total Records Rejected:</strong> {responce.nRejected}<br />
-                                    <hr />
                                   </div>
                                   {!_.isEmpty(responce.rejections) &&
-                                    <div className="rejections">
+                                    <div className="rejections mt-2 mb-0">
                                       <h3>Rejections</h3>
                                         <table className="table table-sm">
                                             <thead>
@@ -1452,224 +1221,9 @@ class ImportItem extends React.Component {
                                     </div>
                                   }
                                 </div>
-                              }
+                              </div>
+                            }
                         </div>
-                    </Modal>
-                    <Modal
-                      show={showCreateLine}
-                      hideModal={this.toggleNewLine}
-                      title={'Add New Line'}
-                    >
-                      <div className="col-12">
-                        <form
-                          name="form"
-                          onSubmit={this.handleCreateLine}
-                        >
-                          <Input
-                            title="SrNo"
-                            name="srNr"
-                            type="number"
-                            value={newItem.srNr}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Inv Nr"
-                            name="invNr"
-                            type="text"
-                            value={newItem.invNr}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="PO Nr"
-                            name="poNr"
-                            type="text"
-                            value={newItem.poNr}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Qty"
-                            name="qty"
-                            type="number"
-                            value={newItem.qty}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Description"
-                            name="desc"
-                            type="text"
-                            value={newItem.desc}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Weight"
-                            name="totWeight"
-                            type="number"
-                            value={newItem.totWeight}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price (AED)"
-                            name="totPrice"
-                            type="number"
-                            value={newItem.totPrice}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="HS Code"
-                            name="hsCode"
-                            type="text"
-                            value={newItem.hsCode}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Country"
-                            name="country"
-                            type="text"
-                            value={newItem.country}
-                            onChange={this.handleChangeItem}
-                            submitted={creatingLine}
-                            inline={false}
-                            required={true}
-                          />
-                            <div className="modal-footer">
-                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={creatingLine ? "spinner" : "plus"} className={creatingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
-                                </button>
-                            </div>
-                        </form>
-                      </div>
-                    </Modal>
-                    <Modal
-                      show={showEditLine}
-                      hideModal={this.toggleEditLine}
-                      title={'Edit Line'}
-                    >
-                      <div className="col-12">
-                        <form
-                          name="form"
-                          onSubmit={this.handleEditLine}
-                        >
-                          <Input
-                            title="SrNo"
-                            name="srNr"
-                            type="number"
-                            value={newItem.srNr}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Inv Nr"
-                            name="invNr"
-                            type="text"
-                            value={newItem.invNr}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="PO Nr"
-                            name="poNr"
-                            type="text"
-                            value={newItem.poNr}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Qty"
-                            name="qty"
-                            type="number"
-                            value={newItem.qty}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Description"
-                            name="desc"
-                            type="text"
-                            value={newItem.desc}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Weight"
-                            name="totWeight"
-                            type="number"
-                            value={newItem.totWeight}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price (AED)"
-                            name="totPrice"
-                            type="number"
-                            value={newItem.totPrice}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="HS Code"
-                            name="hsCode"
-                            type="text"
-                            value={newItem.hsCode}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Country"
-                            name="country"
-                            type="text"
-                            value={newItem.country}
-                            onChange={this.handleChangeItem}
-                            submitted={editingLine}
-                            inline={false}
-                            required={true}
-                          />
-                            <div className="modal-footer">
-                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={editingLine ? "spinner" : "edit"} className={editingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
-                                </button>
-                            </div>
-                        </form>
-                      </div>
                     </Modal>
                 </div>
             </Layout>

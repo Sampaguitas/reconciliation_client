@@ -32,7 +32,7 @@ class ImportDoc extends React.Component {
           poNrs: '',
           invNrs: '',
           boeDate: '',
-          grossWeight: '',
+          totWeight: '',
           totPrice: '',
           isClosed: '',
       },
@@ -48,8 +48,8 @@ class ImportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
-        totPrice: '',
+        // totWeight: '',
+        // totPrice: '',
       },
       showCreate: false,
       creating: false,
@@ -194,8 +194,8 @@ class ImportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
-        totPrice: '',
+        // totWeight: '',
+        // totPrice: '',
       },
     });
   }
@@ -281,8 +281,8 @@ class ImportDoc extends React.Component {
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            grossWeight: newDoc.grossWeight,
-            totPrice: newDoc.totPrice
+            // totWeight: newDoc.totWeight,
+            // totPrice: newDoc.totPrice
           })
         };
         return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
@@ -364,7 +364,7 @@ class ImportDoc extends React.Component {
             <TableData colIndex="2" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="3" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="4" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importDoc.grossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importDoc.totWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="6" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="7" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
@@ -496,9 +496,9 @@ class ImportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Gross Weight"
-                                            name="grossWeight"
-                                            value={filter.grossWeight}
+                                            title="Total Weight"
+                                            name="totWeight"
+                                            value={filter.totWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -569,9 +569,10 @@ class ImportDoc extends React.Component {
                       hideModal={this.toggleModal}
                       title={'Add Import Document'}
                     >
-                      <div className="col-12">
                         <form
                           name="form"
+                          className="col-12"
+                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
                           onSubmit={this.handleSubmit}
                         >
                           <Input
@@ -605,33 +606,12 @@ class ImportDoc extends React.Component {
                             inline={false}
                             required={true}
                           />
-                          <Input
-                            title="Gross Weight"
-                            name="grossWeight"
-                            type="number"
-                            value={newDoc.grossWeight}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price"
-                            name="totPrice"
-                            type="number"
-                            value={newDoc.totPrice}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                            required={true}
-                          />
                             <div className="modal-footer">
-                                <button type="submit" className="btn btn-leeuwen-blue btn-lg btn-full">
-                                  <span><FontAwesomeIcon icon={creating ? "spinner" : "plus"} className={creating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
+                                <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                    <span><FontAwesomeIcon icon={creating ? "spinner" : "plus"} className={creating ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Create</span>
                                 </button>
                             </div>
                         </form>
-                      </div>
                     </Modal>
                 </div>
             </Layout>

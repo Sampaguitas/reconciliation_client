@@ -31,7 +31,7 @@ class ExportDoc extends React.Component {
           decNr: '',
           boeNr: '',
           boeDate: '',
-          grossWeight: '',
+          totWeight: '',
           totPrice: '',
       },
       sort: {
@@ -47,7 +47,7 @@ class ExportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
+        totWeight: '',
         totPrice: '',
       },
       showCreate: false,
@@ -193,7 +193,7 @@ class ExportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        grossWeight: '',
+        totWeight: '',
         totPrice: '',
       },
     });
@@ -281,7 +281,7 @@ class ExportDoc extends React.Component {
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            grossWeight: newDoc.grossWeight,
+            totWeight: newDoc.totWeight,
             totPrice: newDoc.totPrice
           })
         };
@@ -363,7 +363,7 @@ class ExportDoc extends React.Component {
             <TableData colIndex="1" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="2" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importDoc.grossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importDoc.totWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="5" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
           </tr> 
         );
@@ -474,9 +474,9 @@ class ExportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Gross Weight"
-                                            name="grossWeight"
-                                            value={filter.grossWeight}
+                                            title="Total Weight"
+                                            name="totWeight"
+                                            value={filter.totWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -575,9 +575,9 @@ class ExportDoc extends React.Component {
                           />
                           <Input
                             title="Gross Weight"
-                            name="grossWeight"
+                            name="totWeight"
                             type="number"
-                            value={newDoc.grossWeight}
+                            value={newDoc.totWeight}
                             onChange={this.handleChangeDoc}
                             submitted={creating}
                             inline={false}

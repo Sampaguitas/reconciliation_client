@@ -12,8 +12,8 @@ class TableData extends Component{
                 paddingLeft: '5px',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
-                minWidth: !settingsColWidth.hasOwnProperty(colIndex) ? 0 : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '10px'),
-                maxWidth: !settingsColWidth.hasOwnProperty(colIndex) ? 'none' : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '35px')
+                minWidth: _.isUndefined(settingsColWidth) || !settingsColWidth.hasOwnProperty(colIndex) ? 0 : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '10px'),
+                maxWidth: _.isUndefined(settingsColWidth) || !settingsColWidth.hasOwnProperty(colIndex) ? 'none' : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '35px')
               }}
               onClick={event => !!handleClick && !!eventId ? handleClick(event, eventId) : event.preventDefault()}
             >

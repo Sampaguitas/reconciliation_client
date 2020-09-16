@@ -35,9 +35,11 @@ class ImportItem extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
+        qty: '',
         totWeight: '',
         totPrice: '',
         isClosed: '',
+        summary: [],
         fileName: '',
         items: [],
       },
@@ -73,6 +75,7 @@ class ImportItem extends React.Component {
           type: '',
           message: ''
       },
+      showSummary: false,
       showEditDoc: false,
       showFile: false,
       showDuf: false,
@@ -108,6 +111,7 @@ class ImportItem extends React.Component {
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
+    this.toggleSummary = this.toggleSummary.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
@@ -293,6 +297,11 @@ class ImportItem extends React.Component {
         boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
       }
     });
+  }
+
+  toggleSummary() {
+    const { showSummary } = this.state;
+    this.setState({ showSummary: !showSummary });
   }
 
   toggleDuf(event) {
@@ -591,7 +600,7 @@ class ImportItem extends React.Component {
 
   handleUploadDuf(event) {
     event.preventDefault();
-    const { importDoc, dufName, uploadingDuf } = this.state
+    const { importDoc, uploadingDuf } = this.state
     if(!uploadingDuf && !!this.dufInput.current && !!importDoc._id && !uploadingDuf) {
       this.setState({uploadingDuf: true});
       var data = new FormData()
@@ -786,6 +795,35 @@ class ImportItem extends React.Component {
     return tempRows;
   }
 
+  generateSubBody() {
+    const { importDoc, retrieving } = this.state;
+    let tempRows = [];
+    if (!_.isEmpty(importDoc.summary) || !retrieving) {
+      importDoc.summary.map(group => {
+        tempRows.push(
+          <tr key={group._id}>
+            <TableData value={group.hsCode} type="text"/>
+            <TableData value={group.hsDesc} type="text"/>
+            <TableData value={group.country} type="text"/>
+            <TableData value={group.totPrice} type="number"/>
+          </tr>
+        );
+      });
+    } else {
+      for (let i = 0; i < 11; i++) {
+        tempRows.push(
+          <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+          </tr>
+        );
+      }
+    }
+    return tempRows;
+  }
+
     render() {
         const {
           menuItem,
@@ -799,6 +837,7 @@ class ImportItem extends React.Component {
           dufName,
           dufKey,
           responce,
+          showSummary,
           showEditDoc,
           showFile,
           showDuf,
@@ -818,7 +857,7 @@ class ImportItem extends React.Component {
 
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
-                {alert.message && !showEditDoc && !showFile && !showDuf &&
+                {alert.message && !showSummary && !showEditDoc && !showFile && !showDuf &&
                     <div className={`alert ${alert.type}`}>{alert.message}
                         <button className="close" onClick={(event) => this.handleClearAlert(event)}>
                             <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
@@ -839,13 +878,16 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())} - ${TypeToString(importDoc.totWeight, 'number', getDateFormat())} kgs ${TypeToString(importDoc.totPrice, 'number', getDateFormat())} AED - ${importDoc.isClosed ? 'Closed' : 'Open'}`}
+                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())}${importDoc.qty ? " / qty: " + TypeToString(importDoc.qty, 'number', getDateFormat()) + " pcs" : ""}${importDoc.totWeight ? " / weight: " + TypeToString(importDoc.totWeight, 'number', getDateFormat()) + " kgs" : ""}${importDoc.isClosed ? ' / status: closed' : ' / status: open'}`}
                       </li>
                     </ol>
                   }
                 </nav>
-                <div id="import" className={alert.message && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
-                    <div className="action-row row"> 
+                <div id="import" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
+                    <div className="action-row row">
+                      <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
+                          <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
+                      </button>
                       <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                           <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
                       </button>
@@ -1039,6 +1081,30 @@ class ImportItem extends React.Component {
                           <div className="col text-right" style={{height: '31.5px', padding: '0px'}}>Displaying<b> {firstItem} - {lastItem} </b><i>({pageItems})</i> entries out of {totalItems}</div>
                         </div>
                     </div>
+                    <Modal
+                      show={showSummary}
+                      hideModal={this.toggleSummary}
+                      title={'Summary'}
+                      size="modal-xl"
+                    >
+                      <div className="row ml-1 mr-1" style={{maxHeight: '400px'}}>
+                        <div id="table-summary" className="table-responsive custom-table-container">
+                          <table className="table table-hover table-bordered table-sm">
+                            <thead>
+                              <tr>
+                                <th scope="col">HS Code</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Country</th>
+                                <th scope="col">Value</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.generateSubBody()}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </Modal>
                     <Modal
                       show={showEditDoc}
                       hideModal={this.toggleEditDoc}

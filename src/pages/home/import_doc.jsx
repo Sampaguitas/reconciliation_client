@@ -29,11 +29,13 @@ class ImportDoc extends React.Component {
       filter: {
           decNr: '',
           boeNr: '',
+          sfiNr: '',
+          boeDate: '',
           poNrs: '',
           invNrs: '',
-          boeDate: '',
-          totWeight: '',
-          totPrice: '',
+          totalNetWeight: '',
+          totalGrossWeight: '',
+          totalPrice: '',
           isClosed: '',
       },
       sort: {
@@ -47,9 +49,8 @@ class ImportDoc extends React.Component {
       newDoc: {
         decNr: '',
         boeNr: '',
+        sfiNr: '',
         boeDate: '',
-        // totWeight: '',
-        // totPrice: '',
       },
       showCreate: false,
       creating: false,
@@ -193,9 +194,8 @@ class ImportDoc extends React.Component {
       newDoc: {
         decNr: '',
         boeNr: '',
+        sfiNr: '',
         boeDate: '',
-        // totWeight: '',
-        // totPrice: '',
       },
     });
   }
@@ -280,9 +280,8 @@ class ImportDoc extends React.Component {
           body: JSON.stringify({
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
+            sfiNr: newDoc.sfiNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            // totWeight: newDoc.totWeight,
-            // totPrice: newDoc.totPrice
           })
         };
         return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
@@ -361,12 +360,14 @@ class ImportDoc extends React.Component {
           <tr key={importDoc._id} style={{cursor: 'pointer'}} onClick={event => this.handleOnClick(event, importDoc._id)}>
             <TableData colIndex="0" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="1" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importDoc.totWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importDoc.sfiNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importDoc.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -374,6 +375,8 @@ class ImportDoc extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -457,26 +460,13 @@ class ImportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="INV Numbers"
-                                            name="invNrs"
-                                            value={filter.invNrs}
+                                            title="SFI Number"
+                                            name="sfiNr"
+                                            value={filter.sfiNr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="2"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="PO Numbers"
-                                            name="poNrs"
-                                            value={filter.poNrs}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -489,16 +479,29 @@ class ImportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
+                                            index="3"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
+                                            title="INV Numbers"
+                                            name="invNrs"
+                                            value={filter.invNrs}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
                                             index="4"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderInput
-                                            type="number"
-                                            title="Total Weight"
-                                            name="totWeight"
-                                            value={filter.totWeight}
+                                            type="text"
+                                            title="PO Numbers"
+                                            name="poNrs"
+                                            value={filter.poNrs}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -509,13 +512,39 @@ class ImportDoc extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Total Price"
-                                            name="totPrice"
-                                            value={filter.totPrice}
+                                            title="Net Weight"
+                                            name="totalNetWeight"
+                                            value={filter.totalNetWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="6"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Gross Weight"
+                                            name="totalGrossWeight"
+                                            value={filter.totalGrossWeight}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="7"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Total Price"
+                                            name="totalPrice"
+                                            value={filter.totalPrice}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="8"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -532,7 +561,7 @@ class ImportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="7"
+                                            index="9"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -593,6 +622,17 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeNr}
                             onChange={this.handleChangeDoc}
                             placeholder="dddddddddddd"
+                            submitted={creating}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="SFI Number"
+                            name="sfiNr"
+                            type="text"
+                            value={newDoc.sfiNr}
+                            onChange={this.handleChangeDoc}
+                            placeholder="ddddd"
                             submitted={creating}
                             inline={false}
                             required={true}

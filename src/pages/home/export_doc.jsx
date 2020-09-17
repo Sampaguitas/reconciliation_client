@@ -31,8 +31,8 @@ class ExportDoc extends React.Component {
           decNr: '',
           boeNr: '',
           boeDate: '',
-          totWeight: '',
-          totPrice: '',
+          totalGrossWeight: '',
+          totalPrice: '',
       },
       sort: {
           name: '',
@@ -47,8 +47,8 @@ class ExportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        totWeight: '',
-        totPrice: '',
+        totalGrossWeight: '',
+        totalPrice: '',
       },
       showCreate: false,
       creating: false,
@@ -193,8 +193,8 @@ class ExportDoc extends React.Component {
         decNr: '',
         boeNr: '',
         boeDate: '',
-        totWeight: '',
-        totPrice: '',
+        totalGrossWeight: '',
+        totalPrice: '',
       },
     });
   }
@@ -281,8 +281,8 @@ class ExportDoc extends React.Component {
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            totWeight: newDoc.totWeight,
-            totPrice: newDoc.totPrice
+            totalGrossWeight: newDoc.totalGrossWeight,
+            totalPrice: newDoc.totalPrice
           })
         };
         return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
@@ -363,8 +363,8 @@ class ExportDoc extends React.Component {
             <TableData colIndex="1" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="2" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importDoc.totWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importDoc.totPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={importDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
           </tr> 
         );
       });
@@ -475,8 +475,8 @@ class ExportDoc extends React.Component {
                                         <HeaderInput
                                             type="number"
                                             title="Total Weight"
-                                            name="totWeight"
-                                            value={filter.totWeight}
+                                            name="totalGrossWeight"
+                                            value={filter.totalGrossWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -488,8 +488,8 @@ class ExportDoc extends React.Component {
                                         <HeaderInput
                                             type="number"
                                             title="Total Price"
-                                            name="totPrice"
-                                            value={filter.totPrice}
+                                            name="totalPrice"
+                                            value={filter.totalPrice}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -575,9 +575,9 @@ class ExportDoc extends React.Component {
                           />
                           <Input
                             title="Gross Weight"
-                            name="totWeight"
+                            name="totalGrossWeight"
                             type="number"
-                            value={newDoc.totWeight}
+                            value={newDoc.totalGrossWeight}
                             onChange={this.handleChangeDoc}
                             submitted={creating}
                             inline={false}
@@ -585,9 +585,9 @@ class ExportDoc extends React.Component {
                           />
                           <Input
                             title="Total Price"
-                            name="totPrice"
+                            name="totalPrice"
                             type="number"
-                            value={newDoc.totPrice}
+                            value={newDoc.totalPrice}
                             onChange={this.handleChangeDoc}
                             submitted={creating}
                             inline={false}

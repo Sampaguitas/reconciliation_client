@@ -34,10 +34,13 @@ class ImportItem extends React.Component {
         _id: '',
         decNr: '',
         boeNr: '',
+        sfiNr: '',
         boeDate: '',
-        qty: '',
-        totWeight: '',
-        totPrice: '',
+        pcs: '',
+        mtr: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
+        totalPrice: '',
         isClosed: '',
         summary: [],
         fileName: '',
@@ -46,6 +49,7 @@ class ImportItem extends React.Component {
       editDoc: {
         decNr: '',
         boeNr: '',
+        sfiNr: '',
         boeDate: '',
       },
       fileName: '',
@@ -59,11 +63,12 @@ class ImportItem extends React.Component {
         poNr: '',
         artNr: '',
         desc: '',
-        qty: '',
-        unitWeight: '',
-        totWeight: '',
+        pcs: '',
+        mrt: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
         unitPrice: '',
-        totPrice: '',
+        totalPrice: '',
         hsCode: '',
         country: '',
         documentId: ''
@@ -295,6 +300,7 @@ class ImportItem extends React.Component {
         _id: importDoc._id,
         decNr: importDoc.decNr,
         boeNr: importDoc.boeNr,
+        sfiNr: importDoc.sfiNr,
         boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
       }
     });
@@ -418,6 +424,7 @@ class ImportItem extends React.Component {
             _id: editDoc._id,
             decNr: editDoc.decNr,
             boeNr: editDoc.boeNr,
+            sfiNr: editDoc.sfiNr,
             boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
           })
         };
@@ -764,13 +771,14 @@ class ImportItem extends React.Component {
             <TableData colIndex="2" value={importItem.poNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="3" value={importItem.artNr} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="4" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importItem.qty} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importItem.unitWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importItem.totWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="8" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="9" value={importItem.totPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="10" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="11" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importItem.pcs} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importItem.mtr} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importItem.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importItem.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="10" value={importItem.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="11" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="12" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -778,6 +786,7 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -808,9 +817,11 @@ class ImportItem extends React.Component {
             <TableData value={group.hsCode} type="text"/>
             <TableData value={group.hsDesc} type="text"/>
             <TableData value={group.country} type="text"/>
-            <TableData value={group.qty} type="number"/>
-            <TableData value={group.totWeight} type="number"/>
-            <TableData value={group.totPrice} type="number"/>
+            <TableData value={group.pcs} type="number"/>
+            <TableData value={group.mtr} type="number"/>
+            <TableData value={group.totalNetWeight} type="number"/>
+            <TableData value={group.totalGrossWeight} type="number"/>
+            <TableData value={group.totalPrice} type="number"/>
           </tr>
         );
       });
@@ -818,6 +829,8 @@ class ImportItem extends React.Component {
       for (let i = 0; i < 11; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -885,10 +898,10 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())}
-                          ${importDoc.qty ? " / qty: " + TypeToString(importDoc.qty, 'number', getDateFormat()) + " pcs" : ""}
-                          ${importDoc.totWeight ? " / weight: " + TypeToString(importDoc.totWeight, 'number', getDateFormat()) + " kgs" : ""}
-                          ${importDoc.totPrice ? " / value: " + TypeToString(importDoc.totPrice, 'number', getDateFormat()) + " aed" : ""}
+                        {`${importDoc.decNr} ${importDoc.boeNr} ${importDoc.sfiNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())}
+                          ${importDoc.pcs ? " / pcs: " + TypeToString(importDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
+                          ${importDoc.totalGrossWeight ? " / weight: " + TypeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${importDoc.totalPrice ? " / value: " + TypeToString(importDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
                           ${importDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
                       </li>
@@ -990,9 +1003,9 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Qty"
-                                            name="qty"
-                                            value={filter.qty}
+                                            title="Pcs"
+                                            name="pcs"
+                                            value={filter.pcs}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -1003,9 +1016,9 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Unit Weight"
-                                            name="unitWeight"
-                                            value={filter.unitWeight}
+                                            title="Mtr"
+                                            name="mtr"
+                                            value={filter.mtr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
@@ -1016,13 +1029,26 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Total Weight"
-                                            name="totWeight"
-                                            value={filter.totWeight}
+                                            title="Net Weight"
+                                            name="totalNetWeight"
+                                            value={filter.totalNetWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="7"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Gross Weight"
+                                            name="totalGrossWeight"
+                                            value={filter.totalGrossWeight}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="8"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1035,7 +1061,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="8"
+                                            index="9"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1043,12 +1069,12 @@ class ImportItem extends React.Component {
                                         <HeaderInput
                                             type="number"
                                             title="Total Price (AED)"
-                                            name="totPrice"
-                                            value={filter.totPrice}
+                                            name="totalPrice"
+                                            value={filter.totalPrice}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="9"
+                                            index="10"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1061,7 +1087,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="10"
+                                            index="11"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1074,7 +1100,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="11"
+                                            index="12"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1120,8 +1146,10 @@ class ImportItem extends React.Component {
                                 <th scope="col">HS Code</th>
                                 <th scope="col">Description</th>
                                 <th scope="col">Country</th>
-                                <th scope="col">Qty</th>
-                                <th scope="col">Weight</th>
+                                <th scope="col">Pcs</th>
+                                <th scope="col">Mtr</th>
+                                <th scope="col">Gross Weight</th>
+                                <th scope="col">Net Weight</th>
                                 <th scope="col">Value</th>
                               </tr>
                             </thead>
@@ -1161,6 +1189,17 @@ class ImportItem extends React.Component {
                             value={editDoc.boeNr}
                             onChange={this.handleChangeDoc}
                             placeholder="dddddddddddd"
+                            submitted={editingDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="SFI Nr"
+                            name="sfiNr"
+                            type="text"
+                            value={editDoc.sfiNr}
+                            onChange={this.handleChangeDoc}
+                            placeholder="ddddd"
                             submitted={editingDoc}
                             inline={false}
                             required={true}

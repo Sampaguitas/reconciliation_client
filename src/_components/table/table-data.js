@@ -3,7 +3,7 @@ import { TypeToString, getDateFormat } from '../../_functions';
 
 class TableData extends Component{
     render() {
-        const { colIndex, value, type, settingsColWidth, handleClick, eventId} = this.props
+        const { colIndex, value, type, align, settingsColWidth, handleClick, eventId} = this.props
         return (
             <td
               style={{
@@ -11,6 +11,7 @@ class TableData extends Component{
                 whiteSpace: 'nowrap',
                 paddingLeft: '5px',
                 textOverflow: 'ellipsis',
+                textAlign: align || 'left',
                 overflow: 'hidden',
                 minWidth: _.isUndefined(settingsColWidth) || !settingsColWidth.hasOwnProperty(colIndex) ? 0 : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '10px'),
                 maxWidth: _.isUndefined(settingsColWidth) || !settingsColWidth.hasOwnProperty(colIndex) ? 'none' : (!!settingsColWidth[colIndex] ? `${settingsColWidth[colIndex]}px` : '35px')

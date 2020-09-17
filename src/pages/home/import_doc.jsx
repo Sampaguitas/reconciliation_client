@@ -364,9 +364,9 @@ class ImportDoc extends React.Component {
             <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="4" value={importDoc.invNrs} type="text" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="5" value={importDoc.poNrs} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importDoc.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="8" value={importDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importDoc.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importDoc.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importDoc.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="9" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );

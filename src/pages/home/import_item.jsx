@@ -766,18 +766,18 @@ class ImportItem extends React.Component {
               selectedRows={selectedRows}
               callback={this.updateSelectedRows}
             />
-            <TableData colIndex="0" value={importItem.srNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="1" value={importItem.invNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importItem.poNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importItem.artNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="0" value={importItem.srNr} type="text" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={importItem.invNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={importItem.poNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={importItem.artNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="4" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importItem.pcs} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importItem.mtr} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importItem.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="8" value={importItem.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="9" value={importItem.unitPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="10" value={importItem.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="11" value={importItem.hsCode} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={importItem.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={importItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={importItem.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={importItem.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="10" value={importItem.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="11" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="12" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
@@ -814,14 +814,14 @@ class ImportItem extends React.Component {
       importDoc.summary.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData value={group.hsCode} type="text"/>
+            <TableData value={group.hsCode} type="text" align="center"/>
             <TableData value={group.hsDesc} type="text"/>
             <TableData value={group.country} type="text"/>
-            <TableData value={group.pcs} type="number"/>
-            <TableData value={group.mtr} type="number"/>
-            <TableData value={group.totalNetWeight} type="number"/>
-            <TableData value={group.totalGrossWeight} type="number"/>
-            <TableData value={group.totalPrice} type="number"/>
+            <TableData value={group.pcs} type="number" align="right"/>
+            <TableData value={group.mtr} type="number" align="right"/>
+            <TableData value={group.totalNetWeight} type="number" align="right"/>
+            <TableData value={group.totalGrossWeight} type="number" align="right"/>
+            <TableData value={group.totalPrice} type="number" align="right"/>
           </tr>
         );
       });
@@ -1148,9 +1148,9 @@ class ImportItem extends React.Component {
                                 <th scope="col">Country</th>
                                 <th scope="col">Pcs</th>
                                 <th scope="col">Mtr</th>
-                                <th scope="col">Gross Weight</th>
                                 <th scope="col">Net Weight</th>
-                                <th scope="col">Value</th>
+                                <th scope="col">Gross Weight</th>
+                                <th scope="col">Total Price</th>
                               </tr>
                             </thead>
                             <tbody>

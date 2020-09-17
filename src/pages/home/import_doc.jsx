@@ -581,6 +581,7 @@ class ImportDoc extends React.Component {
                             type="text"
                             value={newDoc.decNr}
                             onChange={this.handleChangeDoc}
+                            placeholder="ddd-dddddddd-dd"
                             submitted={creating}
                             inline={false}
                             required={true}
@@ -591,6 +592,7 @@ class ImportDoc extends React.Component {
                             type="text"
                             value={newDoc.boeNr}
                             onChange={this.handleChangeDoc}
+                            placeholder="dddddddddddd"
                             submitted={creating}
                             inline={false}
                             required={true}

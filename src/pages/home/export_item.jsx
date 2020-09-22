@@ -61,6 +61,7 @@ class ExportItem extends React.Component {
       dufName: '',
       dufKey: Date.now(),
       responce: {},
+      candidates: [],
       filter: {
         srNr: '',
         artNr: '',
@@ -74,9 +75,35 @@ class ExportItem extends React.Component {
         totalPrice: '',
         documentId: ''
       },
+      filterGroup: {
+        hsCode: '',
+        desc: '',
+        country: '',
+        pcs: '',
+        mtr: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
+        totalPrice: '',
+      },
+      filterLink: {
+        dec: '',
+        boe: '',
+        srNr: '',
+        country: '',
+        hsCode: '',
+        pcs: '',
+        mtr: '',
+        unitNetWeight: '',
+        unitGrossWeight: '',
+        unitPrice: '',
+      },
       sort: {
           name: '',
           isAscending: true,
+      },
+      sortLink: {
+        name: '',
+        isAscending: true,
       },
       alert: {
           type: '',
@@ -86,7 +113,8 @@ class ExportItem extends React.Component {
       showEditDoc: false,
       showFile: false,
       showDuf: false,
-      retrieving: false,
+      showLink: false,
+      retrievingDoc: false,
       deletingDoc: false,
       editingDoc: false,
       uploadingFile: false,
@@ -94,6 +122,7 @@ class ExportItem extends React.Component {
       downloadingDuf: false,
       uploadingDuf: false,
       deletingLine: false,
+      retrievingCandidates: false,
       menuItem: 'Export Documents',
       settingsColWidth: {},
       selectAllRows: false,
@@ -114,15 +143,19 @@ class ExportItem extends React.Component {
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
-    this.handleChangeHeader = this.handleChangeHeader.bind(this);
+    this.toggleSortLink = this.toggleSortLink.bind(this);
+    this.handleChangeHeaderLine = this.handleChangeHeaderLine.bind(this);
+    this.handleChangeHeaderLink = this.handleChangeHeaderLink.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
     this.toggleSummary = this.toggleSummary.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
+    this.toggleLink = this.toggleLink.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
     this.getDocument = this.getDocument.bind(this);
+    this.getCandidates = this.getCandidates.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
@@ -231,12 +264,61 @@ class ExportItem extends React.Component {
     }
   }
 
-  handleChangeHeader(event) {
+  toggleSortLink(event, name) {
+    event.preventDefault();
+    const { sortLink } = this.state;
+    if (sortLink.name != name) {
+      this.setState({
+        sortLink: {
+          name: name,
+          isAscending: true
+        }
+      });
+    } else if (!!sortLink.isAscending) {
+      this.setState({
+        sortLink: {
+          name: name,
+          isAscending: false
+        }
+      });
+    } else {
+      this.setState({
+        sortLink: {
+          name: '',
+          isAscending: true
+        }
+      });
+    }
+  }
+
+  handleChangeHeaderLine(event) {
     const { filter } = this.state;
     const { name, value } = event.target;
     this.setState({
       filter: {
         ...filter,
+        [name]: value
+      }
+    });
+  }
+
+  handleChangeHeaderLink(event) {
+    const { filterLink } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      filterLink: {
+        ...filterLink,
+        [name]: value
+      }
+    })
+  }
+
+  handleChangeHeaderGroup(event) {
+    const { filterGroup } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      filterGroup: {
+        ...filterGroup,
         [name]: value
       }
     });
@@ -343,11 +425,33 @@ class ExportItem extends React.Component {
     });
   }
 
+  toggleLink(event) {
+    event.preventDefault();
+    const { showLink, selectedRows } = this.state;
+    if (!!showLink) {
+      this.setState({
+        showLink: false,
+        candidates: []
+      });
+    } else if (selectedRows.length != 1 && !showLink) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'Select one line.'
+        }
+      });
+    } else if (!showLink){
+      this.setState({
+        showLink: true,
+      }, () => this.getCandidates());
+    }
+  }
+
   getDocument(nextPage) {
     const { filter, sort, paginate } = this.state;
     if (!!paginate.pageSize) {
       this.setState({
-        retrieving: true
+        retrievingDoc: true
       }, () => {
         const requestOptions = {
           method: 'POST',
@@ -363,7 +467,7 @@ class ExportItem extends React.Component {
         return fetch(`${config.apiUrl}/exportdoc/findOne`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
-            retrieving: false,
+            retrievingDoc: false,
           }, () => {
             const data = text && JSON.parse(text);
             const resMsg = (data && data.message) || response.statusText;
@@ -405,6 +509,63 @@ class ExportItem extends React.Component {
           location.reload(true);
         });
       });
+    }
+  }
+
+  getCandidates() {
+    const { retrievingCandidates, selectedRows, exportDoc, filterLink, sortLink } = this.state;
+    
+    if (!retrievingCandidates && selectedRows.length == 1 && !_.isEmpty(exportDoc.items)) {
+      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(found) && !!found.artNr && !!found.poNr) {
+        this.setState({
+          retrievingCandidates: true
+        }, () => {
+          const requestOptions = {
+            method: 'POST',
+            headers: {...authHeader(), 'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              filter: filterLink,
+              sort: sortLink,
+              artNr: found.artNr,
+              poNr: found.poNr,
+              exRate: !!exportDoc.exRate ? exportDoc.exRate : 1,
+            })
+          };
+          return fetch(`${config.apiUrl}/exportitem/findCandidates`, requestOptions)
+          .then(response => response.text().then(text => {
+            this.setState({
+              retrievingCandidates: false,
+            }, () => {
+              const data = text && JSON.parse(text);
+              const resMsg = (data && data.message) || response.statusText;
+              if (response.status === 401) {
+                localStorage.removeItem('user');
+                location.reload(true);
+              } else if (response.status === 404) {
+                history.push({ pathname:'/notfound' });
+              } else if (response.status === 500) {
+                history.push({ pathname:'/error' });
+              } else if (response.status != 200) {
+                this.setState({
+                  alert: {
+                    type: 'alert-danger',
+                    message: resMsg
+                  }
+                });
+              } else {
+                this.setState({
+                  candidates: data.candidates,
+                }, () => console.log('data.candidates:', data.candidates));
+              }
+            });
+          }))
+          .catch( () => {
+            localStorage.removeItem('user');
+            location.reload(true);
+          });
+        });
+      }
     }
   }
 
@@ -759,9 +920,9 @@ class ExportItem extends React.Component {
   }
 
   generateBody() {
-    const { exportDoc, retrieving, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
+    const { exportDoc, retrievingDoc, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(exportDoc.items) || !retrieving) {
+    if (!_.isEmpty(exportDoc.items) || !retrievingDoc) {
       exportDoc.items.map(exportItem => {
         tempRows.push(
           <tr key={exportItem._id}>
@@ -807,20 +968,20 @@ class ExportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { exportDoc, retrieving } = this.state;
+    const { exportDoc, retrievingDoc } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(exportDoc.summary) || !retrieving) {
+    if (!_.isEmpty(exportDoc.summary) || !retrievingDoc) {
       exportDoc.summary.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData value={group.hsCode} type="text" align="center"/>
-            <TableData value={group.hsDesc} type="text"/>
-            <TableData value={group.country} type="text"/>
-            <TableData value={group.pcs} type="number" align="right"/>
-            <TableData value={group.mtr} type="number" align="right"/>
-            <TableData value={group.totalNetWeight} type="number" align="right"/>
-            <TableData value={group.totalGrossWeight} type="number" align="right"/>
-            <TableData value={group.totalPrice} type="number" align="right"/>
+            <TableData colIndex="10" value={group.hsCode} type="text" align="center"/>
+            <TableData colIndex="11" value={group.hsDesc} type="text"/>
+            <TableData colIndex="12" value={group.country} type="text"/>
+            <TableData colIndex="13" value={group.pcs} type="number" align="right"/>
+            <TableData colIndex="14" value={group.mtr} type="number" align="right"/>
+            <TableData colIndex="15" value={group.totalNetWeight} type="number" align="right"/>
+            <TableData colIndex="16" value={group.totalGrossWeight} type="number" align="right"/>
+            <TableData colIndex="17" value={group.totalPrice} type="number" align="right"/>
           </tr>
         );
       });
@@ -843,11 +1004,55 @@ class ExportItem extends React.Component {
     return tempRows;
   }
 
+  generateCandidateBody() {
+    const { candidates, retrievingCandidates } = this.state;
+    let tempRows = [];
+    if (!_.isEmpty(candidates) || !retrievingCandidates) {
+      candidates.map(candidate => {
+        tempRows.push(
+          <tr key={candidate._id}>
+            <TableData colIndex="18" value={candidate.dec} type="text" align="center"/>
+            <TableData colIndex="19" value={candidate.boe} type="text" align="center"/>
+            <TableData colIndex="20" value={candidate.srNr} type="number" align="right"/>
+            <TableData colIndex="21" value={candidate.country} type="text" />
+            <TableData colIndex="22" value={candidate.hsCode} type="text" align="center"/>
+            <TableData colIndex="23" value={candidate.pcs} type="number" align="right"/>
+            <TableData colIndex="24" value={candidate.mtr} type="number" align="right"/>
+            <TableData colIndex="25" value={candidate.unitNetWeight} type="number" align="right"/>
+            <TableData colIndex="26" value={candidate.unitGrossWeight} type="number" align="right"/>
+            <TableData colIndex="27" value={candidate.unitPrice} type="number" align="right"/>
+          </tr>
+        );
+      });
+    } else {
+      for (let i = 0; i < 4; i++) {
+        tempRows.push(
+          <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+          </tr>
+        );
+      }
+    }
+    return tempRows;
+  }
+
     render() {
         const {
           menuItem,
           filter,
+          filterLink,
+          filterGroup,
           sort,
+          sortLink,
           settingsColWidth,
           exportDoc,
           editDoc,
@@ -860,7 +1065,8 @@ class ExportItem extends React.Component {
           showEditDoc,
           showFile,
           showDuf,
-          retrieving,
+          showLink,
+          retrievingDoc,
           deletingDoc,
           editingDoc,
           downloadingFile,
@@ -884,7 +1090,7 @@ class ExportItem extends React.Component {
                     </div>
                 }
                 <nav aria-label="breadcrumb">
-                  {!exportDoc.boeNr && !!retrieving ?
+                  {!exportDoc.boeNr && !!retrievingDoc ?
                     <div style={{height: '28.5px', paddingBottom: '7.5px'}}>
                       <Skeleton/>
                     </div>
@@ -902,7 +1108,7 @@ class ExportItem extends React.Component {
                           ${exportDoc.boeDate ? " dated: " + TypeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
                           ${exportDoc.pcs ? " / pcs: " + TypeToString(exportDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
                           ${exportDoc.totalGrossWeight ? " / weight: " + TypeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
-                          ${exportDoc.totalPrice ? " / value: " + TypeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
+                          ${exportDoc.totalPrice ? " / value: " + TypeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " " + exportDoc.currency : ""}
                           ${exportDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
                       </li>
@@ -923,6 +1129,9 @@ class ExportItem extends React.Component {
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
                       </button>
+                      <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleLink}>
+                          <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
+                      </button>
                       <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
                       </button>
@@ -942,7 +1151,7 @@ class ExportItem extends React.Component {
                                             title="#"
                                             name="srNr"
                                             value={filter.srNr}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="0"
@@ -955,7 +1164,7 @@ class ExportItem extends React.Component {
                                             title="Art Nr"
                                             name="artNr"
                                             value={filter.artNr}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="1"
@@ -968,7 +1177,7 @@ class ExportItem extends React.Component {
                                             title="Descripion"
                                             name="desc"
                                             value={filter.desc}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="2"
@@ -981,7 +1190,7 @@ class ExportItem extends React.Component {
                                             title="PO Nr"
                                             name="poNr"
                                             value={filter.poNr}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="3"
@@ -994,7 +1203,7 @@ class ExportItem extends React.Component {
                                             title="Pcs"
                                             name="pcs"
                                             value={filter.pcs}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="4"
@@ -1007,7 +1216,7 @@ class ExportItem extends React.Component {
                                             title="Mtr"
                                             name="mtr"
                                             value={filter.mtr}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="5"
@@ -1020,7 +1229,7 @@ class ExportItem extends React.Component {
                                             title="Net Weight"
                                             name="totalNetWeight"
                                             value={filter.totalNetWeight}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="6"
@@ -1033,7 +1242,7 @@ class ExportItem extends React.Component {
                                             title="Gross Weight"
                                             name="totalGrossWeight"
                                             value={filter.totalGrossWeight}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="7"
@@ -1046,7 +1255,7 @@ class ExportItem extends React.Component {
                                             title={`Unit Price (${exportDoc.currency})`}
                                             name="unitPrice"
                                             value={filter.unitPrice}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="8"
@@ -1059,7 +1268,7 @@ class ExportItem extends React.Component {
                                             title={`Total Price (${exportDoc.currency})`}
                                             name="totalPrice"
                                             value={filter.totalPrice}
-                                            onChange={this.handleChangeHeader}
+                                            onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
                                             index="9"
@@ -1105,14 +1314,110 @@ class ExportItem extends React.Component {
                           <table className="table table-hover table-bordered table-sm">
                             <thead>
                               <tr>
-                                <th scope="col">HS Code</th>
-                                <th scope="col">Description</th>
-                                <th scope="col">Country</th>
-                                <th scope="col">Pcs</th>
-                                <th scope="col">Mtr</th>
-                                <th scope="col">Net Weight</th>
-                                <th scope="col">Gross Weight</th>
-                                <th scope="col">Total Price</th>
+                                <HeaderInput
+                                  type="text"
+                                  title="HS Code"
+                                  name="hsCode"
+                                  value={filterGroup.hsCode}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="10"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="Description"
+                                  name="desc"
+                                  value={filterGroup.desc}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="11"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="Country"
+                                  name="country"
+                                  value={filterGroup.country}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="12"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Pcs"
+                                  name="pcs"
+                                  value={filterGroup.pcs}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="13"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Mtr"
+                                  name="mtr"
+                                  value={filterGroup.mtr}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="14"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Net Weight"
+                                  name="totalNetWeight"
+                                  value={filterGroup.totalNetWeight}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="15"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Gross Weight"
+                                  name="totalGrossWeight"
+                                  value={filterGroup.totalGrossWeight}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="16"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title={`Total Price (${exportDoc.currency})`}
+                                  name="totalPrice"
+                                  value={filterGroup.totalPrice}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sort}
+                                  toggleSort={this.toggleSort}
+                                  index="17"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
                               </tr>
                             </thead>
                             <tbody>
@@ -1334,6 +1639,157 @@ class ExportItem extends React.Component {
                               </div>
                             }
                         </div>
+                    </Modal>
+                    <Modal
+                      show={showLink}
+                      hideModal={this.toggleLink}
+                      title="Link Import items to Export Item"
+                      size="modal-xl"
+                    >
+                      <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: '200px'}}>
+                        <div id="table-summary" className="table-responsive custom-table-container">
+                          <table className="table table-hover table-bordered table-sm">
+                            <thead>
+                              <tr>
+                                <HeaderInput
+                                  type="text"
+                                  title="DEC Nr"
+                                  name="decNr"
+                                  value={filterLink.decNr}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="18"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="BOE Nr"
+                                  name="boeNr"
+                                  value={filterLink.boeNr}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="19"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="#"
+                                  name="srNr"
+                                  value={filterLink.srNr}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="20"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="Country"
+                                  name="country"
+                                  value={filterLink.country}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="21"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="HS Code"
+                                  name="hsCode"
+                                  value={filterLink.hsCode}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="22"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Pcs"
+                                  name="pcs"
+                                  value={filterLink.pcs}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="23"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Mtr"
+                                  name="mtr"
+                                  value={filterLink.mtr}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="24"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Net Weight (unit)"
+                                  name="unitNetWeight"
+                                  value={filterLink.unitNetWeight}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="25"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Gross Weight (unit)"
+                                  name="unitGrossWeight"
+                                  value={filterLink.unitGrossWeight}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="27"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title={`Unit Price (${exportDoc.currency})`}
+                                  name="unitPrice"
+                                  value={filterLink.unitPrice}
+                                  onChange={this.handleChangeHeaderLink}
+                                  sort={sortLink}
+                                  toggleSort={this.toggleSortLink}
+                                  index="29"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.generateCandidateBody()}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
                     </Modal>
                 </div>
             </Layout>

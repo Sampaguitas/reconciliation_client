@@ -35,6 +35,7 @@ class ExportDoc extends React.Component {
           totalNetWeight: '',
           totalGrossWeight: '',
           totalPrice: '',
+          currency: '',
           isClosed: '',
       },
       sort: {
@@ -373,7 +374,8 @@ class ExportDoc extends React.Component {
             <TableData colIndex="4" value={exportDoc.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="5" value={exportDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="6" value={exportDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={exportDoc.status} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={exportDoc.currency} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={exportDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr> 
         );
       });
@@ -381,6 +383,7 @@ class ExportDoc extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
@@ -527,6 +530,19 @@ class ExportDoc extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
+                                        <HeaderInput
+                                            type="text"
+                                            title="Currency"
+                                            name="currency"
+                                            value={filter.currency}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="7"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
                                         <HeaderSelect
                                             title="Status"
                                             name="isClosed"
@@ -539,7 +555,7 @@ class ExportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="7"
+                                            index="8"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}

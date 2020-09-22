@@ -611,7 +611,6 @@ class ImportDoc extends React.Component {
                             value={newDoc.decNr}
                             onChange={this.handleChangeDoc}
                             placeholder="ddd-dddddddd-dd"
-                            submitted={creating}
                             inline={false}
                             required={true}
                           />
@@ -622,7 +621,6 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeNr}
                             onChange={this.handleChangeDoc}
                             placeholder="dddddddddddd"
-                            submitted={creating}
                             inline={false}
                             required={true}
                           />
@@ -633,7 +631,6 @@ class ImportDoc extends React.Component {
                             value={newDoc.sfiNr}
                             onChange={this.handleChangeDoc}
                             placeholder="ddddd"
-                            submitted={creating}
                             inline={false}
                             required={true}
                           />
@@ -644,7 +641,6 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
-                            submitted={creating}
                             inline={false}
                             required={true}
                           />

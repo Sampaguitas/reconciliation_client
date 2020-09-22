@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Skeleton from 'react-loading-skeleton';
 import config from 'config';
-import { authHeader } from '../../_helpers';
+import { authHeader, history } from '../../_helpers';
 import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   copyObject,
@@ -14,6 +14,7 @@ import {
   isValidFormat,
   getDateFormat
 } from '../../_functions';
+import HeaderSelect from '../../_components/table/header-select';
 import HeaderInput from '../../_components/table/header-input';
 import TableData from '../../_components/table/table-data';
 import Input from "../../_components/input";
@@ -25,14 +26,16 @@ class ExportDoc extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      importDocs: [],
+      exportDocs: [],
       filter: {
           invNr: '',
           decNr: '',
           boeNr: '',
           boeDate: '',
+          totalNetWeight: '',
           totalGrossWeight: '',
           totalPrice: '',
+          isClosed: '',
       },
       sort: {
           name: '',
@@ -44,11 +47,8 @@ class ExportDoc extends React.Component {
       },
       newDoc: {
         invNr: '',
-        decNr: '',
-        boeNr: '',
-        boeDate: '',
-        totalGrossWeight: '',
-        totalPrice: '',
+        currency: '',
+        exRate: '',
       },
       showCreate: false,
       creating: false,
@@ -75,6 +75,7 @@ class ExportDoc extends React.Component {
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
     this.getDocuments = this.getDocuments.bind(this);
+    this.handleOnClick = this.handleOnClick.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -190,11 +191,8 @@ class ExportDoc extends React.Component {
       showCreate: !showCreate,
       newDoc: {
         invNr: '',
-        decNr: '',
-        boeNr: '',
-        boeDate: '',
-        totalGrossWeight: '',
-        totalPrice: '',
+        currency: '',
+        exRate: '',
       },
     });
   }
@@ -225,8 +223,14 @@ class ExportDoc extends React.Component {
             const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
               // Unauthorized
-              localStorage.removeItem('user');
-              location.reload(true);
+              // localStorage.removeItem('user');
+              // location.reload(true);
+              this.setState({
+                alert: {
+                  type: 'alert-danger',
+                  message: 'Unauthorized'
+                }
+              });
             } else if (response.status != 200) {
               this.setState({
                 alert: {
@@ -236,7 +240,7 @@ class ExportDoc extends React.Component {
               });
             } else {
               this.setState({
-                importDocs: data.importDocs,
+                exportDocs: data.exportDocs,
                 paginate: {
                     ...paginate,
                     currentPage: data.currentPage,
@@ -254,8 +258,14 @@ class ExportDoc extends React.Component {
           });
         }))
         .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
+          // localStorage.removeItem('user');
+          // location.reload(true);
+          this.setState({
+            alert: {
+              type: 'alert-danger',
+              message: 'catch'
+            }
+          });
         });
       });
     }
@@ -278,11 +288,8 @@ class ExportDoc extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             invNr: newDoc.invNr,
-            decNr: newDoc.decNr,
-            boeNr: newDoc.boeNr,
-            boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
-            totalGrossWeight: newDoc.totalGrossWeight,
-            totalPrice: newDoc.totalPrice
+            currency: newDoc.currency,
+            exRate: newDoc.exRate,
           })
         };
         return fetch(`${config.apiUrl}/exportdoc/create`, requestOptions)
@@ -353,18 +360,20 @@ class ExportDoc extends React.Component {
   }
 
   generateBody() {
-    const { importDocs, retrieving, paginate, settingsColWidth } = this.state;
+    const { exportDocs, retrieving, paginate, settingsColWidth } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(importDocs) || !retrieving) {
-      importDocs.map((importDoc) => {
+    if (!_.isEmpty(exportDocs) || !retrieving) {
+      exportDocs.map((exportDoc) => {
         tempRows.push(
-          <tr key={importDoc._id}>
-            <TableData colIndex="0" value={importDoc.invNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="1" value={importDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
+          <tr key={exportDoc._id} onClick={event => this.handleOnClick(event, exportDoc._id)}>
+            <TableData colIndex="0" value={exportDoc.invNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={exportDoc.decNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={exportDoc.boeNr} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={exportDoc.boeDate} type="date" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={exportDoc.totalNetWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={exportDoc.totalGrossWeight} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={exportDoc.totalPrice} type="number" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={exportDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr> 
         );
       });
@@ -378,11 +387,18 @@ class ExportDoc extends React.Component {
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
             <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
+            <td className="no-select"><Skeleton/></td>
           </tr> 
         );
       }
     }
     return tempRows;
+  }
+
+  handleOnClick(event, documentId) {
+    event.preventDefault();
+    history.push({ pathname:'/export_item', search: '?id=' + documentId })
   }
 
     render() {
@@ -441,7 +457,7 @@ class ExportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="0"
+                                            index="1"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -454,7 +470,7 @@ class ExportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="1"
+                                            index="2"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -467,20 +483,33 @@ class ExportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="2"
+                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Total Weight"
+                                            title="Net Weight"
+                                            name="totalNetWeight"
+                                            value={filter.totalNetWeight}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="4"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Gross Weight"
                                             name="totalGrossWeight"
                                             value={filter.totalGrossWeight}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="4"
+                                            index="5"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -493,11 +522,28 @@ class ExportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="5"
+                                            index="6"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
+                                        <HeaderSelect
+                                            title="Status"
+                                            name="isClosed"
+                                            value={filter.isClosed}
+                                            options={[
+                                              { _id: 'true', name: 'Closed'},
+                                              { _id: 'false', name: 'Open'}
+                                            ]}
+                                            optionText="name"
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="7"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                          />
                                         </tr>
                                     </thead>
                                     <tbody className="full-height">
@@ -541,55 +587,26 @@ class ExportDoc extends React.Component {
                             type="text"
                             value={newDoc.invNr}
                             onChange={this.handleChangeDoc}
-                            submitted={creating}
+                            placeholder="ddddddd-dd"
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="DEC Number"
-                            name="decNr"
+                            title="Currency"
+                            name="currency"
                             type="text"
-                            value={newDoc.decNr}
+                            value={newDoc.currency}
                             onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                          />
-                          <Input
-                            title="BOE Number"
-                            name="boeNr"
-                            type="text"
-                            value={newDoc.boeNr}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
-                            inline={false}
-                          />
-                          <Input
-                            title="BOE Date"
-                            name="boeDate"
-                            type="text"
-                            value={newDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            submitted={creating}
-                            inline={false}
-                          />
-                          <Input
-                            title="Gross Weight"
-                            name="totalGrossWeight"
-                            type="number"
-                            value={newDoc.totalGrossWeight}
-                            onChange={this.handleChangeDoc}
-                            submitted={creating}
+                            placeholder="AAA"
                             inline={false}
                             required={true}
                           />
                           <Input
-                            title="Total Price"
-                            name="totalPrice"
+                            title="Exchange Rate"
+                            name="exRate"
                             type="number"
-                            value={newDoc.totalPrice}
+                            value={newDoc.exRate}
                             onChange={this.handleChangeDoc}
-                            submitted={creating}
                             inline={false}
                             required={true}
                           />

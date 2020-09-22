@@ -26,15 +26,17 @@ import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
 import _ from 'lodash';
 
-class ImportItem extends React.Component {
+class ExportItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      importDoc: {
+      exportDoc: {
         _id: '',
+        invNr: '',
+        currency: '',
+        exRate: '',
         decNr: '',
         boeNr: '',
-        sfiNr: '',
         boeDate: '',
         pcs: '',
         mtr: '',
@@ -42,14 +44,16 @@ class ImportItem extends React.Component {
         totalGrossWeight: '',
         totalPrice: '',
         isClosed: '',
-        summary: [],
         fileName: '',
+        summary: [],
         items: [],
       },
       editDoc: {
+        invNr: '',
+        currency: '',
+        exRate: '',
         decNr: '',
         boeNr: '',
-        sfiNr: '',
         boeDate: '',
       },
       fileName: '',
@@ -59,18 +63,15 @@ class ImportItem extends React.Component {
       responce: {},
       filter: {
         srNr: '',
-        invNr: '',
-        poNr: '',
         artNr: '',
         desc: '',
+        poNr: '',
         pcs: '',
-        mrt: '',
+        mtr: '',
         totalNetWeight: '',
         totalGrossWeight: '',
         unitPrice: '',
         totalPrice: '',
-        hsCode: '',
-        country: '',
         documentId: ''
       },
       sort: {
@@ -93,7 +94,7 @@ class ImportItem extends React.Component {
       downloadingDuf: false,
       uploadingDuf: false,
       deletingLine: false,
-      menuItem: 'Import Documents',
+      menuItem: 'Export Documents',
       settingsColWidth: {},
       selectAllRows: false,
       selectedRows: [],
@@ -174,12 +175,12 @@ class ImportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { importDoc, sort, filter, paginate, selectedRows } = this.state;
+    const { exportDoc, sort, filter, paginate, selectedRows } = this.state;
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument();
     }
 
-    if (importDoc.items != prevState.importDoc.items) {
+    if (exportDoc.items != prevState.exportDoc.items) {
       this.setState({
         selectAllRows: false,
       });
@@ -293,15 +294,17 @@ class ImportItem extends React.Component {
   }
 
   toggleEditDoc() {
-    const { showEditDoc, importDoc, editDoc } = this.state;
+    const { showEditDoc, exportDoc, editDoc } = this.state;
     this.setState({
       showEditDoc: !showEditDoc,
       editDoc: {
-        _id: importDoc._id,
-        decNr: importDoc.decNr,
-        boeNr: importDoc.boeNr,
-        sfiNr: importDoc.sfiNr,
-        boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
+        _id: exportDoc._id,
+        invNr: exportDoc.invNr,
+        currency: exportDoc.currency,
+        exRate: exportDoc.exRate,
+        decNr: exportDoc.decNr,
+        boeNr: exportDoc.boeNr,
+        boeDate: TypeToString(exportDoc.boeDate, 'date', getDateFormat()),
       }
     });
   }
@@ -328,7 +331,7 @@ class ImportItem extends React.Component {
 
   toggleFile(event) {
     event.preventDefault();
-    const { showFile, importDoc } = this.state;
+    const { showFile, exportDoc } = this.state;
     this.setState({
         showFile: !showFile,
         alert: {
@@ -336,7 +339,7 @@ class ImportItem extends React.Component {
             message:''
         },
         fileKey: Date.now(),
-        fileName: importDoc.fileName || ''
+        fileName: exportDoc.fileName || ''
     });
   }
 
@@ -357,7 +360,7 @@ class ImportItem extends React.Component {
             pageSize: paginate.pageSize
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/findOne`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/findOne`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             retrieving: false,
@@ -380,7 +383,7 @@ class ImportItem extends React.Component {
               });
             } else {
               this.setState({
-                importDoc: data.importDoc,
+                exportDoc: data.exportDoc,
                 paginate: {
                     ...paginate,
                     currentPage: data.currentPage,
@@ -422,13 +425,15 @@ class ImportItem extends React.Component {
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             _id: editDoc._id,
+            invNr: editDoc.invNr,
+            currency: editDoc.currency,
+            exRate: editDoc.exRate,
             decNr: editDoc.decNr,
             boeNr: editDoc.boeNr,
-            sfiNr: editDoc.sfiNr,
             boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
           })
         };
-        return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/update`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             editingDoc: false
@@ -461,8 +466,8 @@ class ImportItem extends React.Component {
 
   handleDeleteDoc(event) {
     event.preventDefault();
-    const { importDoc, deletingDoc } = this.state;
-    if (!!importDoc._id && !deletingDoc) {
+    const { exportDoc, deletingDoc } = this.state;
+    if (!!exportDoc._id && !deletingDoc) {
       this.setState({
         deletingDoc
       }, () => {
@@ -470,10 +475,10 @@ class ImportItem extends React.Component {
           method: 'DELETE',
           headers: { ...authHeader(), 'Content-Type': 'application/json'},
           body: JSON.stringify({
-            documentId: importDoc._id
+            documentId: exportDoc._id
           })
         }
-        return fetch(`${config.apiUrl}/importdoc/delete`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/delete`, requestOptions)
         .then(responce => {
           if (responce.status === 401) {
               localStorage.removeItem('user');
@@ -493,7 +498,7 @@ class ImportItem extends React.Component {
                     type: 'alert-success',
                     message: 'Document has successfully been deleted, we will redirect you in a second.'
                   }
-              }, () => setTimeout( () => history.push({ pathname:'/importdoc' }), 1000));
+              }, () => setTimeout( () => history.push({ pathname:'/exportdoc' }), 1000));
           }
         });
       })
@@ -502,8 +507,8 @@ class ImportItem extends React.Component {
 
   handleDownloadFile(event) {
     event.preventDefault();
-    const { importDoc, downloadingFile } = this.state;
-    if (importDoc._id && importDoc.fileName && !downloadingFile) {
+    const { exportDoc, downloadingFile } = this.state;
+    if (exportDoc._id && exportDoc.fileName && !downloadingFile) {
       this.setState({
           downloadingFile: true
       }, () => {
@@ -511,7 +516,7 @@ class ImportItem extends React.Component {
             method: 'GET',
             headers: { ...authHeader(), 'Content-Type': 'application/json'},
         };
-        return fetch(`${config.apiUrl}/importdoc/downloadFile?documentId=${importDoc._id}`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/downloadFile?documentId=${exportDoc._id}`, requestOptions)
         .then(responce => {
           if (responce.status === 401) {
               localStorage.removeItem('user');
@@ -527,7 +532,7 @@ class ImportItem extends React.Component {
           } else {
               this.setState({
                   downloadingFile: false
-              }, () => responce.blob().then(blob => saveAs(blob, importDoc.fileName)));
+              }, () => responce.blob().then(blob => saveAs(blob, exportDoc.fileName)));
           }
         });
       });
@@ -536,20 +541,20 @@ class ImportItem extends React.Component {
 
   handleUploadFile(event){
     event.preventDefault();
-    const { importDoc, fileName, uploadingFile } = this.state;
-    if(!!this.fileInput.current && !!importDoc._id && !!fileName && !uploadingFile) {
+    const { exportDoc, fileName, uploadingFile } = this.state;
+    if(!!this.fileInput.current && !!exportDoc._id && !!fileName && !uploadingFile) {
       this.setState({
           uploadingFile: true
       }, () => {
         var data = new FormData()
         data.append('file', this.fileInput.current.files[0])
-        data.append('documentId', importDoc._id)
+        data.append('documentId', exportDoc._id)
         const requestOptions = {
           method: 'POST',
           headers: { ...authHeader()}, //, 'Content-Type': 'application/json'
           body: data
         }
-        return fetch(`${config.apiUrl}/importdoc/uploadFile`, requestOptions)
+        return fetch(`${config.apiUrl}/exportdoc/uploadFile`, requestOptions)
         .then(responce => responce.text().then(text => {
           this.setState({
             uploadingFile: false
@@ -583,7 +588,7 @@ class ImportItem extends React.Component {
           method: 'GET',
           headers: { ...authHeader(), 'Content-Type': 'application/json'},
         }
-        return fetch(`${config.apiUrl}/importitem/downloadDuf`, requestOptions)
+        return fetch(`${config.apiUrl}/exportitem/downloadDuf`, requestOptions)
         .then(responce => {
             if (responce.status === 401) {
                     localStorage.removeItem('user');
@@ -608,18 +613,18 @@ class ImportItem extends React.Component {
 
   handleUploadDuf(event) {
     event.preventDefault();
-    const { importDoc, uploadingDuf } = this.state
-    if(!uploadingDuf && !!this.dufInput.current && !!importDoc._id && !uploadingDuf) {
+    const { exportDoc, uploadingDuf } = this.state
+    if(!uploadingDuf && !!this.dufInput.current && !!exportDoc._id && !uploadingDuf) {
       this.setState({uploadingDuf: true});
       var data = new FormData()
       data.append('file', this.dufInput.current.files[0]);
-      data.append('documentId', importDoc._id);
+      data.append('documentId', exportDoc._id);
       const requestOptions = {
           method: 'POST',
           headers: { ...authHeader()}, //, 'Content-Type': 'application/json'
           body: data
       }
-      return fetch(`${config.apiUrl}/importitem/uploadDuf`, requestOptions)
+      return fetch(`${config.apiUrl}/exportitem/uploadDuf`, requestOptions)
       .then(responce => responce.text().then(text => {
           const data = text && JSON.parse(text);
           console.log(responce.status);
@@ -664,7 +669,7 @@ class ImportItem extends React.Component {
           headers: { ...authHeader(), 'Content-Type': 'application/json'},
           body: JSON.stringify({selectedIds: selectedRows})
       };
-        return fetch(`${config.apiUrl}/importitem/delete`, requestOptions)
+        return fetch(`${config.apiUrl}/exportitem/delete`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
             deletingLine: false,
@@ -728,8 +733,8 @@ class ImportItem extends React.Component {
   }
 
   toggleSelectAllRow() {
-    const { selectAllRows, importDoc } = this.state;
-    if (!_.isEmpty(importDoc.items)) {
+    const { selectAllRows, exportDoc } = this.state;
+    if (!_.isEmpty(exportDoc.items)) {
       if (!!selectAllRows) {
         this.setState({
           selectedRows: [],
@@ -737,7 +742,7 @@ class ImportItem extends React.Component {
         });
       } else {
         this.setState({
-          selectedRows: importDoc.items.map(importItem => importItem._id),
+          selectedRows: exportDoc.items.map(exportItem => exportItem._id),
           selectAllRows: true
         });
       }         
@@ -754,31 +759,28 @@ class ImportItem extends React.Component {
   }
 
   generateBody() {
-    const { importDoc, retrieving, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
+    const { exportDoc, retrieving, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(importDoc.items) || !retrieving) {
-      importDoc.items.map(importItem => {
+    if (!_.isEmpty(exportDoc.items) || !retrieving) {
+      exportDoc.items.map(exportItem => {
         tempRows.push(
-          <tr key={importItem._id}>
+          <tr key={exportItem._id}>
             <SelectRow
-              id={importItem._id}
+              id={exportItem._id}
               selectAllRows={selectAllRows}
               selectedRows={selectedRows}
               callback={this.updateSelectedRows}
             />
-            <TableData colIndex="0" value={importItem.srNr} type="text" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="1" value={importItem.invNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="2" value={importItem.poNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="3" value={importItem.artNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="4" value={importItem.desc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="5" value={importItem.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="6" value={importItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="7" value={importItem.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="8" value={importItem.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="9" value={importItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="10" value={importItem.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="11" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="12" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="0" value={exportItem.srNr} type="text" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="1" value={exportItem.artNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="2" value={exportItem.desc} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="3" value={exportItem.poNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="4" value={exportItem.pcs} type="text" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="5" value={exportItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="6" value={exportItem.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="7" value={exportItem.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="8" value={exportItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={exportItem.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -786,9 +788,6 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
-            <td><Skeleton/></td>
-            <td><Skeleton/></td>
-            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -808,10 +807,10 @@ class ImportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { importDoc, retrieving } = this.state;
+    const { exportDoc, retrieving } = this.state;
     let tempRows = [];
-    if (!_.isEmpty(importDoc.summary) || !retrieving) {
-      importDoc.summary.map(group => {
+    if (!_.isEmpty(exportDoc.summary) || !retrieving) {
+      exportDoc.summary.map(group => {
         tempRows.push(
           <tr key={group._id}>
             <TableData value={group.hsCode} type="text" align="center"/>
@@ -850,7 +849,7 @@ class ImportItem extends React.Component {
           filter,
           sort,
           settingsColWidth,
-          importDoc,
+          exportDoc,
           editDoc,
           fileName,
           fileKey,
@@ -885,7 +884,7 @@ class ImportItem extends React.Component {
                     </div>
                 }
                 <nav aria-label="breadcrumb">
-                  {!importDoc.boeNr && !!retrieving ?
+                  {!exportDoc.boeNr && !!retrieving ?
                     <div style={{height: '28.5px', paddingBottom: '7.5px'}}>
                       <Skeleton/>
                     </div>
@@ -895,25 +894,27 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/' }} tag="a">Home</NavLink>
                       </li>
                       <li className="breadcrumb-item">
-                          <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
+                          <NavLink to={{ pathname: '/export_doc' }} tag="a">Export Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} ${importDoc.sfiNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())}
-                          ${importDoc.pcs ? " / pcs: " + TypeToString(importDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
-                          ${importDoc.totalGrossWeight ? " / weight: " + TypeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
-                          ${importDoc.totalPrice ? " / value: " + TypeToString(importDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
-                          ${importDoc.isClosed ? ' / status: closed' : ' / status: open'}
+                        {`${exportDoc.invNr ? "Invoice: " + exportDoc.invNr : ""}
+                          ${exportDoc.decNr ? " / DOC: " + exportDoc.decNr + " BOE: " + exportDoc.boeNr : ""}
+                          ${exportDoc.boeDate ? " dated: " + TypeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
+                          ${exportDoc.pcs ? " / pcs: " + TypeToString(exportDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
+                          ${exportDoc.totalGrossWeight ? " / weight: " + TypeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${exportDoc.totalPrice ? " / value: " + TypeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
+                          ${exportDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
                       </li>
                     </ol>
                   }
                 </nav>
-                <div id="import" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
+                <div id="export" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row">
                       <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
                           <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
                       </button>
-                      <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
+                      <button title="Edit Export Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                           <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
                       </button>
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
@@ -951,39 +952,13 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="text"
-                                            title="Inv Nr"
-                                            name="invNr"
-                                            value={filter.invNr}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="1"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="PO Nr"
-                                            name="poNr"
-                                            value={filter.poNr}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="2"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
                                             title="Art Nr"
                                             name="artNr"
                                             value={filter.artNr}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="3"
+                                            index="1"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -996,7 +971,20 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="4"
+                                            index="2"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="text"
+                                            title="PO Nr"
+                                            name="poNr"
+                                            value={filter.poNr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="3"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1009,7 +997,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="5"
+                                            index="4"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1022,7 +1010,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="6"
+                                            index="5"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1035,7 +1023,7 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="7"
+                                            index="6"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1048,6 +1036,19 @@ class ImportItem extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
+                                            index="7"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title={`Unit Price (${exportDoc.currency})`}
+                                            name="unitPrice"
+                                            value={filter.unitPrice}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
                                             index="8"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
@@ -1055,52 +1056,13 @@ class ImportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
-                                            title="Unit Price (AED)"
-                                            name="unitPrice"
-                                            value={filter.unitPrice}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="9"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="number"
-                                            title="Total Price (AED)"
+                                            title={`Total Price (${exportDoc.currency})`}
                                             name="totalPrice"
                                             value={filter.totalPrice}
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="10"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="HS Code"
-                                            name="hsCode"
-                                            value={filter.hsCode}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="11"
-                                            colDoubleClick={this.colDoubleClick}
-                                            setColWidth={this.setColWidth}
-                                            settingsColWidth={settingsColWidth}
-                                        />
-                                        <HeaderInput
-                                            type="text"
-                                            title="Country"
-                                            name="country"
-                                            value={filter.country}
-                                            onChange={this.handleChangeHeader}
-                                            sort={sort}
-                                            toggleSort={this.toggleSort}
-                                            index="12"
+                                            index="9"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -1163,7 +1125,7 @@ class ImportItem extends React.Component {
                     <Modal
                       show={showEditDoc}
                       hideModal={this.toggleEditDoc}
-                      title={'Update Import Document'}
+                      title={'Update Export Document'}
                     >
                         <form
                           name="form"
@@ -1171,6 +1133,35 @@ class ImportItem extends React.Component {
                           style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
                           onSubmit={this.handleEditDoc}
                         >
+                          <Input
+                            title="Inv Nr"
+                            name="invNr"
+                            type="text"
+                            value={editDoc.invNr}
+                            onChange={this.handleChangeDoc}
+                            placeholder="ddddddd-dd"
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Currency"
+                            name="currency"
+                            type="text"
+                            value={editDoc.currency}
+                            onChange={this.handleChangeDoc}
+                            placeholder="AAA"
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Exchange Rate"
+                            name="exRate"
+                            type="number"
+                            value={editDoc.exRate}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
                           <Input
                             title="DEC Nr"
                             name="decNr"
@@ -1188,16 +1179,6 @@ class ImportItem extends React.Component {
                             value={editDoc.boeNr}
                             onChange={this.handleChangeDoc}
                             placeholder="dddddddddddd"
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="SFI Nr"
-                            name="sfiNr"
-                            type="text"
-                            value={editDoc.sfiNr}
-                            onChange={this.handleChangeDoc}
-                            placeholder="ddddd"
                             inline={false}
                             required={true}
                           />
@@ -1265,7 +1246,7 @@ class ImportItem extends React.Component {
                                     <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current ? " disabled" : ""}`}>
                                         <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                     </button>
-                                    <button className={`btn btn-outline-leeuwen-blue btn-lg${!importDoc.fileName ? " disabled" : ""}`} onClick={event => this.handleDownloadFile(event)}>
+                                    <button className={`btn btn-outline-leeuwen-blue btn-lg${!exportDoc.fileName ? " disabled" : ""}`} onClick={event => this.handleDownloadFile(event)}>
                                         <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Download</span>
                                     </button>   
                                 </div>
@@ -1368,5 +1349,5 @@ function mapStateToProps(state) {
     };
 }
 
-const connectedImportItem = connect(mapStateToProps)(ImportItem);
-export { connectedImportItem as ImportItem };
+const connectedExportItem = connect(mapStateToProps)(ExportItem);
+export { connectedExportItem as ExportItem };

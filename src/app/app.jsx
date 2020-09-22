@@ -9,6 +9,7 @@ import { alertActions } from '../_actions';
 import { PrivateRoute } from '../_components/routes';
 import { Home } from '../pages/home/home.jsx';
 import { ExportDoc } from '../pages/home/export_doc.jsx';
+import { ExportItem } from '../pages/home/export_item.jsx';
 import { ImportDoc } from '../pages/home/import_doc.jsx';
 import { ImportItem } from '../pages/home/import_item.jsx';
 
@@ -62,6 +63,7 @@ class App extends React.Component {
                         <Route path="/resetpwd" component={ResetPwd} user={user}/>
                         <PrivateRoute exact path="/" component={Home} user={user}/>
                         <PrivateRoute exact path="/export_doc" component={ExportDoc} user={user}/>
+                        <PrivateRoute exact path="/export_item" component={ExportItem} user={user}/>
                         <PrivateRoute exact path="/import_doc" component={ImportDoc} user={user}/>
                         <PrivateRoute exact path="/import_item" component={ImportItem} user={user}/>
                         <PrivateRoute path="/user" component={User} user={user}/>

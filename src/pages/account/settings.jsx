@@ -602,7 +602,6 @@ class Settings extends React.Component {
                   type="text"
                   value={user.userName}
                   onChange={this.handleChangeUser}
-                  submitted={upserting}
                   inline={false}
                   required={true}
                 />
@@ -612,7 +611,6 @@ class Settings extends React.Component {
                   type="text"
                   value={user.name}
                   onChange={this.handleChangeUser}
-                  submitted={upserting}
                   inline={false}
                   required={true}
                 />
@@ -622,7 +620,6 @@ class Settings extends React.Component {
                   type="email"
                   value={user.email}
                   onChange={this.handleChangeUser}
-                  submitted={upserting}
                   inline={false}
                   required={true}
                 />
@@ -634,7 +631,6 @@ class Settings extends React.Component {
                     type="password"
                     value={user.password}
                     onChange={this.handleChangeUser}
-                    submitted={upserting}
                     inline={false}
                     required={true}
                   />

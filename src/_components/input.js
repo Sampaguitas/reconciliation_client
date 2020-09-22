@@ -16,9 +16,9 @@ class Input extends Component{
 
     render() {
         const { show } = this.state;
-        const { inline, submitted, required, value, name, title, type, onChange, placeholder, disabled, autoComplete} = this.props;
+        const { inline, value, name, title, type, onChange, placeholder, disabled, autoComplete} = this.props;
         return(
-            <div className={'form-group' + (inline ? ' row' : '') + (submitted && required && !value ? ' has-error' : '')}>
+            <div className={'form-group' + (inline ? ' row' : '')}>
                 <label htmlFor={name} className={inline ? "col-sm-2 col-form-label" : ''}>{title}</label>
                 <div className={inline ? "col-sm-10" : ''}>
                     <div className="input-group input-group-lg input-group-sm">
@@ -41,9 +41,6 @@ class Input extends Component{
                             </div>
                         }
                     </div>
-                    {submitted && !value && required &&
-                        <div className="help-block">{title} is required</div>
-                    }
                 </div>
             </div>
         );

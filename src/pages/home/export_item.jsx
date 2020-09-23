@@ -86,8 +86,10 @@ class ExportItem extends React.Component {
         totalPrice: '',
       },
       filterLink: {
-        dec: '',
-        boe: '',
+        artNr: '',
+        poNr: '',
+        decNr: '',
+        boeNr: '',
         srNr: '',
         country: '',
         hsCode: '',
@@ -208,9 +210,13 @@ class ExportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { exportDoc, sort, filter, paginate, selectedRows } = this.state;
+    const { exportDoc, sort, sortLink, filter, filterLink, paginate, selectedRows } = this.state;
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument();
+    }
+
+    if (sortLink != prevState.sortLink || (filterLink != prevState.filterLink)) {
+      this.getCandidates();
     }
 
     if (exportDoc.items != prevState.exportDoc.items) {
@@ -427,23 +433,67 @@ class ExportItem extends React.Component {
 
   toggleLink(event) {
     event.preventDefault();
-    const { showLink, selectedRows } = this.state;
+    const { showLink, selectedRows, exportDoc } = this.state;
     if (!!showLink) {
       this.setState({
         showLink: false,
-        candidates: []
+        filterLink: {
+          artNr: '',
+          poNr: '',
+          decNr: '',
+          boeNr: '',
+          srNr: '',
+          country: '',
+          hsCode: '',
+          pcs: '',
+          mtr: '',
+          unitNetWeight: '',
+          unitGrossWeight: '',
+          unitPrice: '',
+        },
       });
-    } else if (selectedRows.length != 1 && !showLink) {
+    } else if (selectedRows.length != 1) {
       this.setState({
         alert: {
           type: 'alert-danger',
           message: 'Select one line.'
         }
       });
-    } else if (!showLink){
-      this.setState({
-        showLink: true,
-      }, () => this.getCandidates());
+    } else {
+      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (_.isUndefined(found)) {
+        this.setState({
+          alert: {
+            type: 'alert-danger',
+            message: 'An error has occured, could not retrieve selected item.'
+          }
+        });
+      } else if (!found.artNr || !found.poNr) {
+        this.setState({
+          alert: {
+            type: 'alert-danger',
+            message: 'Selected item does not have po number or article number.'
+          }
+        });
+      } else {
+        this.setState({
+          showLink: true,
+          filterLink: {
+            artNr: found.artNr,
+            poNr: found.poNr,
+            decNr: '',
+            boeNr: '',
+            srNr: '',
+            country: '',
+            hsCode: '',
+            pcs: '',
+            mtr: '',
+            unitNetWeight: '',
+            unitGrossWeight: '',
+            unitPrice: '',
+          },
+        });
+      }
     }
   }
 
@@ -513,59 +563,56 @@ class ExportItem extends React.Component {
   }
 
   getCandidates() {
-    const { retrievingCandidates, selectedRows, exportDoc, filterLink, sortLink } = this.state;
+    const { exportDoc, filterLink, sortLink } = this.state;
     
-    if (!retrievingCandidates && selectedRows.length == 1 && !_.isEmpty(exportDoc.items)) {
-      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
-      if (!_.isUndefined(found) && !!found.artNr && !!found.poNr) {
-        this.setState({
-          retrievingCandidates: true
-        }, () => {
-          const requestOptions = {
-            method: 'POST',
-            headers: {...authHeader(), 'Content-Type': 'application/json'},
-            body: JSON.stringify({
-              filter: filterLink,
-              sort: sortLink,
-              artNr: found.artNr,
-              poNr: found.poNr,
-              exRate: !!exportDoc.exRate ? exportDoc.exRate : 1,
-            })
-          };
-          return fetch(`${config.apiUrl}/exportitem/findCandidates`, requestOptions)
-          .then(response => response.text().then(text => {
-            this.setState({
-              retrievingCandidates: false,
-            }, () => {
-              const data = text && JSON.parse(text);
-              const resMsg = (data && data.message) || response.statusText;
-              if (response.status === 401) {
-                localStorage.removeItem('user');
-                location.reload(true);
-              } else if (response.status === 404) {
-                history.push({ pathname:'/notfound' });
-              } else if (response.status === 500) {
-                history.push({ pathname:'/error' });
-              } else if (response.status != 200) {
-                this.setState({
-                  alert: {
-                    type: 'alert-danger',
-                    message: resMsg
-                  }
-                });
-              } else {
-                this.setState({
-                  candidates: data.candidates,
-                }, () => console.log('data.candidates:', data.candidates));
-              }
-            });
-          }))
-          .catch( () => {
-            localStorage.removeItem('user');
-            location.reload(true);
+    if (!filterLink.artNr || !filterLink.poNr) {
+      this.setState({ candidates: [] });
+    } else {
+      this.setState({
+        retrievingCandidates: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: {...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            filter: filterLink,
+            sort: sortLink,
+            exRate: !!exportDoc.exRate ? exportDoc.exRate : 1,
+          })
+        };
+        return fetch(`${config.apiUrl}/exportitem/findCandidates`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            retrievingCandidates: false,
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else if (response.status === 404) {
+              history.push({ pathname:'/notfound' });
+            } else if (response.status === 500) {
+              history.push({ pathname:'/error' });
+            } else if (response.status != 200) {
+              this.setState({
+                alert: {
+                  type: 'alert-danger',
+                  message: resMsg
+                }
+              });
+            } else {
+              this.setState({
+                candidates: data.candidates,
+              });
+            }
           });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
-      }
+      });
     }
   }
 
@@ -1011,8 +1058,8 @@ class ExportItem extends React.Component {
       candidates.map(candidate => {
         tempRows.push(
           <tr key={candidate._id}>
-            <TableData colIndex="18" value={candidate.dec} type="text" align="center"/>
-            <TableData colIndex="19" value={candidate.boe} type="text" align="center"/>
+            <TableData colIndex="18" value={candidate.decNr} type="text" align="center"/>
+            <TableData colIndex="19" value={candidate.boeNr} type="text" align="center"/>
             <TableData colIndex="20" value={candidate.srNr} type="number" align="right"/>
             <TableData colIndex="21" value={candidate.country} type="text" />
             <TableData colIndex="22" value={candidate.hsCode} type="text" align="center"/>

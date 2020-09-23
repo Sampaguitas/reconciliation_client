@@ -129,6 +129,8 @@ class ExportItem extends React.Component {
       settingsColWidth: {},
       selectAllRows: false,
       selectedRows: [],
+      selectedCandidate: '',
+      windowHeight: '',
       paginate: {
         pageSize: 0,
         currentPage: 1,
@@ -170,6 +172,7 @@ class ExportItem extends React.Component {
     this.changePage = this.changePage.bind(this);
     this.toggleSelectAllRow = this.toggleSelectAllRow.bind(this);
     this.updateSelectedRows = this.updateSelectedRows.bind(this);
+    this.selectCandidate = this.selectCandidate.bind(this);
     this.dufInput = React.createRef();
     this.fileInput = React.createRef();
   }
@@ -185,6 +188,7 @@ class ExportItem extends React.Component {
         ...filter,
         documentId: qs.id
       },
+      windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
         pageSize: getPageSize(tableContainer)
@@ -202,6 +206,7 @@ class ExportItem extends React.Component {
   componentWillUnmount() {
     const { paginate } = this.state;
     window.removeEventListener('resize', e => this.setState({
+      windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
         pageSize: getPageSize(tableContainer)
@@ -210,7 +215,7 @@ class ExportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { exportDoc, sort, sortLink, filter, filterLink, paginate, selectedRows } = this.state;
+    const { exportDoc, candidates, sort, sortLink, filter, filterLink, paginate, selectedRows, selectedCandidate } = this.state;
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument();
     }
@@ -220,8 +225,23 @@ class ExportItem extends React.Component {
     }
 
     if (exportDoc.items != prevState.exportDoc.items) {
+      let remaining = selectedRows.reduce(function(acc, cur) {
+        let found = exportDoc.items.find(element => _.isEqual(element._id, cur));
+        if (!_.isUndefined(found)){
+          acc.push(cur);
+        }
+        return acc;
+      }, []);
       this.setState({
+        selectedRows: remaining,
         selectAllRows: false,
+      });
+    }
+
+    if (candidates != prevState.candidates) {
+      let found = candidates.find(element => _.isEqual(element._id, selectedCandidate));
+      this.setState({
+        selectedCandidate: !_.isUndefined(found) ? selectedCandidate : '',
       });
     }
   }
@@ -433,7 +453,8 @@ class ExportItem extends React.Component {
 
   toggleLink(event) {
     event.preventDefault();
-    const { showLink, selectedRows, exportDoc } = this.state;
+    const { showLink, selectedRows, exportDoc, windowHeight } = this.state;
+    console.log('windowHeight:', windowHeight);
     if (!!showLink) {
       this.setState({
         showLink: false,
@@ -966,6 +987,14 @@ class ExportItem extends React.Component {
     }       
   }
 
+  selectCandidate(event, id) {
+    event.preventDefault();
+    const { selectedCandidate } = this.state;
+    this.setState({
+      selectedCandidate: selectedCandidate != id ? id : '' 
+    });
+  }
+
   generateBody() {
     const { exportDoc, retrievingDoc, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
     let tempRows = [];
@@ -1052,12 +1081,12 @@ class ExportItem extends React.Component {
   }
 
   generateCandidateBody() {
-    const { candidates, retrievingCandidates } = this.state;
+    const { candidates, selectedCandidate, retrievingCandidates } = this.state;
     let tempRows = [];
     if (!_.isEmpty(candidates) || !retrievingCandidates) {
       candidates.map(candidate => {
         tempRows.push(
-          <tr key={candidate._id}>
+          <tr key={candidate._id} style={_.isEqual(selectedCandidate,candidate._id) ? {backgroundColor: "lightgray", cursor: 'pointer'} : {cursor: 'pointer'}} onClick={event => this.selectCandidate(event, candidate._id)}>
             <TableData colIndex="18" value={candidate.decNr} type="text" align="center"/>
             <TableData colIndex="19" value={candidate.boeNr} type="text" align="center"/>
             <TableData colIndex="20" value={candidate.srNr} type="number" align="right"/>
@@ -1121,7 +1150,8 @@ class ExportItem extends React.Component {
           downloadingDuf,
           uploadingDuf,
           deletingLine,
-          selectAllRows
+          selectAllRows,
+          windowHeight,
         } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
@@ -1690,153 +1720,309 @@ class ExportItem extends React.Component {
                     <Modal
                       show={showLink}
                       hideModal={this.toggleLink}
-                      title="Link Import items to Export Item"
+                      title="Link import items"
                       size="modal-xl"
                     >
-                      <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: '200px'}}>
-                        <div id="table-summary" className="table-responsive custom-table-container">
-                          <table className="table table-hover table-bordered table-sm">
-                            <thead>
-                              <tr>
-                                <HeaderInput
-                                  type="text"
-                                  title="DEC Nr"
-                                  name="decNr"
-                                  value={filterLink.decNr}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="18"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="text"
-                                  title="BOE Nr"
-                                  name="boeNr"
-                                  value={filterLink.boeNr}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="19"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title="#"
-                                  name="srNr"
-                                  value={filterLink.srNr}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="20"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="text"
-                                  title="Country"
-                                  name="country"
-                                  value={filterLink.country}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="21"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="text"
-                                  title="HS Code"
-                                  name="hsCode"
-                                  value={filterLink.hsCode}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="22"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title="Pcs"
-                                  name="pcs"
-                                  value={filterLink.pcs}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="23"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title="Mtr"
-                                  name="mtr"
-                                  value={filterLink.mtr}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="24"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title="Net Weight (unit)"
-                                  name="unitNetWeight"
-                                  value={filterLink.unitNetWeight}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="25"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title="Gross Weight (unit)"
-                                  name="unitGrossWeight"
-                                  value={filterLink.unitGrossWeight}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="27"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                                <HeaderInput
-                                  type="number"
-                                  title={`Unit Price (${exportDoc.currency})`}
-                                  name="unitPrice"
-                                  value={filterLink.unitPrice}
-                                  onChange={this.handleChangeHeaderLink}
-                                  sort={sortLink}
-                                  toggleSort={this.toggleSortLink}
-                                  index="29"
-                                  colDoubleClick={this.colDoubleClick}
-                                  setColWidth={this.setColWidth}
-                                  settingsColWidth={settingsColWidth}
-                                />
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {this.generateCandidateBody()}
-                            </tbody>
-                          </table>
+                      <div>
+                        <label htmlFor="table-summary" className="ml-1 mr-1">Available Quantities</label>
+                        <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                          <div id="table-summary" className="table-responsive custom-table-container">
+                            <table className="table table-bordered table-sm">
+                              <thead>
+                                <tr>
+                                  <HeaderInput
+                                    type="text"
+                                    title="DEC Nr"
+                                    name="decNr"
+                                    value={filterLink.decNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="18"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="BOE Nr"
+                                    name="boeNr"
+                                    value={filterLink.boeNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="19"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="#"
+                                    name="srNr"
+                                    value={filterLink.srNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="20"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="Country"
+                                    name="country"
+                                    value={filterLink.country}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="21"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="HS Code"
+                                    name="hsCode"
+                                    value={filterLink.hsCode}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="22"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Pcs"
+                                    name="pcs"
+                                    value={filterLink.pcs}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="23"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Mtr"
+                                    name="mtr"
+                                    value={filterLink.mtr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="24"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Net Weight (unit)"
+                                    name="unitNetWeight"
+                                    value={filterLink.unitNetWeight}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="25"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Gross Weight (unit)"
+                                    name="unitGrossWeight"
+                                    value={filterLink.unitGrossWeight}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="27"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title={`Unit Price (${exportDoc.currency})`}
+                                    name="unitPrice"
+                                    value={filterLink.unitPrice}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="29"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {this.generateCandidateBody()}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
-
+                      <div className="text-right mt-3 mr-1 mb-2 ml-1">
+                          <button type="button" className="btn btn-leeuwen btn-lg mr-2">
+                            <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "unlink"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
+                          </button>
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg">
+                            <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "link"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
+                          </button>
+                      </div>
+                      <div>
+                        <label htmlFor="table-link" className="ml-1 mr-1">Linked Quantities</label>
+                        <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                          <div id="table-link" className="table-responsive custom-table-container">
+                            <table className="table table-bordered table-sm">
+                              <thead>
+                                <tr>
+                                  <HeaderInput
+                                    type="text"
+                                    title="DEC Nr"
+                                    name="decNr"
+                                    value={filterLink.decNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="18"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="BOE Nr"
+                                    name="boeNr"
+                                    value={filterLink.boeNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="19"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="#"
+                                    name="srNr"
+                                    value={filterLink.srNr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="20"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="Country"
+                                    name="country"
+                                    value={filterLink.country}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="21"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="text"
+                                    title="HS Code"
+                                    name="hsCode"
+                                    value={filterLink.hsCode}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="22"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Pcs"
+                                    name="pcs"
+                                    value={filterLink.pcs}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="23"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Mtr"
+                                    name="mtr"
+                                    value={filterLink.mtr}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="24"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Net Weight (unit)"
+                                    name="unitNetWeight"
+                                    value={filterLink.unitNetWeight}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="25"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title="Gross Weight (unit)"
+                                    name="unitGrossWeight"
+                                    value={filterLink.unitGrossWeight}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="27"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                  <HeaderInput
+                                    type="number"
+                                    title={`Unit Price (${exportDoc.currency})`}
+                                    name="unitPrice"
+                                    value={filterLink.unitPrice}
+                                    onChange={this.handleChangeHeaderLink}
+                                    sort={sortLink}
+                                    toggleSort={this.toggleSortLink}
+                                    index="29"
+                                    colDoubleClick={this.colDoubleClick}
+                                    setColWidth={this.setColWidth}
+                                    settingsColWidth={settingsColWidth}
+                                  />
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {this.generateCandidateBody()}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
                     </Modal>
                 </div>
             </Layout>

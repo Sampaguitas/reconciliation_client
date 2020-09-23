@@ -180,7 +180,15 @@ class ImportItem extends React.Component {
     }
 
     if (importDoc.items != prevState.importDoc.items) {
+      let remaining = selectedRows.reduce(function(acc, cur) {
+        let found = importDoc.items.find(element => _.isEqual(element._id, cur));
+        if (!_.isUndefined(found)){
+          acc.push(cur);
+        }
+        return acc;
+      }, []);
       this.setState({
+        selectedRows: remaining,
         selectAllRows: false,
       });
     }

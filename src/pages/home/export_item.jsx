@@ -12,8 +12,8 @@ import {
   arrayRemove,
   copyObject,
   getPageSize,
-  TypeToString,
-  StringToType,
+  typeToString,
+  stringToType,
   isValidFormat,
   getDateFormat
 } from '../../_functions';
@@ -103,6 +103,10 @@ class ExportItem extends React.Component {
           name: '',
           isAscending: true,
       },
+      sortGroup: {
+        name: '',
+        isAscending: true,
+      },
       sortLink: {
         name: '',
         isAscending: true,
@@ -148,8 +152,10 @@ class ExportItem extends React.Component {
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
+    this.toggleSortGroup = this.toggleSortGroup.bind(this);
     this.toggleSortLink = this.toggleSortLink.bind(this);
     this.handleChangeHeaderLine = this.handleChangeHeaderLine.bind(this);
+    this.handleChangeHeaderGroup = this.handleChangeHeaderGroup.bind(this);
     this.handleChangeHeaderLink = this.handleChangeHeaderLink.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
@@ -293,6 +299,33 @@ class ExportItem extends React.Component {
     }
   }
 
+  toggleSortGroup(event, name) {
+    event.preventDefault();
+    const { sortGroup } = this.state;
+    if (sortGroup.name != name) {
+      this.setState({
+        sortGroup: {
+          name: name,
+          isAscending: true
+        }
+      });
+    } else if (!!sortGroup.isAscending) {
+      this.setState({
+        sortGroup: {
+          name: name,
+          isAscending: false
+        }
+      });
+    } else {
+      this.setState({
+        sortGroup: {
+          name: '',
+          isAscending: true
+        }
+      });
+    }
+  }
+
   toggleSortLink(event, name) {
     event.preventDefault();
     const { sortLink } = this.state;
@@ -415,7 +448,7 @@ class ExportItem extends React.Component {
         exRate: exportDoc.exRate,
         decNr: exportDoc.decNr,
         boeNr: exportDoc.boeNr,
-        boeDate: TypeToString(exportDoc.boeDate, 'date', getDateFormat()),
+        boeDate: typeToString(exportDoc.boeDate, 'date', getDateFormat()),
       }
     });
   }
@@ -662,7 +695,7 @@ class ExportItem extends React.Component {
             exRate: editDoc.exRate,
             decNr: editDoc.decNr,
             boeNr: editDoc.boeNr,
-            boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
+            boeDate: stringToType(editDoc.boeDate, 'date', getDateFormat()),
           })
         };
         return fetch(`${config.apiUrl}/exportdoc/update`, requestOptions)
@@ -1185,10 +1218,10 @@ class ExportItem extends React.Component {
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
                         {`${exportDoc.invNr ? "Invoice: " + exportDoc.invNr : ""}
                           ${exportDoc.decNr ? " / DOC: " + exportDoc.decNr + " BOE: " + exportDoc.boeNr : ""}
-                          ${exportDoc.boeDate ? " dated: " + TypeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
-                          ${exportDoc.pcs ? " / pcs: " + TypeToString(exportDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
-                          ${exportDoc.totalGrossWeight ? " / weight: " + TypeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
-                          ${exportDoc.totalPrice ? " / value: " + TypeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " " + exportDoc.currency : ""}
+                          ${exportDoc.boeDate ? " dated: " + typeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
+                          ${exportDoc.pcs ? " / pcs: " + typeToString(exportDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
+                          ${exportDoc.totalGrossWeight ? " / weight: " + typeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${exportDoc.totalPrice ? " / value: " + typeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " " + exportDoc.currency : ""}
                           ${exportDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
                       </li>
@@ -1401,7 +1434,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.hsCode}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="10"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1414,7 +1447,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.desc}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="11"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1427,7 +1460,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.country}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="12"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1440,7 +1473,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.pcs}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="13"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1453,7 +1486,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.mtr}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="14"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1466,7 +1499,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.totalNetWeight}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="15"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1479,7 +1512,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.totalGrossWeight}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="16"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
@@ -1492,7 +1525,7 @@ class ExportItem extends React.Component {
                                   value={filterGroup.totalPrice}
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sort}
-                                  toggleSort={this.toggleSort}
+                                  toggleSort={this.toggleSortGroup}
                                   index="17"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}

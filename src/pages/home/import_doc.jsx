@@ -9,7 +9,7 @@ import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   copyObject,
   getPageSize,
-  StringToType,
+  stringToType,
   isValidFormat,
   getDateFormat
 } from '../../_functions';
@@ -282,7 +282,7 @@ class ImportDoc extends React.Component {
             decNr: newDoc.decNr,
             boeNr: newDoc.boeNr,
             sfiNr: newDoc.sfiNr,
-            boeDate: StringToType(newDoc.boeDate, 'date', getDateFormat()),
+            boeDate: stringToType(newDoc.boeDate, 'date', getDateFormat()),
           })
         };
         return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)

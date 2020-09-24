@@ -66,7 +66,7 @@ export function StirngToCache(fieldValue, myDateFormat) {
     } 
 }
 
-export function StringToType(fieldValue, fieldType, myDateFormat) {
+export function stringToType(fieldValue, fieldType, myDateFormat) {
     if (fieldValue) {
         switch (fieldType) {
             case 'date': return moment.utc(StirngToCache(fieldValue, myDateFormat), myDateFormat).toDate();
@@ -77,7 +77,7 @@ export function StringToType(fieldValue, fieldType, myDateFormat) {
     }
 }
 
-// export function StringToDate (fieldValue, fieldType, myDateFormat) {
+// export function stringToDate (fieldValue, fieldType, myDateFormat) {
 //     if (fieldValue) {
 //         switch (fieldType) {
 //             case 'Date':
@@ -100,7 +100,7 @@ export function isValidFormat (fieldValue, fieldType, myDateFormat) {
     }
 }
 
-export function TypeToString (fieldValue, fieldType, myDateFormat) {
+export function typeToString (fieldValue, fieldType, myDateFormat) {
     if (fieldValue) {
         switch (fieldType) {
             case 'date': return String(moment.utc(fieldValue).format(myDateFormat));
@@ -112,7 +112,7 @@ export function TypeToString (fieldValue, fieldType, myDateFormat) {
     }
 }
 
-export function DateToString (fieldValue, fieldType, myDateFormat) {
+export function dateToString (fieldValue, fieldType, myDateFormat) {
     if (fieldValue) {
         switch (fieldType) {
             case 'date': return String(moment.utc(fieldValue).format(myDateFormat)); 
@@ -123,66 +123,66 @@ export function DateToString (fieldValue, fieldType, myDateFormat) {
     }
 }
 
-// export function doesMatch(search, value, type, isEqual) {
+export function doesMatch(search, value, type, isEqual) {
     
-//     if (!search) {
-//         return true;
-//     } else if (!value && search != 'any' && search != 'false' && search != '-1' && String(search).toUpperCase() != '=BLANK') {
-//         return false;
-//     } else {
-//         switch(type) {
-//             case 'Id':
-//                 return _.isEqual(search, value);
-//             case 'String':
-//                 if (String(search).toUpperCase() === '=BLANK') {
-//                     return !value;
-//                 } else if (String(search).toUpperCase() === '=NOTBLANK') {
-//                     return !!value;
-//                 } else if (isEqual) {
-//                     return _.isEqual(String(value).toUpperCase(), String(search).toUpperCase());
-//                 } else {
-//                     return String(value).toUpperCase().includes(String(search).toUpperCase());
-//                 }
-//             case 'Date':
-//                 if (String(search).toUpperCase() === '=BLANK') {
-//                     return !value;
-//                 } else if (String(search).toUpperCase() === '=NOTBLANK') {
-//                     return !!value;
-//                 } else if (isEqual) {
-//                     return _.isEqual(DateToString(value, 'date', getDateFormat()), search);
-//                 } else {
-//                     return DateToString(value, 'date', getDateFormat()).includes(search);
-//                 }
-//             case 'Number':
-//                 if (search === '-1') {
-//                     return !value;
-//                 } else if (search === '-2') {
-//                     return !!value;
-//                 } else if (isEqual) {
-//                     return _.isEqual( Intl.NumberFormat().format(value).toString(), Intl.NumberFormat().format(search).toString());
-//                 } else {
-//                     return Intl.NumberFormat().format(value).toString().includes(Intl.NumberFormat().format(search).toString());
-//                 }
-//             case 'Boolean':
-//                 if(search == 'any') {
-//                     return true; //any or equal
-//                 } else if (search == 'true' && !!value) {
-//                     return true; //true
-//                 } else if (search == 'false' && !value) {
-//                     return true; //true
-//                 }else {
-//                     return false;
-//                 }
-//             case 'Select':
-//                 if(search == 'any' || _.isEqual(search, value)) {
-//                     return true; //any or equal
-//                 } else {
-//                     return false;
-//                 }
-//             default: return true;
-//         }
-//     }
-// }
+    if (!search) {
+        return true;
+    } else if (!value && search != 'any' && search != 'false' && search != '-1' && String(search).toUpperCase() != '=BLANK') {
+        return false;
+    } else {
+        switch(type) {
+            case 'id':
+                return _.isEqual(search, value);
+            case 'text':
+                if (String(search).toUpperCase() === '=BLANK') {
+                    return !value;
+                } else if (String(search).toUpperCase() === '=NOTBLANK') {
+                    return !!value;
+                } else if (isEqual) {
+                    return _.isEqual(String(value).toUpperCase(), String(search).toUpperCase());
+                } else {
+                    return String(value).toUpperCase().includes(String(search).toUpperCase());
+                }
+            case 'date':
+                if (String(search).toUpperCase() === '=BLANK') {
+                    return !value;
+                } else if (String(search).toUpperCase() === '=NOTBLANK') {
+                    return !!value;
+                } else if (isEqual) {
+                    return _.isEqual(dateToString(value, 'date', getDateFormat()), search);
+                } else {
+                    return dateToString(value, 'date', getDateFormat()).includes(search);
+                }
+            case 'number':
+                if (search === '-1') {
+                    return !value;
+                } else if (search === '-2') {
+                    return !!value;
+                } else if (isEqual) {
+                    return _.isEqual( Intl.NumberFormat().format(value).toString(), Intl.NumberFormat().format(search).toString());
+                } else {
+                    return Number(value).toString().includes(Number(search).toString());
+                }
+            case 'boolean':
+                if(search == 'any') {
+                    return true; //any or equal
+                } else if (search == 'true' && !!value) {
+                    return true; //true
+                } else if (search == 'false' && !value) {
+                    return true; //true
+                }else {
+                    return false;
+                }
+            case 'select':
+                if(search == 'any' || _.isEqual(search, value)) {
+                    return true; //any or equal
+                } else {
+                    return false;
+                }
+            default: return true;
+        }
+    }
+}
 
 export function resolve(path, obj) {
     return path.split('.').reduce(function(prev, cur) {
@@ -559,6 +559,58 @@ export function arrayRemove(arr, value) {
 //     const found = ArrType.find(element => element._id === doctypeId);
 //     return !_.isUndefined(found) ? found.fromTbls : [];
 // }
+
+export function summarySorted(array, sort) {
+    let tempArray = array.slice(0);
+    switch(sort.name) {
+      case 'hsDesc':
+      case 'country':
+        if (sort.isAscending) {
+          return tempArray.sort(function (a, b) {
+            let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
+            let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
+            if (nameA < nameB) {
+                return -1;
+            } else if (nameA > nameB) {
+                return 1;
+            } else {
+                return 0;
+            }
+          });
+        } else {
+          return tempArray.sort(function (a, b) {
+            let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
+            let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
+            if (nameA > nameB) {
+                return -1;
+            } else if (nameA < nameB) {
+                return 1;
+            } else {
+                return 0;
+            }
+          });
+        }
+      case 'pcs':
+      case 'mtr':
+      case 'totalNetWeight':
+      case 'totalGrossWeight':
+      case 'totalPrice':
+        if (sort.isAscending) {
+          return tempArray.sort(function (a, b) {
+            let valueA = a[sort.name] || 0;
+            let valueB = b[sort.name] || 0;
+            return valueA - valueB;
+          });
+        } else {
+          return tempArray.sort(function (a, b){
+            let valueA = a[sort.name] || 0;
+            let valueB = b[sort.name] || 0;
+            return valueB - valueA
+          });
+        }
+      default: return array;
+    }
+}
 
 // export function screenSorted(array, sort) {
 //     let tempArray = array.slice(0);

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { TypeToString, getDateFormat } from '../../_functions';
+import { typeToString, getDateFormat } from '../../_functions';
 
 class TableData extends Component{
     render() {
@@ -18,7 +18,7 @@ class TableData extends Component{
               }}
               onClick={event => !!handleClick && !!eventId ? handleClick(event, eventId) : event.preventDefault()}
             >
-              {TypeToString(value, type, getDateFormat())}
+              {typeToString(value, type, getDateFormat())}
             </td>
         );
     }

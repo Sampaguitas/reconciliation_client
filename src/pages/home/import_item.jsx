@@ -11,11 +11,13 @@ import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   arrayRemove,
   copyObject,
+  doesMatch,
+  getDateFormat,
   getPageSize,
-  TypeToString,
-  StringToType,
   isValidFormat,
-  getDateFormat
+  stringToType,
+  summarySorted,
+  typeToString,
 } from '../../_functions';
 import SelectAll from '../../_components/table/select-all';
 import SelectRow from '../../_components/table/select-row';
@@ -73,9 +75,23 @@ class ImportItem extends React.Component {
         country: '',
         documentId: ''
       },
+      filterGroup: {
+        hsCode: '',
+        hsDesc: '',
+        country: '',
+        pcs: '',
+        mtr: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
+        totalPrice: '',
+      },
       sort: {
           name: '',
           isAscending: true,
+      },
+      sortGroup: {
+        name: '',
+        isAscending: true,
       },
       alert: {
           type: '',
@@ -115,7 +131,9 @@ class ImportItem extends React.Component {
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
+    this.toggleSortGroup = this.toggleSortGroup.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
+    this.handleChangeHeaderGroup = this.handleChangeHeaderGroup.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
@@ -242,12 +260,50 @@ class ImportItem extends React.Component {
     }
   }
 
+  toggleSortGroup(event, name) {
+    event.preventDefault();
+    const { sortGroup } = this.state;
+    if (sortGroup.name != name) {
+      this.setState({
+        sortGroup: {
+          name: name,
+          isAscending: true
+        }
+      });
+    } else if (!!sortGroup.isAscending) {
+      this.setState({
+        sortGroup: {
+          name: name,
+          isAscending: false
+        }
+      });
+    } else {
+      this.setState({
+        sortGroup: {
+          name: '',
+          isAscending: true
+        }
+      });
+    }
+  }
+
   handleChangeHeader(event) {
     const { filter } = this.state;
     const { name, value } = event.target;
     this.setState({
       filter: {
         ...filter,
+        [name]: value
+      }
+    });
+  }
+
+  handleChangeHeaderGroup(event) {
+    const { filterGroup } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      filterGroup: {
+        ...filterGroup,
         [name]: value
       }
     });
@@ -313,7 +369,7 @@ class ImportItem extends React.Component {
         decNr: importDoc.decNr,
         boeNr: importDoc.boeNr,
         sfiNr: importDoc.sfiNr,
-        boeDate: TypeToString(importDoc.boeDate, 'date', getDateFormat()),
+        boeDate: typeToString(importDoc.boeDate, 'date', getDateFormat()),
       }
     });
   }
@@ -437,7 +493,7 @@ class ImportItem extends React.Component {
             decNr: editDoc.decNr,
             boeNr: editDoc.boeNr,
             sfiNr: editDoc.sfiNr,
-            boeDate: StringToType(editDoc.boeDate, 'date', getDateFormat()),
+            boeDate: stringToType(editDoc.boeDate, 'date', getDateFormat()),
           })
         };
         return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
@@ -820,20 +876,30 @@ class ImportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { importDoc, retrieving, windowHeight } = this.state;
+    const { importDoc, filterGroup, retrieving, sortGroup, windowHeight } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDoc.summary) || !retrieving) {
-      importDoc.summary.map(group => {
+      let filtered = summarySorted(importDoc.summary, sortGroup).filter(element => 
+        doesMatch(filterGroup.hsCode, element.hsCode, "text", false) &&
+        doesMatch(filterGroup.hsDesc, element.hsDesc, "text", false) &&
+        doesMatch(filterGroup.country, element.country, "text", false) &&
+        doesMatch(filterGroup.pcs, element.pcs, "number", false) &&
+        doesMatch(filterGroup.mtr, element.mtr, "number", false) &&
+        doesMatch(filterGroup.totalNetWeight, element.totalNetWeight, "number", false) &&
+        doesMatch(filterGroup.totalGrossWeight, element.totalGrossWeight, "number", false) &&
+        doesMatch(filterGroup.totalPrice, element.totalPrice, "number", false)
+      );
+      filtered.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData value={group.hsCode} type="text" align="center"/>
-            <TableData value={group.hsDesc} type="text"/>
-            <TableData value={group.country} type="text"/>
-            <TableData value={group.pcs} type="number" align="right"/>
-            <TableData value={group.mtr} type="number" align="right"/>
-            <TableData value={group.totalNetWeight} type="number" align="right"/>
-            <TableData value={group.totalGrossWeight} type="number" align="right"/>
-            <TableData value={group.totalPrice} type="number" align="right"/>
+            <TableData colIndex="13" value={group.hsCode} type="text" align="center"/>
+            <TableData colIndex="14" value={group.hsDesc} type="text"/>
+            <TableData colIndex="15" value={group.country} type="text"/>
+            <TableData colIndex="16" value={group.pcs} type="number" align="right"/>
+            <TableData colIndex="17" value={group.mtr} type="number" align="right"/>
+            <TableData colIndex="18" value={group.totalNetWeight} type="number" align="right"/>
+            <TableData colIndex="19" value={group.totalGrossWeight} type="number" align="right"/>
+            <TableData colIndex="20" value={group.totalPrice} type="number" align="right"/>
           </tr>
         );
       });
@@ -860,7 +926,9 @@ class ImportItem extends React.Component {
         const {
           menuItem,
           filter,
+          filterGroup,
           sort,
+          sortGroup,
           settingsColWidth,
           importDoc,
           editDoc,
@@ -911,10 +979,10 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} ${importDoc.sfiNr} dated: ${TypeToString(importDoc.boeDate, 'date', getDateFormat())}
-                          ${importDoc.pcs ? " / pcs: " + TypeToString(importDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
-                          ${importDoc.totalGrossWeight ? " / weight: " + TypeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
-                          ${importDoc.totalPrice ? " / value: " + TypeToString(importDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
+                        {`${importDoc.decNr} ${importDoc.boeNr} ${importDoc.sfiNr} dated: ${typeToString(importDoc.boeDate, 'date', getDateFormat())}
+                          ${importDoc.pcs ? " / pcs: " + typeToString(importDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
+                          ${importDoc.totalGrossWeight ? " / weight: " + typeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${importDoc.totalPrice ? " / value: " + typeToString(importDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
                           ${importDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
                       </li>
@@ -1156,14 +1224,110 @@ class ImportItem extends React.Component {
                           <table className="table table-hover table-bordered table-sm">
                             <thead>
                               <tr>
-                                <th scope="col">HS Code</th>
-                                <th scope="col">Description</th>
-                                <th scope="col">Country</th>
-                                <th scope="col">Pcs</th>
-                                <th scope="col">Mtr</th>
-                                <th scope="col">Net Weight</th>
-                                <th scope="col">Gross Weight</th>
-                                <th scope="col">Total Price</th>
+                              <HeaderInput
+                                  type="text"
+                                  title="HS Code"
+                                  name="hsCode"
+                                  value={filterGroup.hsCode}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="13"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="Description"
+                                  name="hsDesc"
+                                  value={filterGroup.hsDesc}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="14"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="text"
+                                  title="Country"
+                                  name="country"
+                                  value={filterGroup.country}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="15"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Pcs"
+                                  name="pcs"
+                                  value={filterGroup.pcs}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="16"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Mtr"
+                                  name="mtr"
+                                  value={filterGroup.mtr}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="17"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Net Weight"
+                                  name="totalNetWeight"
+                                  value={filterGroup.totalNetWeight}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="18"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title="Gross Weight"
+                                  name="totalGrossWeight"
+                                  value={filterGroup.totalGrossWeight}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="19"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
+                                <HeaderInput
+                                  type="number"
+                                  title={`Total Price (AED)`}
+                                  name="totalPrice"
+                                  value={filterGroup.totalPrice}
+                                  onChange={this.handleChangeHeaderGroup}
+                                  sort={sortGroup}
+                                  toggleSort={this.toggleSortGroup}
+                                  index="20"
+                                  colDoubleClick={this.colDoubleClick}
+                                  setColWidth={this.setColWidth}
+                                  settingsColWidth={settingsColWidth}
+                                />
                               </tr>
                             </thead>
                             <tbody>

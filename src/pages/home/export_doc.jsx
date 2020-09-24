@@ -9,8 +9,8 @@ import {  alertActions, sidemenuActions } from '../../_actions';
 import {
   copyObject,
   getPageSize,
-  StringToType,
-  TypeToString,
+  stringToType,
+  typeToString,
   isValidFormat,
   getDateFormat
 } from '../../_functions';

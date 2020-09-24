@@ -80,6 +80,7 @@ class Settings extends React.Component {
         third: 3
       }
     };
+    this.recize = this.recize.bind(this);
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.setAlert = this.setAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
@@ -109,7 +110,7 @@ class Settings extends React.Component {
         currentUser: currentUser,
         paginate: {
           ...paginate,
-          pageSize: getPageSize(tableContainer)
+          pageSize: getPageSize(tableContainer.clientHeight)
         }
       }, () => this.getDocuments());
     } else {
@@ -117,22 +118,22 @@ class Settings extends React.Component {
       location.reload(true);
     }
 
-    window.addEventListener('resize', e => this.setState({
-      paginate: {
-        ...paginate,
-        pageSize: getPageSize(tableContainer)
-      }
-    }));
+    window.addEventListener('resize', this.recize);
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.recize);
+  }
+
+  recize() {
     const { paginate } = this.state;
-    window.removeEventListener('resize', e => this.setState({
+    const tableContainer = document.getElementById('table-container');
+    this.setState({
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
-    }));
+    }, () => this.getDocuments());
   }
 
   componentDidUpdate(prevProps, prevState) {

@@ -69,6 +69,7 @@ class ExportDoc extends React.Component {
         third: 3
       }
     };
+    this.recize = this.recize.bind(this);
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
@@ -91,26 +92,26 @@ class ExportDoc extends React.Component {
     this.setState({
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
     }, () => this.getDocuments());
 
-    window.addEventListener('resize', e => this.setState({
-      paginate: {
-        ...paginate,
-        pageSize: getPageSize(tableContainer)
-      }
-    }));
+    window.addEventListener('resize', this.recize);
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.recize);
+  }
+
+  recize() {
     const { paginate } = this.state;
-    window.removeEventListener('resize', e => this.setState({
+    const tableContainer = document.getElementById('table-container');
+    this.setState({
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
-    }));
+    }, () => this.getDocuments());
   }
 
   componentDidUpdate(prevProps, prevState) {

@@ -97,6 +97,7 @@ class ImportItem extends React.Component {
       settingsColWidth: {},
       selectAllRows: false,
       selectedRows: [],
+      windowHeight: 0,
       paginate: {
         pageSize: 0,
         currentPage: 1,
@@ -110,6 +111,7 @@ class ImportItem extends React.Component {
         third: 3
       }
     };
+    this.recize = this.recize.bind(this);
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
@@ -149,28 +151,30 @@ class ImportItem extends React.Component {
         ...filter,
         documentId: qs.id
       },
+      windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
     }, () => this.getDocument());
 
-    window.addEventListener('resize', e => this.setState({
-      paginate: {
-        ...paginate,
-        pageSize: getPageSize(tableContainer)
-      }
-    }));
+    window.addEventListener('resize', this.recize);
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.recize);
+  }
+
+  recize() {
     const { paginate } = this.state;
-    window.removeEventListener('resize', e => this.setState({
+    const tableContainer = document.getElementById('table-container');
+    this.setState({
+      windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
-    }));
+    }, () => this.getDocument());
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -816,7 +820,7 @@ class ImportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { importDoc, retrieving } = this.state;
+    const { importDoc, retrieving, windowHeight } = this.state;
     let tempRows = [];
     if (!_.isEmpty(importDoc.summary) || !retrieving) {
       importDoc.summary.map(group => {
@@ -834,7 +838,7 @@ class ImportItem extends React.Component {
         );
       });
     } else {
-      for (let i = 0; i < 11; i++) {
+      for (let i = 0; i < getPageSize(windowHeight - 172.5); i++) {
         tempRows.push(
           <tr key={i}>
             <td><Skeleton/></td>
@@ -877,7 +881,8 @@ class ImportItem extends React.Component {
           downloadingDuf,
           uploadingDuf,
           deletingLine,
-          selectAllRows
+          selectAllRows,
+          windowHeight
         } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
         const { sidemenu } = this.props;
@@ -1146,7 +1151,7 @@ class ImportItem extends React.Component {
                       title={'Summary'}
                       size="modal-xl"
                     >
-                      <div className="row ml-1 mr-1" style={{maxHeight: '400px'}}>
+                      <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 172.5))}px`}}>
                         <div id="table-summary" className="table-responsive custom-table-container">
                           <table className="table table-hover table-bordered table-sm">
                             <thead>
@@ -1166,6 +1171,11 @@ class ImportItem extends React.Component {
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                      <div className="modal-footer">
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleSummary}>
+                            <span><FontAwesomeIcon icon="times" className="fa mr-2"/>Close</span>
+                          </button>
                       </div>
                     </Modal>
                     <Modal

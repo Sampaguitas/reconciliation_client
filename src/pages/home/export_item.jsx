@@ -130,7 +130,7 @@ class ExportItem extends React.Component {
       selectAllRows: false,
       selectedRows: [],
       selectedCandidate: '',
-      windowHeight: '',
+      windowHeight: 0,
       paginate: {
         pageSize: 0,
         currentPage: 1,
@@ -144,6 +144,7 @@ class ExportItem extends React.Component {
         third: 3
       }
     };
+    this.recize = this.recize.bind(this);
     this.handleClearAlert = this.handleClearAlert.bind(this);
     this.toggleCollapse = this.toggleCollapse.bind(this);
     this.toggleSort = this.toggleSort.bind(this);
@@ -182,7 +183,9 @@ class ExportItem extends React.Component {
     const { filter, menuItem, paginate } = this.state;
     const tableContainer = document.getElementById('table-container');
     var qs = queryString.parse(window.location.search);
+    
     dispatch(sidemenuActions.select(menuItem));
+    
     this.setState({
       filter: {
         ...filter,
@@ -191,27 +194,27 @@ class ExportItem extends React.Component {
       windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
     }, () => this.getDocument());
 
-    window.addEventListener('resize', e => this.setState({
-      paginate: {
-        ...paginate,
-        pageSize: getPageSize(tableContainer)
-      }
-    }));
+    window.addEventListener('resize', this.recize);
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.recize);
+  }
+
+  recize() {
     const { paginate } = this.state;
-    window.removeEventListener('resize', e => this.setState({
+    const tableContainer = document.getElementById('table-container');
+    this.setState({
       windowHeight: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
       paginate: {
         ...paginate,
-        pageSize: getPageSize(tableContainer)
+        pageSize: getPageSize(tableContainer.clientHeight)
       }
-    }));
+    }, () => this.getDocument());
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -1044,7 +1047,7 @@ class ExportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { exportDoc, retrievingDoc } = this.state;
+    const { exportDoc, retrievingDoc, windowHeight } = this.state;
     let tempRows = [];
     if (!_.isEmpty(exportDoc.summary) || !retrievingDoc) {
       exportDoc.summary.map(group => {
@@ -1062,7 +1065,7 @@ class ExportItem extends React.Component {
         );
       });
     } else {
-      for (let i = 0; i < 11; i++) {
+      for (let i = 0; i < getPageSize(windowHeight - 172.5); i++) {
         tempRows.push(
           <tr key={i}>
             <td><Skeleton/></td>
@@ -1081,7 +1084,7 @@ class ExportItem extends React.Component {
   }
 
   generateCandidateBody() {
-    const { candidates, selectedCandidate, retrievingCandidates } = this.state;
+    const { candidates, selectedCandidate, retrievingCandidates, windowHeight } = this.state;
     let tempRows = [];
     if (!_.isEmpty(candidates) || !retrievingCandidates) {
       candidates.map(candidate => {
@@ -1101,7 +1104,7 @@ class ExportItem extends React.Component {
         );
       });
     } else {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < getPageSize((windowHeight - 216) / 2); i++) {
         tempRows.push(
           <tr key={i}>
             <td><Skeleton/></td>
@@ -1386,7 +1389,7 @@ class ExportItem extends React.Component {
                       title={'Summary'}
                       size="modal-xl"
                     >
-                      <div className="row ml-1 mr-1" style={{maxHeight: '400px'}}>
+                      <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 172.5))}px`}}>
                         <div id="table-summary" className="table-responsive custom-table-container">
                           <table className="table table-hover table-bordered table-sm">
                             <thead>
@@ -1502,6 +1505,11 @@ class ExportItem extends React.Component {
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                      <div className="modal-footer">
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleSummary}>
+                            <span><FontAwesomeIcon icon="times" className="fa mr-2"/>Close</span>
+                          </button>
                       </div>
                     </Modal>
                     <Modal
@@ -1725,7 +1733,7 @@ class ExportItem extends React.Component {
                     >
                       <div>
                         <label htmlFor="table-summary" className="ml-1 mr-1">Available Quantities</label>
-                        <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
                           <div id="table-summary" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>
@@ -1879,7 +1887,7 @@ class ExportItem extends React.Component {
                       </div>
                       <div>
                         <label htmlFor="table-link" className="ml-1 mr-1">Linked Quantities</label>
-                        <div className="row ml-1 mr-1" style={{borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
                           <div id="table-link" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>

@@ -15,6 +15,7 @@ import {
   typeToString,
   stringToType,
   isValidFormat,
+  summarySorted,
   getDateFormat
 } from '../../_functions';
 import SelectAll from '../../_components/table/select-all';
@@ -99,6 +100,18 @@ class ExportItem extends React.Component {
         unitGrossWeight: '',
         unitPrice: '',
       },
+      filterImport: {
+        decNr: '',
+        boeNr: '',
+        srNr: '',
+        country: '',
+        hsCode: '',
+        pcs: '',
+        mtr: '',
+        unitNetWeight: '',
+        unitGrossWeight: '',
+        unitPrice: '',
+      },
       sort: {
           name: '',
           isAscending: true,
@@ -108,6 +121,10 @@ class ExportItem extends React.Component {
         isAscending: true,
       },
       sortLink: {
+        name: '',
+        isAscending: true,
+      },
+      sortImport: {
         name: '',
         isAscending: true,
       },
@@ -132,7 +149,9 @@ class ExportItem extends React.Component {
       menuItem: 'Export Documents',
       settingsColWidth: {},
       selectAllRows: false,
+      selectAllImports: false,
       selectedRows: [],
+      selectedImports: [],
       selectedCandidate: '',
       windowHeight: 0,
       paginate: {
@@ -154,9 +173,11 @@ class ExportItem extends React.Component {
     this.toggleSort = this.toggleSort.bind(this);
     this.toggleSortGroup = this.toggleSortGroup.bind(this);
     this.toggleSortLink = this.toggleSortLink.bind(this);
+    this.toggleSortImport = this.toggleSortImport.bind(this);
     this.handleChangeHeaderLine = this.handleChangeHeaderLine.bind(this);
     this.handleChangeHeaderGroup = this.handleChangeHeaderGroup.bind(this);
     this.handleChangeHeaderLink = this.handleChangeHeaderLink.bind(this);
+    this.handleChangeHeaderImport = this.handleChangeHeaderImport.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
@@ -178,7 +199,9 @@ class ExportItem extends React.Component {
     this.setColWidth = this.setColWidth.bind(this);
     this.changePage = this.changePage.bind(this);
     this.toggleSelectAllRow = this.toggleSelectAllRow.bind(this);
+    this.toggleSelectAllImport = this.toggleSelectAllImport.bind(this);
     this.updateSelectedRows = this.updateSelectedRows.bind(this);
+    this.updateSelectedImports = this.updateSelectedImports.bind(this);
     this.selectCandidate = this.selectCandidate.bind(this);
     this.dufInput = React.createRef();
     this.fileInput = React.createRef();
@@ -353,6 +376,33 @@ class ExportItem extends React.Component {
     }
   }
 
+  toggleSortImport(event, name) {
+    event.preventDefault();
+    const { sortImport } = this.state;
+    if (sortImport.name != name) {
+      this.setState({
+        sortImport: {
+          name: name,
+          isAscending: true
+        }
+      });
+    } else if (!!sortImport.isAscending) {
+      this.setState({
+        sortImport: {
+          name: name,
+          isAscending: false
+        }
+      });
+    } else {
+      this.setState({
+        sortImport: {
+          name: '',
+          isAscending: true
+        }
+      });
+    }
+  }
+
   handleChangeHeaderLine(event) {
     const { filter } = this.state;
     const { name, value } = event.target;
@@ -370,6 +420,17 @@ class ExportItem extends React.Component {
     this.setState({
       filterLink: {
         ...filterLink,
+        [name]: value
+      }
+    })
+  }
+
+  handleChangeHeaderImport(event) {
+    const { filterImport } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      filterImport: {
+        ...filterImport,
         [name]: value
       }
     })
@@ -1014,12 +1075,37 @@ class ExportItem extends React.Component {
     }
   }
 
+  toggleSelectAllImport() {
+    const { selectAllImports, selectedimports, exportDoc } = this.state;
+    let found = exportDoc.items.find(element => _.isEqual(element._id, selectedimports[0]));
+    if (!_.isUndefined(found) && !_.isEmpty(found.importItems) && !selectAllImports) {
+      this.setState({
+        selectedRows: found.importItems.map(importItem => importItem._id),
+        selectAllImports: true
+      });
+    } else {
+      this.setState({
+        selectedRows: [],
+        selectAllImports: false,
+      });
+    }
+  }
+
   updateSelectedRows(id) {
     const { selectedRows } = this.state;
     if (selectedRows.includes(id)) {
         this.setState({ selectedRows: arrayRemove(selectedRows, id) });
     } else {
       this.setState({ selectedRows: [...selectedRows, id] });
+    }       
+  }
+
+  updateSelectedImports(id) {
+    const { selectedImports } = this.state;
+    if (selectedImports.includes(id)) {
+        this.setState({ selectedImports: arrayRemove(selectedImports, id) });
+    } else {
+      this.setState({ selectedImports: [...selectedImports, id] });
     }       
   }
 
@@ -1032,7 +1118,7 @@ class ExportItem extends React.Component {
   }
 
   generateBody() {
-    const { exportDoc, retrievingDoc, paginate, settingsColWidth, selectAllRows, selectedRows } = this.state;
+    const { exportDoc, retrievingDoc, paginate, selectAllRows, selectedRows, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(exportDoc.items) || !retrievingDoc) {
       exportDoc.items.map(exportItem => {
@@ -1080,20 +1166,30 @@ class ExportItem extends React.Component {
   }
 
   generateSubBody() {
-    const { exportDoc, retrievingDoc, windowHeight } = this.state;
+    const { exportDoc, filterGroup, sortGroup, retrievingDoc, windowHeight, settingsColWidth } = this.state;
     let tempRows = [];
     if (!_.isEmpty(exportDoc.summary) || !retrievingDoc) {
-      exportDoc.summary.map(group => {
+      let filtered = summarySorted(exportDoc.summary, sortGroup).filter(element => 
+        doesMatch(filterGroup.hsCode, element.hsCode, "text", false) &&
+        doesMatch(filterGroup.hsDesc, element.hsDesc, "text", false) &&
+        doesMatch(filterGroup.country, element.country, "text", false) &&
+        doesMatch(filterGroup.pcs, element.pcs, "number", false) &&
+        doesMatch(filterGroup.mtr, element.mtr, "number", false) &&
+        doesMatch(filterGroup.totalNetWeight, element.totalNetWeight, "number", false) &&
+        doesMatch(filterGroup.totalGrossWeight, element.totalGrossWeight, "number", false) &&
+        doesMatch(filterGroup.totalPrice, element.totalPrice, "number", false)
+      );
+      filtered.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData colIndex="10" value={group.hsCode} type="text" align="center"/>
-            <TableData colIndex="11" value={group.hsDesc} type="text"/>
-            <TableData colIndex="12" value={group.country} type="text"/>
-            <TableData colIndex="13" value={group.pcs} type="number" align="right"/>
-            <TableData colIndex="14" value={group.mtr} type="number" align="right"/>
-            <TableData colIndex="15" value={group.totalNetWeight} type="number" align="right"/>
-            <TableData colIndex="16" value={group.totalGrossWeight} type="number" align="right"/>
-            <TableData colIndex="17" value={group.totalPrice} type="number" align="right"/>
+            <TableData colIndex="10" value={group.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="11" value={group.hsDesc} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="12" value={group.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="13" value={group.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="14" value={group.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="15" value={group.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="16" value={group.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="17" value={group.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -1117,27 +1213,27 @@ class ExportItem extends React.Component {
   }
 
   generateCandidateBody() {
-    const { candidates, selectedCandidate, retrievingCandidates, windowHeight } = this.state;
+    const { candidates, selectedCandidate, retrievingCandidates, settingsColWidth, windowHeight } = this.state;
     let tempRows = [];
     if (!_.isEmpty(candidates) || !retrievingCandidates) {
       candidates.map(candidate => {
         tempRows.push(
           <tr key={candidate._id} style={_.isEqual(selectedCandidate,candidate._id) ? {backgroundColor: "lightgray", cursor: 'pointer'} : {cursor: 'pointer'}} onClick={event => this.selectCandidate(event, candidate._id)}>
-            <TableData colIndex="18" value={candidate.decNr} type="text" align="center"/>
-            <TableData colIndex="19" value={candidate.boeNr} type="text" align="center"/>
-            <TableData colIndex="20" value={candidate.srNr} type="number" align="right"/>
-            <TableData colIndex="21" value={candidate.country} type="text" />
-            <TableData colIndex="22" value={candidate.hsCode} type="text" align="center"/>
-            <TableData colIndex="23" value={candidate.pcs} type="number" align="right"/>
-            <TableData colIndex="24" value={candidate.mtr} type="number" align="right"/>
-            <TableData colIndex="25" value={candidate.unitNetWeight} type="number" align="right"/>
-            <TableData colIndex="26" value={candidate.unitGrossWeight} type="number" align="right"/>
-            <TableData colIndex="27" value={candidate.unitPrice} type="number" align="right"/>
+            <TableData colIndex="18" value={candidate.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="19" value={candidate.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="20" value={candidate.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="21" value={candidate.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="22" value={candidate.hsCode} type="text" align="center"settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="23" value={candidate.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="24" value={candidate.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="25" value={candidate.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="26" value={candidate.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="27" value={candidate.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
     } else {
-      for (let i = 0; i < getPageSize((windowHeight - 216) / 2); i++) {
+      for (let i = 0; i < getPageSize((windowHeight - 254) / 2); i++) {
         tempRows.push(
           <tr key={i}>
             <td><Skeleton/></td>
@@ -1157,14 +1253,81 @@ class ExportItem extends React.Component {
     return tempRows;
   }
 
+  generateImportBody() {
+    const { exportDoc, retrievingDoc, selectAllImports, selectedImports, selectedRows, sortImport, settingsColWidth, windowHeight } = this.state;
+    let tempRows = [];
+    
+    if (!_.isEmpty(exportDoc.items) && !retrievingDoc) {
+      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(found)) {
+      let filtered = summarySorted(found.importItems, sortImport).filter(element => 
+        doesMatch(filterGroup.hsCode, element.hsCode, "text", false) &&
+        doesMatch(filterGroup.hsDesc, element.hsDesc, "text", false) &&
+        doesMatch(filterGroup.country, element.country, "text", false) &&
+        doesMatch(filterGroup.pcs, element.pcs, "number", false) &&
+        doesMatch(filterGroup.mtr, element.mtr, "number", false) &&
+        doesMatch(filterGroup.totalNetWeight, element.totalNetWeight, "number", false) &&
+        doesMatch(filterGroup.totalGrossWeight, element.totalGrossWeight, "number", false) &&
+        doesMatch(filterGroup.totalPrice, element.totalPrice, "number", false)
+      );
+      filtered.map(importItem => {
+        tempRows.push(
+          <tr key={importItem._id}>
+            <SelectRow
+              id={importItem._id}
+              selectAllRows={selectAllImports}
+              selectedRows={selectedImports}
+              callback={this.updateSelectedImports}
+            />
+            <TableData colIndex="28" value={importItem.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="29" value={importItem.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="30" value={importItem.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="31" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="32" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="33" value={importItem.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="34" value={importItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="35" value={importItem.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="36" value={importItem.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="37" value={importItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+          </tr>
+        );
+      });
+      }
+      
+    } else {
+      for (let i = 0; i < getPageSize((windowHeight - 254) / 2); i++) {
+        tempRows.push(
+          <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
+          </tr> 
+        );
+      }
+    }
+    return tempRows;
+  }
+
     render() {
         const {
           menuItem,
           filter,
           filterLink,
+          filterImport,
           filterGroup,
           sort,
+          sortGroup,
           sortLink,
+          sortImport,
           settingsColWidth,
           exportDoc,
           editDoc,
@@ -1178,6 +1341,7 @@ class ExportItem extends React.Component {
           showFile,
           showDuf,
           showLink,
+          showImport,
           retrievingDoc,
           deletingDoc,
           editingDoc,
@@ -1187,6 +1351,7 @@ class ExportItem extends React.Component {
           uploadingDuf,
           deletingLine,
           selectAllRows,
+          selectAllImports,
           windowHeight,
         } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
@@ -1433,7 +1598,7 @@ class ExportItem extends React.Component {
                                   name="hsCode"
                                   value={filterGroup.hsCode}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="10"
                                   colDoubleClick={this.colDoubleClick}
@@ -1446,7 +1611,7 @@ class ExportItem extends React.Component {
                                   name="desc"
                                   value={filterGroup.desc}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="11"
                                   colDoubleClick={this.colDoubleClick}
@@ -1459,7 +1624,7 @@ class ExportItem extends React.Component {
                                   name="country"
                                   value={filterGroup.country}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="12"
                                   colDoubleClick={this.colDoubleClick}
@@ -1472,7 +1637,7 @@ class ExportItem extends React.Component {
                                   name="pcs"
                                   value={filterGroup.pcs}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="13"
                                   colDoubleClick={this.colDoubleClick}
@@ -1485,7 +1650,7 @@ class ExportItem extends React.Component {
                                   name="mtr"
                                   value={filterGroup.mtr}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="14"
                                   colDoubleClick={this.colDoubleClick}
@@ -1498,7 +1663,7 @@ class ExportItem extends React.Component {
                                   name="totalNetWeight"
                                   value={filterGroup.totalNetWeight}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="15"
                                   colDoubleClick={this.colDoubleClick}
@@ -1511,7 +1676,7 @@ class ExportItem extends React.Component {
                                   name="totalGrossWeight"
                                   value={filterGroup.totalGrossWeight}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="16"
                                   colDoubleClick={this.colDoubleClick}
@@ -1524,7 +1689,7 @@ class ExportItem extends React.Component {
                                   name="totalPrice"
                                   value={filterGroup.totalPrice}
                                   onChange={this.handleChangeHeaderGroup}
-                                  sort={sort}
+                                  sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
                                   index="17"
                                   colDoubleClick={this.colDoubleClick}
@@ -1766,7 +1931,7 @@ class ExportItem extends React.Component {
                     >
                       <div>
                         <label htmlFor="table-summary" className="ml-1 mr-1">Available Quantities</label>
-                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 254) / 2)}px`}}>
                           <div id="table-summary" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>
@@ -1883,7 +2048,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="27"
+                                    index="26"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1896,7 +2061,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="29"
+                                    index="27"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1910,7 +2075,7 @@ class ExportItem extends React.Component {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right mt-3 mr-1 mb-2 ml-1">
+                      <div className="text-right mt-2 mr-1 mb-2 ml-1">
                           <button type="button" className="btn btn-leeuwen btn-lg mr-2">
                             <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "unlink"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
                           </button>
@@ -1920,20 +2085,24 @@ class ExportItem extends React.Component {
                       </div>
                       <div>
                         <label htmlFor="table-link" className="ml-1 mr-1">Linked Quantities</label>
-                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 216) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 254) / 2)}px`}}>
                           <div id="table-link" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>
                                 <tr>
+                                  <SelectAll
+                                    checked={selectAllImports}
+                                    onChange={this.toggleSelectAllImport}
+                                  />
                                   <HeaderInput
                                     type="text"
                                     title="DEC Nr"
                                     name="decNr"
-                                    value={filterLink.decNr}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
+                                    value={filterImport.decNr}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
                                     toggleSort={this.toggleSortLink}
-                                    index="18"
+                                    index="28"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1942,11 +2111,11 @@ class ExportItem extends React.Component {
                                     type="text"
                                     title="BOE Nr"
                                     name="boeNr"
-                                    value={filterLink.boeNr}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
+                                    value={filterImport.boeNr}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
                                     toggleSort={this.toggleSortLink}
-                                    index="19"
+                                    index="29"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1955,11 +2124,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title="#"
                                     name="srNr"
-                                    value={filterLink.srNr}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="20"
+                                    value={filterImport.srNr}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="30"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1968,11 +2137,11 @@ class ExportItem extends React.Component {
                                     type="text"
                                     title="Country"
                                     name="country"
-                                    value={filterLink.country}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="21"
+                                    value={filterImport.country}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="31"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1981,11 +2150,11 @@ class ExportItem extends React.Component {
                                     type="text"
                                     title="HS Code"
                                     name="hsCode"
-                                    value={filterLink.hsCode}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="22"
+                                    value={filterImport.hsCode}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="32"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -1994,11 +2163,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title="Pcs"
                                     name="pcs"
-                                    value={filterLink.pcs}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="23"
+                                    value={filterImport.pcs}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="33"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2007,11 +2176,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title="Mtr"
                                     name="mtr"
-                                    value={filterLink.mtr}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="24"
+                                    value={filterImport.mtr}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="34"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2020,11 +2189,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title="Net Weight (unit)"
                                     name="unitNetWeight"
-                                    value={filterLink.unitNetWeight}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="25"
+                                    value={filterImport.unitNetWeight}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="35"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2033,11 +2202,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title="Gross Weight (unit)"
                                     name="unitGrossWeight"
-                                    value={filterLink.unitGrossWeight}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="27"
+                                    value={filterImport.unitGrossWeight}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="36"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2046,11 +2215,11 @@ class ExportItem extends React.Component {
                                     type="number"
                                     title={`Unit Price (${exportDoc.currency})`}
                                     name="unitPrice"
-                                    value={filterLink.unitPrice}
-                                    onChange={this.handleChangeHeaderLink}
-                                    sort={sortLink}
-                                    toggleSort={this.toggleSortLink}
-                                    index="29"
+                                    value={filterImport.unitPrice}
+                                    onChange={this.handleChangeHeaderImport}
+                                    sort={sortImport}
+                                    toggleSort={this.toggleSortImport}
+                                    index="37"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2058,11 +2227,16 @@ class ExportItem extends React.Component {
                                 </tr>
                               </thead>
                               <tbody>
-                                {this.generateCandidateBody()}
+                                {this.generateImportBody()}
                               </tbody>
                             </table>
                           </div>
                         </div>
+                      </div>
+                      <div className="modal-footer">
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg" onClick={this.toggleLink}>
+                            <span><FontAwesomeIcon icon="times" className="fa mr-2"/>Close</span>
+                          </button>
                       </div>
                     </Modal>
                 </div>

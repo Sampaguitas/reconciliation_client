@@ -563,6 +563,10 @@ class ImportItem extends React.Component {
                   }
               }, () => setTimeout( () => history.push({ pathname:'/importdoc' }), 1000));
           }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       })
     }
@@ -597,6 +601,10 @@ class ImportItem extends React.Component {
                   downloadingFile: false
               }, () => responce.blob().then(blob => saveAs(blob, importDoc.fileName)));
           }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       });
     }
@@ -635,7 +643,11 @@ class ImportItem extends React.Component {
               }, () => this.getDocument());
             }
           });
-        }));
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
       });           
     }        
   }
@@ -669,6 +681,10 @@ class ImportItem extends React.Component {
                     downloadingDuf: false
                 }, () => responce.blob().then(blob => saveAs(blob, 'Duf.xlsx')));
             }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       });
     }
@@ -690,7 +706,6 @@ class ImportItem extends React.Component {
       return fetch(`${config.apiUrl}/importitem/uploadDuf`, requestOptions)
       .then(responce => responce.text().then(text => {
           const data = text && JSON.parse(text);
-          console.log(responce.status);
           if (responce.status === 401) {
                   localStorage.removeItem('user');
                   location.reload(true);
@@ -709,7 +724,11 @@ class ImportItem extends React.Component {
                 }
             }, () => this.getDocument());
           }
-      }));           
+      }))
+      .catch( () => {
+        localStorage.removeItem('user');
+        location.reload(true);
+      });         
     }
   }
 

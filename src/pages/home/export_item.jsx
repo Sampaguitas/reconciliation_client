@@ -826,6 +826,10 @@ class ExportItem extends React.Component {
                   }
               }, () => setTimeout( () => history.push({ pathname:'/exportdoc' }), 1000));
           }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       })
     }
@@ -860,6 +864,10 @@ class ExportItem extends React.Component {
                   downloadingFile: false
               }, () => responce.blob().then(blob => saveAs(blob, exportDoc.fileName)));
           }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       });
     }
@@ -898,7 +906,11 @@ class ExportItem extends React.Component {
               }, () => this.getDocument());
             }
           });
-        }));
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
       });           
     }        
   }
@@ -932,6 +944,10 @@ class ExportItem extends React.Component {
                     downloadingDuf: false
                 }, () => responce.blob().then(blob => saveAs(blob, 'Duf.xlsx')));
             }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       });
     }
@@ -972,7 +988,11 @@ class ExportItem extends React.Component {
                 }
             }, () => this.getDocument());
           }
-      }));           
+      }))
+      .catch( () => {
+        localStorage.removeItem('user');
+        location.reload(true);
+      });           
     }
   }
 

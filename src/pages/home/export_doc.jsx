@@ -225,8 +225,8 @@ class ExportDoc extends React.Component {
             const resMsg = (data && data.message) || response.statusText;
             if (response.status === 401) {
               // Unauthorized
-              // localStorage.removeItem('user');
-              // location.reload(true);
+              localStorage.removeItem('user');
+              location.reload(true);
               this.setState({
                 alert: {
                   type: 'alert-danger',
@@ -260,14 +260,8 @@ class ExportDoc extends React.Component {
           });
         }))
         .catch( () => {
-          // localStorage.removeItem('user');
-          // location.reload(true);
-          this.setState({
-            alert: {
-              type: 'alert-danger',
-              message: 'catch'
-            }
-          });
+          localStorage.removeItem('user');
+          location.reload(true);
         });
       });
     }

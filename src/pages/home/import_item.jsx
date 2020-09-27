@@ -73,7 +73,9 @@ class ImportItem extends React.Component {
         totalPrice: '',
         hsCode: '',
         country: '',
-        documentId: ''
+        documentId: '',
+        remainingPcs: '',
+        remainingMtr: '',
       },
       filterGroup: {
         hsCode: '',
@@ -866,6 +868,8 @@ class ImportItem extends React.Component {
             <TableData colIndex="10" value={importItem.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="11" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="12" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="13" value={importItem.remainingPcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="14" value={importItem.remainingMtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -873,6 +877,8 @@ class ImportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -911,14 +917,14 @@ class ImportItem extends React.Component {
       filtered.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData colIndex="13" value={group.hsCode} type="text" align="center"/>
-            <TableData colIndex="14" value={group.hsDesc} type="text"/>
-            <TableData colIndex="15" value={group.country} type="text"/>
-            <TableData colIndex="16" value={group.pcs} type="number" align="right"/>
-            <TableData colIndex="17" value={group.mtr} type="number" align="right"/>
-            <TableData colIndex="18" value={group.totalNetWeight} type="number" align="right"/>
-            <TableData colIndex="19" value={group.totalGrossWeight} type="number" align="right"/>
-            <TableData colIndex="20" value={group.totalPrice} type="number" align="right"/>
+            <TableData colIndex="15" value={group.hsCode} type="text" align="center"/>
+            <TableData colIndex="16" value={group.hsDesc} type="text"/>
+            <TableData colIndex="17" value={group.country} type="text"/>
+            <TableData colIndex="18" value={group.pcs} type="number" align="right"/>
+            <TableData colIndex="19" value={group.mtr} type="number" align="right"/>
+            <TableData colIndex="20" value={group.totalNetWeight} type="number" align="right"/>
+            <TableData colIndex="21" value={group.totalGrossWeight} type="number" align="right"/>
+            <TableData colIndex="22" value={group.totalPrice} type="number" align="right"/>
           </tr>
         );
       });
@@ -1205,6 +1211,32 @@ class ImportItem extends React.Component {
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
                                         />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Rem Pcs"
+                                            name="remainingPcs"
+                                            value={filter.remainingPcs}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="13"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Rem Mtr"
+                                            name="remainingMtr"
+                                            value={filter.remainingMtr}
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="14"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
                                         </tr>
                                     </thead>
                                     <tbody className="full-height">
@@ -1251,7 +1283,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="13"
+                                  index="15"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1264,7 +1296,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="14"
+                                  index="16"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1277,7 +1309,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="15"
+                                  index="17"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1290,7 +1322,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="16"
+                                  index="18"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1303,7 +1335,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="17"
+                                  index="19"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1316,7 +1348,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="18"
+                                  index="20"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1329,7 +1361,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="19"
+                                  index="21"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -1342,7 +1374,7 @@ class ImportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="20"
+                                  index="22"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}

@@ -16,7 +16,8 @@ import {
   stringToType,
   isValidFormat,
   summarySorted,
-  getDateFormat
+  getDateFormat,
+  doesMatch,
 } from '../../_functions';
 import SelectAll from '../../_components/table/select-all';
 import SelectRow from '../../_components/table/select-row';
@@ -1064,8 +1065,6 @@ class ExportItem extends React.Component {
         }
       });
     } else {
-      // console.log('selectedCandidate:', selectedCandidate);
-      // console.log('selectedRow:', selectedRows[0]);
       this.setState({
         linkingLine: true
       }, () => {

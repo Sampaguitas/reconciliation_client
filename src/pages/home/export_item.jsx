@@ -194,6 +194,7 @@ class ExportItem extends React.Component {
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
+    this.handleLink = this.handleLink.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -243,13 +244,13 @@ class ExportItem extends React.Component {
         ...paginate,
         pageSize: getPageSize(tableContainer.clientHeight)
       }
-    }, () => this.getDocument());
+    }, () => this.getDocument(paginate.currentPage));
   }
 
   componentDidUpdate(prevProps, prevState) {
     const { exportDoc, candidates, sort, sortLink, filter, filterLink, paginate, selectedRows, selectedCandidate } = this.state;
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
-      this.getDocument();
+      this.getDocument(paginate.currentPage);
     }
 
     if (sortLink != prevState.sortLink || (filterLink != prevState.filterLink)) {
@@ -736,7 +737,7 @@ class ExportItem extends React.Component {
 
   handleEditDoc(event) {
     event.preventDefault();
-    const { editDoc, editingDoc } = this.state;
+    const { editDoc, editingDoc, paginate } = this.state;
     if (!isValidFormat(editDoc.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
@@ -776,7 +777,7 @@ class ExportItem extends React.Component {
                   message: resMsg
                 }
               }, () => {
-                this.getDocument();
+                this.getDocument(paginate.currentPage);
                 this.toggleEditDoc();
               });
             }
@@ -875,7 +876,7 @@ class ExportItem extends React.Component {
 
   handleUploadFile(event){
     event.preventDefault();
-    const { exportDoc, fileName, uploadingFile } = this.state;
+    const { exportDoc, fileName, uploadingFile, paginate } = this.state;
     if(!!this.fileInput.current && !!exportDoc._id && !!fileName && !uploadingFile) {
       this.setState({
           uploadingFile: true
@@ -903,7 +904,7 @@ class ExportItem extends React.Component {
                   type: responce.status === 200 ? 'alert-success' : 'alert-danger',
                   message: data.message
                 }
-              }, () => this.getDocument());
+              }, () => this.getDocument(paginate.currentPage));
             }
           });
         }))
@@ -955,7 +956,7 @@ class ExportItem extends React.Component {
 
   handleUploadDuf(event) {
     event.preventDefault();
-    const { exportDoc, uploadingDuf } = this.state
+    const { exportDoc, uploadingDuf, paginate } = this.state
     if(!uploadingDuf && !!this.dufInput.current && !!exportDoc._id && !uploadingDuf) {
       this.setState({uploadingDuf: true});
       var data = new FormData()
@@ -986,7 +987,7 @@ class ExportItem extends React.Component {
                     type: responce.status === 200 ? 'alert-success' : 'alert-danger',
                     message: data.message
                 }
-            }, () => this.getDocument());
+            }, () => this.getDocument(paginate.currentPage));
           }
       }))
       .catch( () => {
@@ -998,7 +999,7 @@ class ExportItem extends React.Component {
 
   handleDeleteLine(event) {
     event.preventDefault();
-    const { selectedRows, deletingLine } = this.state;
+    const { selectedRows, deletingLine, paginate } = this.state;
     if (_.isEmpty(selectedRows)) {
       this.setState({
         alert: {
@@ -1031,9 +1032,70 @@ class ExportItem extends React.Component {
                   type: response.status != 200 ? 'alert-danger' : 'alert-success',
                   message: resMsg
                 }
-              }, () => this.getDocument());
+              }, () => this.getDocument(paginate.currentPage));
             }
           });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      })
+    }
+  }
+
+  handleLink(event) {
+    event.preventDefault();
+    const { paginate, selectedCandidate, selectedRows } = this.state;
+    if (selectedRows.length != 1) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'No export item selected, close the modal and try again.'
+        }
+      });
+    } else if (!selectedCandidate) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'Select one import item to be linked to the selected export item.'
+        }
+      });
+    } else {
+      // console.log('selectedCandidate:', selectedCandidate);
+      // console.log('selectedRow:', selectedRows[0]);
+      this.setState({
+        linkingLine: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            importId: selectedCandidate,
+            exportId: selectedRows[0]
+          })
+      };
+        return fetch(`${config.apiUrl}/transaction/upsert`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            linkingLine: false,
+          }
+          , () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => this.getDocument(paginate.currentPage));
+            }
+          }
+          );
         }))
         .catch( () => {
           localStorage.removeItem('user');
@@ -1361,7 +1423,6 @@ class ExportItem extends React.Component {
           showFile,
           showDuf,
           showLink,
-          showImport,
           retrievingDoc,
           deletingDoc,
           editingDoc,
@@ -1380,7 +1441,7 @@ class ExportItem extends React.Component {
 
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
-                {alert.message && !showSummary && !showEditDoc && !showFile && !showDuf &&
+                {alert.message && !showSummary && !showEditDoc && !showFile && !showDuf && !showLink &&
                     <div className={`alert ${alert.type}`}>{alert.message}
                         <button className="close" onClick={(event) => this.handleClearAlert(event)}>
                             <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
@@ -1413,7 +1474,7 @@ class ExportItem extends React.Component {
                     </ol>
                   }
                 </nav>
-                <div id="export" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
+                <div id="export" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf && !showLink ? "main-section-alert" : "main-section"}> 
                     <div className="action-row row">
                       <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
                           <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
@@ -1949,6 +2010,17 @@ class ExportItem extends React.Component {
                       title="Link import items"
                       size="modal-xl"
                     >
+                      {alert.message &&
+                        <div className="row ml-1 mr-1">
+                          <div className="col-12" style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}>
+                            <div className={`alert ${alert.type}`}> {alert.message}
+                              <button className="close" onClick={(event) => this.handleClearAlert(event)}>
+                                  <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
                       <div>
                         <label htmlFor="table-summary" className="ml-1 mr-1">Available Quantities</label>
                         <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 254) / 2)}px`}}>
@@ -2099,7 +2171,7 @@ class ExportItem extends React.Component {
                           <button type="button" className="btn btn-leeuwen btn-lg mr-2">
                             <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "unlink"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
                           </button>
-                          <button type="button" className="btn btn-leeuwen-blue btn-lg">
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg" onClick={event => this.handleLink(event)}>
                             <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "link"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
                           </button>
                       </div>

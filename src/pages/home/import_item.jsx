@@ -1005,9 +1005,13 @@ class ImportItem extends React.Component {
                           <NavLink to={{ pathname: '/import_doc' }} tag="a">Import Documents</NavLink>
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
-                        {`${importDoc.decNr} ${importDoc.boeNr} ${importDoc.sfiNr} dated: ${typeToString(importDoc.boeDate, 'date', getDateFormat())}
+                        {`${importDoc.decNr ? "DEC: " + importDoc.decNr : ""}
+                          ${importDoc.boeNr ? "/ BOE: " + importDoc.boeNr : ""}
+                          ${importDoc.sfiNr ? " / CFI: " + importDoc.sfiNr : ""}
+                          ${importDoc.boeDate ? " / dated: " + typeToString(importDoc.boeDate, 'date', getDateFormat()) : ""}
                           ${importDoc.pcs ? " / pcs: " + typeToString(importDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
-                          ${importDoc.totalGrossWeight ? " / weight: " + typeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${importDoc.totalNetWeight ? " / net weight: " + typeToString(importDoc.totalNetWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${importDoc.totalGrossWeight ? " / gross weight: " + typeToString(importDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
                           ${importDoc.totalPrice ? " / value: " + typeToString(importDoc.totalPrice, 'number', getDateFormat()) + " aed" : ""}
                           ${importDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}

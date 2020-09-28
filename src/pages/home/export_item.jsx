@@ -59,6 +59,10 @@ class ExportItem extends React.Component {
         boeNr: '',
         boeDate: '',
       },
+      editQty: {
+        pcs: '',
+        mtr: '',
+      },
       fileName: '',
       fileKey: Date.now(),
       dufName: '',
@@ -142,9 +146,11 @@ class ExportItem extends React.Component {
       showFile: false,
       showDuf: false,
       showLink: false,
+      showQty: false,
       retrievingDoc: false,
       deletingDoc: false,
       editingDoc: false,
+      editingQty: false,
       uploadingFile: false,
       downloadingFile: false,
       downloadingDuf: false,
@@ -186,10 +192,12 @@ class ExportItem extends React.Component {
     this.handleChangeHeaderLink = this.handleChangeHeaderLink.bind(this);
     this.handleChangeHeaderImport = this.handleChangeHeaderImport.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.handleChangeQty = this.handleChangeQty.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
     this.toggleSummary = this.toggleSummary.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
+    this.toggleEditQty = this.toggleEditQty.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleLink = this.toggleLink.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
@@ -197,6 +205,7 @@ class ExportItem extends React.Component {
     this.getCandidates = this.getCandidates.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
+    this.handleEditQty = this.handleEditQty.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
@@ -508,6 +517,17 @@ class ExportItem extends React.Component {
     });
   }
 
+  handleChangeQty(event) {
+    const { editQty } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      editQty: {
+        ...editQty,
+        [name]: value
+      }
+    });
+  }
+
   handleChangeDuf(event) {
     if(event.target.files.length > 0) {
       this.setState({
@@ -560,6 +580,18 @@ class ExportItem extends React.Component {
         decNr: exportDoc.decNr,
         boeNr: exportDoc.boeNr,
         boeDate: typeToString(exportDoc.boeDate, 'date', getDateFormat()),
+      }
+    });
+  }
+
+  toggleEditQty(event) {
+    event.preventDefault();
+    const { showQty, editQty, selectedImports, filteredImport } = this.state;
+    this.setState({
+      showQty: !showQty,
+      editQty: {
+        pcs: '',
+        mtr: ''
       }
     });
   }
@@ -838,6 +870,11 @@ class ExportItem extends React.Component {
         });
       });
     }
+  }
+
+  handleEditQty(event) {
+    event.preventDefault();
+    const { editingQty } = this.state;
   }
 
   handleDeleteDoc(event) {
@@ -1511,6 +1548,7 @@ class ExportItem extends React.Component {
           settingsColWidth,
           exportDoc,
           editDoc,
+          editQty,
           fileName,
           fileKey,
           dufName,
@@ -1521,9 +1559,11 @@ class ExportItem extends React.Component {
           showFile,
           showDuf,
           showLink,
+          showQty,
           retrievingDoc,
           deletingDoc,
           editingDoc,
+          editingQty,
           downloadingFile,
           uploadingFile,
           downloadingDuf,
@@ -1566,10 +1606,12 @@ class ExportItem extends React.Component {
                       </li>
                       <li className="breadcrumb-item active flex-grow-1" aria-current="page">
                         {`${exportDoc.invNr ? "Invoice: " + exportDoc.invNr : ""}
-                          ${exportDoc.decNr ? " / DOC: " + exportDoc.decNr + " BOE: " + exportDoc.boeNr : ""}
-                          ${exportDoc.boeDate ? " dated: " + typeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
+                          ${exportDoc.decNr ? " / DEC: " + exportDoc.decNr : ""}
+                          ${exportDoc.boeNr ? " / BOE: " + exportDoc.boeNr : ""}
+                          ${exportDoc.boeDate ? " / dated: " + typeToString(exportDoc.boeDate, 'date', getDateFormat()) : ""}
                           ${exportDoc.pcs ? " / pcs: " + typeToString(exportDoc.pcs, 'number', getDateFormat()) + " pcs" : ""}
-                          ${exportDoc.totalGrossWeight ? " / weight: " + typeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${exportDoc.totalNetWeight ? " / net weight: " + typeToString(exportDoc.totalNetWeight, 'number', getDateFormat()) + " kgs" : ""}
+                          ${exportDoc.totalGrossWeight ? " / gross weight: " + typeToString(exportDoc.totalGrossWeight, 'number', getDateFormat()) + " kgs" : ""}
                           ${exportDoc.totalPrice ? " / value: " + typeToString(exportDoc.totalPrice, 'number', getDateFormat()) + " " + exportDoc.currency : ""}
                           ${exportDoc.isClosed ? ' / status: closed' : ' / status: open'}
                         `}
@@ -2297,11 +2339,14 @@ class ExportItem extends React.Component {
                         </div>
                       </div>
                       <div className="text-right mt-2 mr-1 mb-2 ml-1">
-                          <button type="button" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedImports) ? true : false} onClick={event => this.handleUnink(event)}>
-                            <span><FontAwesomeIcon icon={unlinkingItems ? "spinner" : "unlink"} className={unlinkingItems ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
-                          </button>
-                          <button type="button" className="btn btn-leeuwen-blue btn-lg" disabled={!selectedCandidate ? true : false} onClick={event => this.handleLink(event)}>
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!selectedCandidate ? true : false} onClick={event => this.handleLink(event)}>
                             <span><FontAwesomeIcon icon={linkingItem ? "spinner" : "link"} className={linkingItem ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
+                          </button>
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedImports.length != 1 ? true : false} onClick={event => this.toggleEditQty(event)}>
+                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Qty</span>
+                          </button>
+                          <button type="button" className="btn btn-leeuwen btn-lg" disabled={_.isEmpty(selectedImports) ? true : false} onClick={event => this.handleUnink(event)}>
+                            <span><FontAwesomeIcon icon={unlinkingItems ? "spinner" : "unlink"} className={unlinkingItems ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
                           </button>
                       </div>
                       <div>
@@ -2459,6 +2504,45 @@ class ExportItem extends React.Component {
                             <span><FontAwesomeIcon icon="times" className="fa mr-2"/>Close</span>
                           </button>
                       </div>
+                    </Modal>
+                    <Modal
+                      show={showQty}
+                      hideModal={this.toggleEditQty}
+                      title="Edit Qty"
+                      centered={true}
+                    >
+                      <form
+                        name="form"
+                        className="col-12"
+                        style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
+                        onSubmit={this.handleEditQty}
+                      >
+                        <Input
+                            title="Pcs"
+                            name="pcs"
+                            type="number"
+                            value={editQty.pcs}
+                            onChange={this.handleChangeQty}
+                            inline={false}
+                            required={true}
+                        />
+                        <Input
+                          title="Mtr"
+                          name="mtr"
+                          type="number"
+                          value={editQty.mtr}
+                          onChange={this.handleChangeQty}
+                          inline={false}
+                          required={true}
+                        />
+                        <div className="modal-footer">
+                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                <span><FontAwesomeIcon icon={editingQty ? "spinner" : "edit"} className={editingQty ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                              </button>
+                        </div>
+                        
+                      </form>
+
                     </Modal>
                 </div>
             </Layout>

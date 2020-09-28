@@ -1450,6 +1450,9 @@ class ExportItem extends React.Component {
           uploadingFile,
           downloadingDuf,
           uploadingDuf,
+          selectedCandidate,
+          selectedImports,
+          linkingLine,
           deletingLine,
           selectAllRows,
           selectAllImports,
@@ -1958,10 +1961,10 @@ class ExportItem extends React.Component {
                                 </div>
                                 <label type="text" className="form-control text-left" htmlFor="fileInput" style={{display:'inline-block', padding: '7px'}}>{fileName ? fileName : 'Choose file...'}</label>
                                 <div className="input-group-append">
-                                    <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current ? " disabled" : ""}`}>
+                                    <button type="submit" className="btn btn-outline-leeuwen-blue btn-lg" disabled={!this.fileInput.current ? true : false}>
                                         <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                     </button>
-                                    <button className={`btn btn-outline-leeuwen-blue btn-lg${!exportDoc.fileName ? " disabled" : ""}`} onClick={event => this.handleDownloadFile(event)}>
+                                    <button className="btn btn-outline-leeuwen-blue btn-lg" disabled={!exportDoc.fileName ? true : false} onClick={event => this.handleDownloadFile(event)}>
                                         <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Download</span>
                                     </button>   
                                 </div>
@@ -2011,7 +2014,7 @@ class ExportItem extends React.Component {
                                       </div>
                                       <label type="text" className="form-control text-left" htmlFor="dufInput" style={{display:'inline-block', padding: '7px'}}>{dufName ? dufName : 'Choose file...'}</label>
                                       <div className="input-group-append">
-                                        <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.dufInput.current ? " disabled" : ""}`}>
+                                        <button type="submit" className="btn btn-outline-leeuwen-blue btn-lg" disabled={!this.dufInput.current ? true : false}>
                                             <span><FontAwesomeIcon icon={uploadingDuf ? "spinner" : "upload"} className={uploadingDuf ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                         </button>
                                         <button className="btn btn-outline-leeuwen-blue btn-lg" onClick={this.handleDownloadDuf}>
@@ -2214,11 +2217,11 @@ class ExportItem extends React.Component {
                         </div>
                       </div>
                       <div className="text-right mt-2 mr-1 mb-2 ml-1">
-                          <button type="button" className="btn btn-leeuwen btn-lg mr-2">
+                          <button type="button" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedImports) ? true : false}>
                             <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "unlink"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
                           </button>
-                          <button type="button" className="btn btn-leeuwen-blue btn-lg" onClick={event => this.handleLink(event)}>
-                            <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "link"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
+                          <button type="button" className="btn btn-leeuwen-blue btn-lg" disabled={!selectedCandidate ? true : false} onClick={event => this.handleLink(event)}>
+                            <span><FontAwesomeIcon icon={linkingLine ? "spinner" : "link"} className={linkingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
                           </button>
                       </div>
                       <div>

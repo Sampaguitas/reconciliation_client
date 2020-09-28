@@ -1495,10 +1495,10 @@ class ImportItem extends React.Component {
                                 </div>
                                 <label type="text" className="form-control text-left" htmlFor="fileInput" style={{display:'inline-block', padding: '7px'}}>{fileName ? fileName : 'Choose file...'}</label>
                                 <div className="input-group-append">
-                                    <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.fileInput.current ? " disabled" : ""}`}>
+                                    <button type="submit" className="btn btn-outline-leeuwen-blue btn-lg" disabled={!this.fileInput.current ? true : false}>
                                         <span><FontAwesomeIcon icon={uploadingFile ? "spinner" : "upload"} className={uploadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                     </button>
-                                    <button className={`btn btn-outline-leeuwen-blue btn-lg${!importDoc.fileName ? " disabled" : ""}`} onClick={event => this.handleDownloadFile(event)}>
+                                    <button className="btn btn-outline-leeuwen-blue btn-lg" disabled={!importDoc.fileName ? true : false} onClick={event => this.handleDownloadFile(event)}>
                                         <span><FontAwesomeIcon icon={downloadingFile ? "spinner" : "download"} className={downloadingFile ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Download</span>
                                     </button>   
                                 </div>
@@ -1548,7 +1548,7 @@ class ImportItem extends React.Component {
                                       </div>
                                       <label type="text" className="form-control text-left" htmlFor="dufInput" style={{display:'inline-block', padding: '7px'}}>{dufName ? dufName : 'Choose file...'}</label>
                                       <div className="input-group-append">
-                                        <button type="submit" className={`btn btn-outline-leeuwen-blue btn-lg ${!this.dufInput.current ? " disabled" : ""}`}>
+                                        <button type="submit" className="btn btn-outline-leeuwen-blue btn-lg" disabled={!this.dufInput.current ? true : false}>
                                             <span><FontAwesomeIcon icon={uploadingDuf ? "spinner" : "upload"} className={uploadingDuf ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Upload</span>
                                         </button>
                                         <button className="btn btn-outline-leeuwen-blue btn-lg" onClick={this.handleDownloadDuf}>

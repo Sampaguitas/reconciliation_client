@@ -1167,7 +1167,7 @@ class ExportItem extends React.Component {
   }
 
   toggleSelectAllImport() {
-    const { exportDoc, selectedRows, selectAllImports, selectedImports } = this.state;
+    const { exportDoc, selectedRows, selectAllImports } = this.state;
     if (!_.isEmpty(exportDoc.items) && selectedRows.length == 1) {
       let selectedItem = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
       if (!_.isUndefined(selectedItem) && !_.isEmpty(selectedItem.importItems) && !selectAllImports) {

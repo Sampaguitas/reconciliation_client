@@ -251,7 +251,8 @@ class ExportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { exportDoc, candidates, sort, sortLink, filter, filterLink, paginate, selectedRows, selectedCandidate } = this.state;
+    const { exportDoc, candidates, sort, sortLink, filter, filterLink, paginate, selectedRows, selectedCandidate, selectedImports } = this.state;
+    
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument(paginate.currentPage);
     }
@@ -271,6 +272,13 @@ class ExportItem extends React.Component {
       this.setState({
         selectedRows: remaining,
         selectAllRows: false,
+      });
+    }
+
+    if (selectedRows != prevState.selectedRows && !_.isEmpty(selectedImports)) {
+      this.setState({
+        selectedImports: [],
+        selectAllImports: false,
       });
     }
 
@@ -1159,16 +1167,23 @@ class ExportItem extends React.Component {
   }
 
   toggleSelectAllImport() {
-    const { selectAllImports, selectedimports, exportDoc } = this.state;
-    let found = exportDoc.items.find(element => _.isEqual(element._id, selectedimports[0]));
-    if (!_.isUndefined(found) && !_.isEmpty(found.importItems) && !selectAllImports) {
-      this.setState({
-        selectedRows: found.importItems.map(importItem => importItem._id),
-        selectAllImports: true
-      });
+    const { exportDoc, selectedRows, selectAllImports, selectedImports } = this.state;
+    if (!_.isEmpty(exportDoc.items) && selectedRows.length == 1) {
+      let selectedItem = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(selectedItem) && !_.isEmpty(selectedItem.importItems) && !selectAllImports) {
+        this.setState({
+          selectedImports: selectedItem.importItems.map(importItem => importItem._id),
+          selectAllImports: true
+        });
+      } else {
+        this.setState({
+          selectedImports: [],
+          selectAllImports: false,
+        });
+      }
     } else {
       this.setState({
-        selectedRows: [],
+        selectedImports: [],
         selectAllImports: false,
       });
     }
@@ -1341,7 +1356,7 @@ class ExportItem extends React.Component {
   }
 
   generateImportBody() {
-    const { exportDoc, retrievingDoc, selectAllImports, selectedImports, selectedRows, sortImport, settingsColWidth, windowHeight } = this.state;
+    const { exportDoc, filterGroup, retrievingDoc, selectAllImports, selectedImports, selectedRows, sortImport, settingsColWidth, windowHeight } = this.state;
     let tempRows = [];
     
     if (!_.isEmpty(exportDoc.items) && !retrievingDoc) {

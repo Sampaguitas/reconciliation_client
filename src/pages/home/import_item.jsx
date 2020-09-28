@@ -975,6 +975,7 @@ class ImportItem extends React.Component {
           uploadingDuf,
           deletingLine,
           selectAllRows,
+          selectedRows,
           windowHeight
         } = this.state;
         const { currentPage, firstItem, lastItem, pageItems, pageLast, totalItems, first, second, third} = this.state.paginate;
@@ -1028,7 +1029,7 @@ class ImportItem extends React.Component {
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
                       </button>
-                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
+                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
                       </button>
                     </div>

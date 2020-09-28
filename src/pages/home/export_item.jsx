@@ -1450,6 +1450,7 @@ class ExportItem extends React.Component {
           uploadingFile,
           downloadingDuf,
           uploadingDuf,
+          selectedRows,
           selectedCandidate,
           selectedImports,
           linkingLine,
@@ -1511,10 +1512,10 @@ class ExportItem extends React.Component {
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
                       </button>
-                      <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleLink}>
+                      <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
                           <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
                       </button>
-                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteLine}>
+                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
                       </button>
                     </div>

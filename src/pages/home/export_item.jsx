@@ -16,6 +16,7 @@ import {
   stringToType,
   isValidFormat,
   summarySorted,
+  importSorted,
   getDateFormat,
   doesMatch,
 } from '../../_functions';
@@ -115,6 +116,7 @@ class ExportItem extends React.Component {
         unitGrossWeight: '',
         unitPrice: '',
       },
+      filteredImport: [],
       sort: {
           name: '',
           isAscending: true,
@@ -147,6 +149,8 @@ class ExportItem extends React.Component {
       downloadingFile: false,
       downloadingDuf: false,
       uploadingDuf: false,
+      unlinkingItems: false,
+      linkingItem: false,
       deletingLine: false,
       retrievingCandidates: false,
       menuItem: 'Export Documents',
@@ -197,6 +201,7 @@ class ExportItem extends React.Component {
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
+    this.handleUnink = this.handleUnink.bind(this);
     this.handleLink = this.handleLink.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
@@ -251,7 +256,7 @@ class ExportItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { exportDoc, candidates, sort, sortLink, filter, filterLink, paginate, selectedRows, selectedCandidate, selectedImports } = this.state;
+    const { exportDoc, candidates, sort, sortLink, sortImport, filter, filterLink, filterImport, filteredImport, paginate, selectedRows, selectedCandidate, selectedImports } = this.state;
     
     if (sort != prevState.sort || (filter != prevState.filter && prevState.filter.documentId != '')  || (paginate.pageSize != prevState.paginate.pageSize && prevState.paginate.pageSize != 0)) {
       this.getDocument(paginate.currentPage);
@@ -275,9 +280,42 @@ class ExportItem extends React.Component {
       });
     }
 
-    if (selectedRows != prevState.selectedRows && !_.isEmpty(selectedImports)) {
+    if (filterImport != prevState.filterImport || exportDoc.items != prevState.exportDoc.items || selectedRows != prevState.selectedRows) {
+      if (selectedRows.length == 1) {
+        let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+        if (!_.isUndefined(found)) {
+          this.setState({
+            filteredImport: importSorted(found.importItems, sortImport).filter(element => 
+              doesMatch(filterImport.decNr, element.decNr, "text", false) &&
+              doesMatch(filterImport.boeNr, element.boeNr, "text", false) &&
+              doesMatch(filterImport.srNr, element.srNr, "number", false) &&
+              doesMatch(filterImport.country, element.country, "text", false) &&
+              doesMatch(filterImport.hsCode, element.hsCode, "text", false) &&
+              doesMatch(filterImport.pcs, element.pcs, "number", false) &&
+              doesMatch(filterImport.mtr, element.mtr, "number", false) &&
+              doesMatch(filterImport.unitNetWeight, element.unitNetWeight, "number", false) &&
+              doesMatch(filterImport.unitGrossWeight, element.unitGrossWeight, "number", false) &&
+              doesMatch(filterImport.unitPrice, element.unitPrice, "number", false)
+            )
+          });
+        } else {
+          this.setState({ filteredImport: [] });
+        }
+      } else {
+        this.setState({ filteredImport: [] })
+      }
+    }
+
+    if (filteredImport != prevState.filteredImport) {
+      let remaining = selectedImports.reduce(function(acc, cur) {
+        let found = filteredImport.find(element => _.isEqual(element._id, cur));
+        if (!_.isUndefined(found)){
+          acc.push(cur);
+        }
+        return acc;
+      }, []);
       this.setState({
-        selectedImports: [],
+        selectedImports: remaining,
         selectAllImports: false,
       });
     }
@@ -1055,6 +1093,58 @@ class ExportItem extends React.Component {
     }
   }
 
+  handleUnink(event) {
+    event.preventDefault();
+    const { paginate, selectedImports } = this.state;
+    if (_.isEmpty(selectedImports)) {
+      this.setState({
+        alert: 'alert-danger',
+        message: 'Select linked items to be removed.'
+      });
+    } else {
+      this.setState({
+        unlinkingItems: true,
+      }, () => {
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            selectedIds: selectedImports
+          })
+        };
+        return fetch(`${config.apiUrl}/transaction/delete`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            unlinkingItems: false,
+          }
+          , () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument(paginate.currentPage);
+                this.getCandidates();
+              });
+            }
+          }
+          );
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      })
+    }
+  }
+
   handleLink(event) {
     event.preventDefault();
     const { paginate, selectedCandidate, selectedRows } = this.state;
@@ -1074,7 +1164,7 @@ class ExportItem extends React.Component {
       });
     } else {
       this.setState({
-        linkingLine: true
+        linkingItem: true
       }, () => {
         const requestOptions = {
           method: 'POST',
@@ -1087,7 +1177,7 @@ class ExportItem extends React.Component {
         return fetch(`${config.apiUrl}/transaction/upsert`, requestOptions)
         .then(response => response.text().then(text => {
           this.setState({
-            linkingLine: false,
+            linkingItem: false,
           }
           , () => {
             const data = text && JSON.parse(text);
@@ -1101,7 +1191,10 @@ class ExportItem extends React.Component {
                   type: response.status != 200 ? 'alert-danger' : 'alert-success',
                   message: resMsg
                 }
-              }, () => this.getDocument(paginate.currentPage));
+              }, () => {
+                this.getDocument(paginate.currentPage);
+                this.getCandidates();
+              });
             }
           }
           );
@@ -1356,23 +1449,11 @@ class ExportItem extends React.Component {
   }
 
   generateImportBody() {
-    const { exportDoc, filterGroup, retrievingDoc, selectAllImports, selectedImports, selectedRows, sortImport, settingsColWidth, windowHeight } = this.state;
+    const { exportDoc, filteredImport, retrievingDoc, selectAllImports, selectedImports, settingsColWidth, windowHeight } = this.state;
     let tempRows = [];
     
     if (!_.isEmpty(exportDoc.items) && !retrievingDoc) {
-      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
-      if (!_.isUndefined(found)) {
-      let filtered = summarySorted(found.importItems, sortImport).filter(element => 
-        doesMatch(filterGroup.hsCode, element.hsCode, "text", false) &&
-        doesMatch(filterGroup.hsDesc, element.hsDesc, "text", false) &&
-        doesMatch(filterGroup.country, element.country, "text", false) &&
-        doesMatch(filterGroup.pcs, element.pcs, "number", false) &&
-        doesMatch(filterGroup.mtr, element.mtr, "number", false) &&
-        doesMatch(filterGroup.totalNetWeight, element.totalNetWeight, "number", false) &&
-        doesMatch(filterGroup.totalGrossWeight, element.totalGrossWeight, "number", false) &&
-        doesMatch(filterGroup.totalPrice, element.totalPrice, "number", false)
-      );
-      filtered.map(importItem => {
+      filteredImport.map(importItem => {
         tempRows.push(
           <tr key={importItem._id}>
             <SelectRow
@@ -1394,13 +1475,10 @@ class ExportItem extends React.Component {
           </tr>
         );
       });
-      }
-      
     } else {
       for (let i = 0; i < getPageSize((windowHeight - 254) / 2); i++) {
         tempRows.push(
           <tr key={i}>
-            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -1453,7 +1531,8 @@ class ExportItem extends React.Component {
           selectedRows,
           selectedCandidate,
           selectedImports,
-          linkingLine,
+          unlinkingItems,
+          linkingItem,
           deletingLine,
           selectAllRows,
           selectAllImports,
@@ -2218,11 +2297,11 @@ class ExportItem extends React.Component {
                         </div>
                       </div>
                       <div className="text-right mt-2 mr-1 mb-2 ml-1">
-                          <button type="button" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedImports) ? true : false}>
-                            <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "unlink"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
+                          <button type="button" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedImports) ? true : false} onClick={event => this.handleUnink(event)}>
+                            <span><FontAwesomeIcon icon={unlinkingItems ? "spinner" : "unlink"} className={unlinkingItems ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Un-Link</span>
                           </button>
                           <button type="button" className="btn btn-leeuwen-blue btn-lg" disabled={!selectedCandidate ? true : false} onClick={event => this.handleLink(event)}>
-                            <span><FontAwesomeIcon icon={linkingLine ? "spinner" : "link"} className={linkingLine ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
+                            <span><FontAwesomeIcon icon={linkingItem ? "spinner" : "link"} className={linkingItem ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Link Item</span>
                           </button>
                       </div>
                       <div>

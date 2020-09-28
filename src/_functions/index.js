@@ -612,6 +612,61 @@ export function summarySorted(array, sort) {
     }
 }
 
+export function importSorted(array, sort) {
+    let tempArray = array.slice(0);
+    switch(sort.name) {
+        case 'decNr':
+        case 'boeNr':
+        case 'country':
+        case 'hsCode':
+            if (sort.isAscending) {
+            return tempArray.sort(function (a, b) {
+                let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
+                let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
+                if (nameA < nameB) {
+                    return -1;
+                } else if (nameA > nameB) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            } else {
+            return tempArray.sort(function (a, b) {
+                let nameA = !_.isUndefined(a[sort.name]) && !_.isNull(a[sort.name]) ? String(a[sort.name]).toUpperCase() : '';
+                let nameB = !_.isUndefined(b[sort.name]) && !_.isNull(b[sort.name]) ? String(b[sort.name]).toUpperCase() : '';
+                if (nameA > nameB) {
+                    return -1;
+                } else if (nameA < nameB) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            }
+        case 'srNr':
+        case 'pcs':
+        case 'mtr':
+        case 'unitNetWeight':
+        case 'unitGrossWeight':
+        case 'unitPrice':
+            if (sort.isAscending) {
+            return tempArray.sort(function (a, b) {
+                let valueA = a[sort.name] || 0;
+                let valueB = b[sort.name] || 0;
+                return valueA - valueB;
+            });
+            } else {
+            return tempArray.sort(function (a, b){
+                let valueA = a[sort.name] || 0;
+                let valueB = b[sort.name] || 0;
+                return valueB - valueA
+            });
+            }
+        default: return array;
+    }
+}
+
 // export function screenSorted(array, sort) {
 //     let tempArray = array.slice(0);
 //     switch(sort.name) {

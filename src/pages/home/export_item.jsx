@@ -60,6 +60,7 @@ class ExportItem extends React.Component {
         boeDate: '',
       },
       editQty: {
+        _id: '',
         pcs: '',
         mtr: '',
       },
@@ -586,13 +587,14 @@ class ExportItem extends React.Component {
 
   toggleEditQty(event) {
     event.preventDefault();
-    const { showQty, editQty, selectedImports, filteredImport } = this.state;
+    const { showQty, selectedImports, filteredImport } = this.state;
     if (!!showQty) {
       this.setState({
         showQty: !showQty,
         editQty: {
+          _id: '',
           pcs: '',
-          mtr: ''
+          mtr: '',
         }
       });
     } else if (selectedImports.length != 1) {
@@ -608,6 +610,7 @@ class ExportItem extends React.Component {
         this.setState({
           showQty: true,
           editQty: {
+            _id: found._id,
             pcs: found.pcs,
             mtr: found.mtr,
           }
@@ -894,7 +897,55 @@ class ExportItem extends React.Component {
 
   handleEditQty(event) {
     event.preventDefault();
-    const { editingQty } = this.state;
+    const { editQty, editingQty, paginate } = this.state;
+    if (!editingQty) {
+      this.setState({
+        editingQty: true
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: editQty._id,
+            pcs: editQty.pcs,
+            mtr: editQty.mtr,
+          })
+        };
+        return fetch(`${config.apiUrl}/transaction/update`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            editingQty: false,
+            showQty: false,
+            editQty: {
+              _id: '',
+              pcs: '',
+              mtr: ''
+            }
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument(paginate.currentPage);
+                this.getCandidates();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
   }
 
   handleDeleteDoc(event) {

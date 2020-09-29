@@ -54,6 +54,22 @@ class ImportItem extends React.Component {
         sfiNr: '',
         boeDate: '',
       },
+      editItem: {
+        _id: '',
+        srNr: '',
+        invNr: '',
+        poNr: '',
+        artNr: '',
+        desc: '',
+        pcs: '',
+        mtr: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
+        totalPrice: '',
+        hsCode: '',
+        hsDesc: '',
+        country: '',
+      },
       fileName: '',
       fileKey: Date.now(),
       dufName: '',
@@ -101,11 +117,13 @@ class ImportItem extends React.Component {
       },
       showSummary: false,
       showEditDoc: false,
+      showEditItem: false,
       showFile: false,
       showDuf: false,
       retrieving: false,
       deletingDoc: false,
       editingDoc: false,
+      editingItem: false,
       uploadingFile: false,
       downloadingFile: false,
       downloadingDuf: false,
@@ -137,15 +155,18 @@ class ImportItem extends React.Component {
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
     this.handleChangeHeaderGroup = this.handleChangeHeaderGroup.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.handleChangeItem = this.handleChangeItem.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
     this.toggleSummary = this.toggleSummary.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
+    this.toggleEditItem = this.toggleEditItem.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
+    this.handleEditItem = this.handleEditItem.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
@@ -322,6 +343,17 @@ class ImportItem extends React.Component {
     });
   }
 
+  handleChangeItem(event) {
+    const { editItem } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      editItem: {
+        ...editItem,
+        [name]: value
+      }
+    });
+  }
+
   handleChangeDuf(event) {
     if(event.target.files.length > 0) {
       this.setState({
@@ -374,6 +406,54 @@ class ImportItem extends React.Component {
         boeDate: typeToString(importDoc.boeDate, 'date', getDateFormat()),
       }
     });
+  }
+
+  toggleEditItem() {
+    const { showEditItem, importDoc, selectedRows } = this.state;
+    if (!!showEditItem) {
+      this.setState({
+        showEditItem: false,
+        editItem: {
+          _id: '',
+          srNr: '',
+          invNr: '',
+          poNr: '',
+          artNr: '',
+          desc: '',
+          pcs: '',
+          mtr: '',
+          totalNetWeight: '',
+          totalGrossWeight: '',
+          totalPrice: '',
+          hsCode: '',
+          hsDesc: '',
+          country: '',
+        }
+      });
+    } else if (_.isEqual(selectedRows.length, 1)) {
+      let found = importDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(found)) {
+        this.setState({
+          showEditItem: true,
+          editItem: {
+            _id: found._id,
+            srNr: found.srNr,
+            invNr: found.invNr,
+            poNr: found.poNr,
+            artNr: found.artNr,
+            desc: found.desc,
+            pcs: found.pcs,
+            mtr: found.mtr,
+            totalNetWeight: found.totalNetWeight,
+            totalGrossWeight: found.totalGrossWeight,
+            totalPrice: found.totalPrice,
+            hsCode: found.hsCode,
+            hsDesc: found.hsDesc,
+            country: found.country,
+          }
+        });
+      }
+    }
   }
 
   toggleSummary() {
@@ -517,6 +597,64 @@ class ImportItem extends React.Component {
               }, () => {
                 this.getDocument();
                 this.toggleEditDoc();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  handleEditItem(event) {
+    event.preventDefault();
+    const { editItem, editingItem } = this.state;
+    if (!editingItem) {
+      this.setState({
+        editingItem: true,
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: editItem._id,
+            srNr: editItem.srNr,
+            invNr: editItem.invNr,
+            poNr: editItem.poNr,
+            artNr: editItem.artNr,
+            desc: editItem.desc,
+            pcs: editItem.pcs,
+            mtr: editItem.mtr,
+            totalNetWeight: editItem.totalNetWeight,
+            totalGrossWeight: editItem.totalGrossWeight,
+            totalPrice: editItem.totalPrice,
+            hsCode: editItem.hsCode,
+            hsDesc: editItem.hsDesc,
+            country: editItem.country,
+          })
+        };
+        return fetch(`${config.apiUrl}/importitem/update`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            editingItem: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument();
+                this.toggleEditItem();
               });
             }
           });
@@ -957,6 +1095,7 @@ class ImportItem extends React.Component {
           settingsColWidth,
           importDoc,
           editDoc,
+          editItem,
           fileName,
           fileKey,
           dufName,
@@ -964,11 +1103,13 @@ class ImportItem extends React.Component {
           responce,
           showSummary,
           showEditDoc,
+          showEditItem,
           showFile,
           showDuf,
           retrieving,
           deletingDoc,
           editingDoc,
+          editingItem,
           downloadingFile,
           uploadingFile,
           downloadingDuf,
@@ -1032,6 +1173,9 @@ class ImportItem extends React.Component {
                       </button>
                       <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                           <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                      </button>
+                      <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
+                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
                       </button>
                       <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
@@ -1591,6 +1735,141 @@ class ImportItem extends React.Component {
                               </div>
                             }
                         </div>
+                    </Modal>
+                    <Modal
+                      show={showEditItem}
+                      hideModal={this.toggleEditItem}
+                      title="Edit Line Item"
+                      size="modal-lg"
+                    >
+                        <form
+                          name="form"
+                          className="col-12"
+                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
+                          onSubmit={this.handleEditItem}
+                        >
+                          <Input
+                            title="Serial Number"
+                            name="srNr"
+                            type="number"
+                            value={editItem.srNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Invoice Number"
+                            name="invNr"
+                            type="text"
+                            value={editItem.invNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="PO Number"
+                            name="poNr"
+                            type="text"
+                            value={editItem.poNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Article Number"
+                            name="artNr"
+                            type="text"
+                            value={editItem.artNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Article Description"
+                            name="desc"
+                            type="text"
+                            value={editItem.desc}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Pcs"
+                            name="pcs"
+                            type="number"
+                            value={editItem.pcs}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Mtr"
+                            name="mtr"
+                            type="number"
+                            value={editItem.mtr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                          />
+                          <Input
+                            title="Net Weight (total)"
+                            name="totalNetWeight"
+                            type="number"
+                            value={editItem.totalNetWeight}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight (total)"
+                            name="totalGrossWeight"
+                            type="number"
+                            value={editItem.totalGrossWeight}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Total Price (AED)"
+                            name="totalPrice"
+                            type="number"
+                            value={editItem.totalPrice}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="HS Code"
+                            name="hsCode"
+                            type="text"
+                            value={editItem.hsCode}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="HS Description"
+                            name="hsDesc"
+                            type="text"
+                            value={editItem.hsDesc}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Country"
+                            name="country"
+                            type="text"
+                            value={editItem.country}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <div className="modal-footer">
+                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                <span><FontAwesomeIcon icon={editingItem ? "spinner" : "edit"} className={editingItem ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                              </button>
+                          </div>
+                        </form>
                     </Modal>
                 </div>
             </Layout>

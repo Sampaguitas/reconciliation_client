@@ -1161,25 +1161,30 @@ class ImportItem extends React.Component {
                   }
                 </nav>
                 <div id="import" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
-                    <div className="action-row row">
-                      <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
-                          <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
-                      </button>
-                      <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
-                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
-                      </button>
-                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
-                          <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
-                      </button>
-                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
-                          <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
-                      </button>
-                      <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
-                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
-                      </button>
-                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
-                          <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
-                      </button>
+                    <div className="action-row d-flex justify-content-between">
+                      <div>
+                        <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
+                            <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
+                        </button>
+                        
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
+                            <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
+                        </button>
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
+                            <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                        </button>
+                      </div>
+                      <div>
+                        <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
+                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                        </button>
+                        <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
+                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
+                        </button>
+                        <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
+                            <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="body-section">
                         <div className="row ml-1 mr-1" style={{height: 'calc(100% - 41.5px)'}}> {/* borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', */}

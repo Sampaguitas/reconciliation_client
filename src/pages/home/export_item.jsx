@@ -1808,28 +1808,35 @@ class ExportItem extends React.Component {
                   }
                 </nav>
                 <div id="export" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf && !showLink ? "main-section-alert" : "main-section"}> 
-                    <div className="action-row row">
-                      <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
-                          <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
-                      </button>
-                      <button title="Edit Export Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
-                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
-                      </button>
-                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
-                          <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
-                      </button>
-                      <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
-                          <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
-                      </button>
-                      <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
-                          <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
-                      </button>
-                      <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
-                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
-                      </button>
-                      <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
-                          <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
-                      </button>
+                    <div className="action-row d-flex justify-content-between">
+                      <div>
+                        <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
+                            <span><FontAwesomeIcon icon="table" className="fa mr-2"/>Summary</span>
+                        </button>
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
+                            <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
+                        </button>
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
+                            <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                        </button>
+                        <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
+                            <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
+                        </button>
+                        <button title="Generate Invoice" className="btn btn-leeuwen-blue btn-lg" disabled={exportDoc.isClosed != true ? true : false}> {/* onClick={this.toggleLink} */}
+                            <span><FontAwesomeIcon icon="dollar-sign" className="fa mr-2"/>Gen Invoice</span>
+                        </button>
+                      </div>
+                      <div className="float-right mr-1">
+                        <button title="Edit Export Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
+                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
+                        </button>
+                        <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
+                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
+                        </button>
+                        <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
+                            <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="body-section">
                         <div className="row ml-1 mr-1" style={{height: 'calc(100% - 41.5px)'}}> {/* borderStyle: 'solid', borderWidth: '1px', borderColor: '#ddd', */}
@@ -2385,7 +2392,7 @@ class ExportItem extends React.Component {
                       }
                       <div>
                         <label htmlFor="table-summary" className="ml-1 mr-1">Available Quantities</label>
-                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 254) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 297) / 2)}px`}}>
                           <div id="table-summary" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>
@@ -2542,7 +2549,7 @@ class ExportItem extends React.Component {
                       </div>
                       <div>
                         <label htmlFor="table-link" className="ml-1 mr-1">Linked Quantities</label>
-                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 254) / 2)}px`}}>
+                        <div className="row ml-1 mr-1" style={{height: `${Math.floor((windowHeight - 297) / 2)}px`}}>
                           <div id="table-link" className="table-responsive custom-table-container">
                             <table className="table table-bordered table-sm">
                               <thead>

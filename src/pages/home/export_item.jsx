@@ -59,6 +59,16 @@ class ExportItem extends React.Component {
         boeNr: '',
         boeDate: '',
       },
+      editItem: {
+        _id: '',
+        srNr: '',
+        artNr: '',
+        desc: '',
+        poNr: '',
+        pcs: '',
+        mtr: '',
+        totalPrice: '',
+      },
       editQty: {
         _id: '',
         pcs: '',
@@ -144,6 +154,7 @@ class ExportItem extends React.Component {
       },
       showSummary: false,
       showEditDoc: false,
+      showEditItem: false,
       showFile: false,
       showDuf: false,
       showLink: false,
@@ -151,6 +162,7 @@ class ExportItem extends React.Component {
       retrievingDoc: false,
       deletingDoc: false,
       editingDoc: false,
+      editingItem: false,
       editingQty: false,
       uploadingFile: false,
       downloadingFile: false,
@@ -193,11 +205,13 @@ class ExportItem extends React.Component {
     this.handleChangeHeaderLink = this.handleChangeHeaderLink.bind(this);
     this.handleChangeHeaderImport = this.handleChangeHeaderImport.bind(this);
     this.handleChangeDoc = this.handleChangeDoc.bind(this);
+    this.handleChangeItem = this.handleChangeItem.bind(this);
     this.handleChangeQty = this.handleChangeQty.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
     this.toggleSummary = this.toggleSummary.bind(this);
     this.toggleEditDoc = this.toggleEditDoc.bind(this);
+    this.toggleEditItem = this.toggleEditItem.bind(this);
     this.toggleEditQty = this.toggleEditQty.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleLink = this.toggleLink.bind(this);
@@ -206,6 +220,7 @@ class ExportItem extends React.Component {
     this.getCandidates = this.getCandidates.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
     this.handleEditDoc = this.handleEditDoc.bind(this);
+    this.handleEditItem = this.handleEditItem.bind(this);
     this.handleEditQty = this.handleEditQty.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
@@ -518,6 +533,17 @@ class ExportItem extends React.Component {
     });
   }
 
+  handleChangeItem(event) {
+    const { editItem } = this.state;
+    const { name, value } = event.target;
+    this.setState({
+      editItem: {
+        ...editItem,
+        [name]: value
+      }
+    });
+  }
+
   handleChangeQty(event) {
     const { editQty } = this.state;
     const { name, value } = event.target;
@@ -583,6 +609,42 @@ class ExportItem extends React.Component {
         boeDate: typeToString(exportDoc.boeDate, 'date', getDateFormat()),
       }
     });
+  }
+
+  toggleEditItem() {
+    const { showEditItem, exportDoc, selectedRows } = this.state;
+    if (!!showEditItem) {
+      this.setState({
+        showEditItem: false,
+        editItem: {
+          _id: '',
+          srNr: '',
+          artNr: '',
+          desc: '',
+          poNr: '',
+          pcs: '',
+          mtr: '',
+          totalPrice: '',
+        }
+      });
+    } else if (_.isEqual(selectedRows.length, 1)) {
+      let found = exportDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
+      if (!_.isUndefined(found)) {
+        this.setState({
+          showEditItem: true,
+          editItem: {
+            _id: found._id,
+            srNr: found.srNr,
+            artNr: found.artNr,
+            desc: found.desc,
+            poNr: found.poNr,
+            pcs: found.pcs,
+            mtr: found.mtr,
+            totalPrice: found.totalPrice,
+          }
+        });
+      }
+    }
   }
 
   toggleEditQty(event) {
@@ -883,6 +945,58 @@ class ExportItem extends React.Component {
               }, () => {
                 this.getDocument(paginate.currentPage);
                 this.toggleEditDoc();
+              });
+            }
+          });
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
+  handleEditItem(event) {
+    event.preventDefault();
+    const { editItem, editingItem } = this.state;
+    if (!editingItem) {
+      this.setState({
+        editingItem: true,
+      }, () => {
+        const requestOptions = {
+          method: 'PUT',
+          headers: {...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: editItem._id,
+            srNr: editItem.srNr,
+            artNr: editItem.artNr,
+            desc: editItem.desc,
+            poNr: editItem.poNr,
+            pcs: editItem.pcs,
+            mtr: editItem.mtr,
+            totalPrice: editItem.totalPrice,
+          })
+        };
+        return fetch(`${config.apiUrl}/exportitem/update`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            editingItem: false
+          }, () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument();
+                this.toggleEditItem();
               });
             }
           });
@@ -1619,6 +1733,7 @@ class ExportItem extends React.Component {
           settingsColWidth,
           exportDoc,
           editDoc,
+          editItem,
           editQty,
           fileName,
           fileKey,
@@ -1627,6 +1742,7 @@ class ExportItem extends React.Component {
           responce,
           showSummary,
           showEditDoc,
+          showEditItem,
           showFile,
           showDuf,
           showLink,
@@ -1634,6 +1750,7 @@ class ExportItem extends React.Component {
           retrievingDoc,
           deletingDoc,
           editingDoc,
+          editingItem,
           editingQty,
           downloadingFile,
           uploadingFile,
@@ -1706,6 +1823,9 @@ class ExportItem extends React.Component {
                       </button>
                       <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
                           <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
+                      </button>
+                      <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
+                          <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
                       </button>
                       <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                           <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
@@ -2613,7 +2733,87 @@ class ExportItem extends React.Component {
                         </div>
                         
                       </form>
-
+                    </Modal>
+                    <Modal
+                      show={showEditItem}
+                      hideModal={this.toggleEditItem}
+                      title="Edit Line Item"
+                      size="modal-lg"
+                    >
+                        <form
+                          name="form"
+                          className="col-12"
+                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
+                          onSubmit={this.handleEditItem}
+                        >
+                          <Input
+                            title="Serial Number"
+                            name="srNr"
+                            type="number"
+                            value={editItem.srNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Article Code"
+                            name="artNr"
+                            type="text"
+                            value={editItem.artNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Description"
+                            name="desc"
+                            type="text"
+                            value={editItem.desc}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="PO Number"
+                            name="poNr"
+                            type="text"
+                            value={editItem.poNr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Pcs"
+                            name="pcs"
+                            type="number"
+                            value={editItem.pcs}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Mtr"
+                            name="mtr"
+                            type="number"
+                            value={editItem.mtr}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title={`Total Price (${exportDoc.currency})`}
+                            name="totalPrice"
+                            type="number"
+                            value={editItem.totalPrice}
+                            onChange={this.handleChangeItem}
+                            inline={false}
+                          />
+                          <div className="modal-footer">
+                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
+                                <span><FontAwesomeIcon icon={editingItem ? "spinner" : "edit"} className={editingItem ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
+                              </button>
+                          </div>
+                        </form>
                     </Modal>
                 </div>
             </Layout>

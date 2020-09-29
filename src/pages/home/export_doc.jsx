@@ -96,7 +96,7 @@ class ExportDoc extends React.Component {
       }
     }, () => this.getDocuments());
 
-    window.addEventListener('resize', this.recize);
+    window.addEventListener('resize', this.recize, {once: true});
   }
 
   componentWillUnmount() {

@@ -166,6 +166,7 @@ class ExportItem extends React.Component {
       editingQty: false,
       uploadingFile: false,
       downloadingFile: false,
+      downloadingInvoice: false,
       downloadingDuf: false,
       uploadingDuf: false,
       unlinkingItems: false,
@@ -224,6 +225,7 @@ class ExportItem extends React.Component {
     this.handleEditQty = this.handleEditQty.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
+    this.handleDownloadInvoice = this.handleDownloadInvoice.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
     this.handleUnink = this.handleUnink.bind(this);
@@ -261,7 +263,7 @@ class ExportItem extends React.Component {
       }
     }, () => this.getDocument());
 
-    window.addEventListener('resize', this.recize);
+    window.addEventListener('resize', this.recize, {once: true});
   }
 
   componentWillUnmount() {
@@ -1145,6 +1147,44 @@ class ExportItem extends React.Component {
     }
   }
 
+  handleDownloadInvoice(event) {
+    event.preventDefault();
+    const { exportDoc, downloadingInvoice } = this.state;
+    if (exportDoc._id && !downloadingInvoice) {
+      this.setState({
+          downloadingInvoice: true
+      }, () => {
+        const requestOptions = {
+            method: 'GET',
+            headers: { ...authHeader(), 'Content-Type': 'application/json'},
+        };
+        return fetch(`${config.apiUrl}/exportdoc/downloadInvoice?documentId=${exportDoc._id}`, requestOptions)
+        .then(responce => {
+          if (responce.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+          } else if (responce.status === 400) {
+              this.setState({
+                  downloadingInvoice: false,
+                  alert: {
+                    type: 'alert-danger',
+                    message: 'an error has occured'  
+                  }
+              });
+          } else {
+              this.setState({
+                  downloadingInvoice: false
+              }, () => responce.blob().then(blob => saveAs(blob, 'invoice.xlsx')));
+          }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
   handleUploadFile(event){
     event.preventDefault();
     const { exportDoc, fileName, uploadingFile, paginate } = this.state;
@@ -1753,6 +1793,7 @@ class ExportItem extends React.Component {
           editingItem,
           editingQty,
           downloadingFile,
+          downloadingInvoice,
           uploadingFile,
           downloadingDuf,
           uploadingDuf,
@@ -1822,8 +1863,8 @@ class ExportItem extends React.Component {
                         <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
                             <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
                         </button>
-                        <button title="Generate Invoice" className="btn btn-leeuwen-blue btn-lg" disabled={exportDoc.isClosed != true ? true : false}> {/* onClick={this.toggleLink} */}
-                            <span><FontAwesomeIcon icon="dollar-sign" className="fa mr-2"/>Gen Invoice</span>
+                        <button title="Generate Invoice" className="btn btn-leeuwen-blue btn-lg" disabled={exportDoc.isClosed != true ? true : false} onClick={this.handleDownloadInvoice}>
+                            <span><FontAwesomeIcon icon={downloadingInvoice ? "spinner" : "dollar-sign"} className={downloadingInvoice ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Gen Invoice</span>
                         </button>
                       </div>
                       <div className="float-right mr-1">

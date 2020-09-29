@@ -118,7 +118,7 @@ class Settings extends React.Component {
       location.reload(true);
     }
 
-    window.addEventListener('resize', this.recize);
+    window.addEventListener('resize', this.recize, {once: true});
   }
 
   componentWillUnmount() {

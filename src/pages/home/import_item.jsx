@@ -199,7 +199,7 @@ class ImportItem extends React.Component {
       }
     }, () => this.getDocument());
 
-    window.addEventListener('resize', this.recize);
+    window.addEventListener('resize', this.recize, {once: true});
   }
 
   componentWillUnmount() {

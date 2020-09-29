@@ -587,13 +587,33 @@ class ExportItem extends React.Component {
   toggleEditQty(event) {
     event.preventDefault();
     const { showQty, editQty, selectedImports, filteredImport } = this.state;
-    this.setState({
-      showQty: !showQty,
-      editQty: {
-        pcs: '',
-        mtr: ''
+    if (!!showQty) {
+      this.setState({
+        showQty: !showQty,
+        editQty: {
+          pcs: '',
+          mtr: ''
+        }
+      });
+    } else if (selectedImports.length != 1) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'select one linked item to edit the quantity.'
+        }
+      });
+    } else {
+      let found = filteredImport.find(element => _.isEqual(element._id, selectedImports[0]));
+      if (!_.isUndefined(found)){
+        this.setState({
+          showQty: true,
+          editQty: {
+            pcs: found.pcs,
+            mtr: found.mtr,
+          }
+        });
       }
-    });
+    }
   }
 
   toggleSummary() {

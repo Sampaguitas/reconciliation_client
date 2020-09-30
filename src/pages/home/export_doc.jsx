@@ -96,12 +96,12 @@ class ExportDoc extends React.Component {
       }
     }, () => this.getDocuments());
 
-    window.addEventListener('resize', this.recize, {once: true});
+    //window.addEventListener('resize', this.recize);
   }
 
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.recize);
-  }
+    // componentWillUnmount() {
+  //   window.removeEventListener('resize', this.recize);
+  // }
 
   recize() {
     const { paginate } = this.state;
@@ -563,7 +563,7 @@ class ExportDoc extends React.Component {
                                 </table>
                             </div>
                         </div>
-                        <div className="row ml-1 mr-1" style={{height: '41.5px', marginTop: '10px'}}>
+                        <div className="row ml-1 mr-1" style={{height: '31.5px', marginTop: '10px'}}>
                             <div className="col" style={{height: '31.5px', padding: '0px'}}>
                                 <nav aria-label="Page navigation ml-1 mr-1" style={{height: '31.5px'}}>
                                     <ul className="pagination">

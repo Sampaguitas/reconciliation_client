@@ -932,7 +932,7 @@ export function copyObject(mainObj) {
 }
 
 export function getPageSize(clientHeight) {
-    return Math.floor(((clientHeight - 52.5) / 33));
+    return Math.floor(((clientHeight - 53) / 33));
 }
 
 //tableContainer.clientHeight

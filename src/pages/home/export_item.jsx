@@ -720,7 +720,6 @@ class ExportItem extends React.Component {
   toggleLink(event) {
     event.preventDefault();
     const { showLink, selectedRows, exportDoc, windowHeight } = this.state;
-    console.log('windowHeight:', windowHeight);
     if (!!showLink) {
       this.setState({
         showLink: false,
@@ -1281,7 +1280,6 @@ class ExportItem extends React.Component {
       return fetch(`${config.apiUrl}/exportitem/uploadDuf`, requestOptions)
       .then(responce => responce.text().then(text => {
           const data = text && JSON.parse(text);
-          console.log(responce.status);
           if (responce.status === 401) {
                   localStorage.removeItem('user');
                   location.reload(true);

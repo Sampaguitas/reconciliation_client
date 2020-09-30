@@ -86,29 +86,6 @@ $textColor: #fff;
   text-decoration: none;
 }
 
-//-------------------red border right---------------------------
-
-// .menu-list li > a.active,
-// .menu-list li > a.router-link-exact-active {
-//   font-weight: 600;
-//   color: $textColor;
-// }
-
-
-// .default-list.menu-list > li > a.active:before,
-// .default-list.menu-list > li > a.router-link-exact-active:before {
-//   content: '';
-//   position: absolute;
-//   left: 0;
-//   top: 0;
-//   bottom: 0;
-//   width: 3px;
-//   background: $primaryColor;
-//   z-index: 22;
-// }
-
-
-
 .menu-item__selected {
   font-weight: 600;
   color: $textColor;

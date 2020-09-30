@@ -19,7 +19,6 @@ class HeaderBarMenu extends Component {
                 {isLoggedIn() ? 
                     <div className = { sidemenu.collapsed ? 'header-bar-menu collapsed' : 'header-bar-menu' } >
                         <nav className={sidemenu.collapsed ? "navbar navbar-expand-lg navbar-light bg-light sticky-top collapsed" : "navbar navbar-expand-lg navbar-light bg-light sticky-top"} >
-                            {/* <div className="collapse navbar-collapse" id="navbarSupportedContent"> */}
                                 <span className={sidemenu.collapsed ? 'navbars collapsed' : 'navbars'} onClick={this.props.toggleCollapse} >
                                     <span><FontAwesomeIcon icon="bars" className="fa-2x"/></span>
                                 </span>
@@ -40,7 +39,6 @@ class HeaderBarMenu extends Component {
                                         </button>
                                     </NavLink>
                                 </form>
-                            {/* </div> */}
                         </nav>
                     </div>
                 :

@@ -51,6 +51,8 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
+        totalNetWeight: '',
+        totoalGrossWeight: '',
       },
       showCreate: false,
       creating: false,
@@ -197,6 +199,8 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
       },
     });
   }
@@ -266,7 +270,15 @@ class ImportDoc extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     const { newDoc, creating } = this.state;
-    if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
+    const { decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight} = newDoc;
+    if (!decNr || !boeNr || !boeDate || !totalNetWeight || !totalGrossWeight) {
+      this.setState({
+        alert: {
+          type: 'alert-danger',
+          message: 'DEC, BOE, Date, Net and Gross Weight are required.'
+        }
+      });
+    } else if (!isValidFormat(newDoc.boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
@@ -279,10 +291,12 @@ class ImportDoc extends React.Component {
           method: 'POST',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            decNr: newDoc.decNr,
-            boeNr: newDoc.boeNr,
-            sfiNr: newDoc.sfiNr,
-            boeDate: stringToType(newDoc.boeDate, 'date', getDateFormat()),
+            decNr: decNr,
+            boeNr: boeNr,
+            sfiNr: sfiNr,
+            boeDate: stringToType(boeDate, 'date', getDateFormat()),
+            totalNetWeight: totalNetWeight,
+            totalGrossWeight: totalGrossWeight
           })
         };
         return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
@@ -642,6 +656,24 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Net Weight"
+                            name="totalNetWeight"
+                            type="number"
+                            value={newDoc.totalNetWeight}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight"
+                            name="totalGrossWeight"
+                            type="number"
+                            value={newDoc.totalGrossWeight}
+                            onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
                           />

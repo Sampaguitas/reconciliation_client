@@ -127,6 +127,7 @@ class ImportItem extends React.Component {
       uploadingFile: false,
       downloadingFile: false,
       downloadingDuf: false,
+      downloadingReport: false,
       uploadingDuf: false,
       deletingLine: false,
       menuItem: 'Import Documents',
@@ -171,6 +172,7 @@ class ImportItem extends React.Component {
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
+    this.handleDownloadReport = this.handleDownloadReport.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -830,6 +832,44 @@ class ImportItem extends React.Component {
     }
   }
 
+  handleDownloadReport(event) {
+    event.preventDefault();
+    const { downloadingReport, importDoc } = this.state;
+    if (!downloadingReport && !!importDoc._id) {
+      this.setState({
+        downloadingReport: true
+      }, () => {
+        const requestOptions = {
+          method: 'GET',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+        }
+        return fetch(`${config.apiUrl}/importdoc/downloadReport?documentId=${encodeURI(importDoc._id)}`, requestOptions)
+        .then(responce => {
+            if (responce.status === 401) {
+                    localStorage.removeItem('user');
+                    location.reload(true);
+            } else if (responce.status === 400) {
+                this.setState({
+                    downloadingReport: false,
+                    alert: {
+                        type: 'alert-danger',
+                        message: 'an error has occured'  
+                    }
+                });
+            } else {
+                this.setState({
+                    downloadingReport: false
+                }, () => responce.blob().then(blob => saveAs(blob, 'report.xlsx')));
+            }
+        })
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      });
+    }
+  }
+
   handleUploadDuf(event) {
     event.preventDefault();
     const { importDoc, uploadingDuf } = this.state
@@ -1113,6 +1153,7 @@ class ImportItem extends React.Component {
           downloadingFile,
           uploadingFile,
           downloadingDuf,
+          downloadingReport,
           uploadingDuf,
           deletingLine,
           selectAllRows,
@@ -1172,6 +1213,9 @@ class ImportItem extends React.Component {
                         </button>
                         <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
                             <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                        </button>
+                        <button title="Generate Report" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.handleDownloadReport}>
+                            <span><FontAwesomeIcon icon={downloadingReport ? "spinner" : "download"} className={downloadingReport ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Gen Report</span>
                         </button>
                       </div>
                       <div>

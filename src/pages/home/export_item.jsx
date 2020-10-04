@@ -171,6 +171,7 @@ class ExportItem extends React.Component {
       uploadingDuf: false,
       unlinkingItems: false,
       linkingItem: false,
+      linkingCandidates: false,
       deletingLine: false,
       retrievingCandidates: false,
       menuItem: 'Export Documents',
@@ -230,6 +231,7 @@ class ExportItem extends React.Component {
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
     this.handleUnink = this.handleUnink.bind(this);
     this.handleLink = this.handleLink.bind(this);
+    this.handleLinkCandidates = this.handleLinkCandidates.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -1467,6 +1469,52 @@ class ExportItem extends React.Component {
     }
   }
 
+  handleLinkCandidates(event) {
+    event.preventDefault();
+    const { exportDoc, linkingCandidates, paginate } = this.state;
+    if (!!exportDoc._id && !linkingCandidates) {
+      this.setState({
+        linkingCandidates: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            documentId: exportDoc._id
+          })
+      };
+        return fetch(`${config.apiUrl}/exportDoc/linkCandidates`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            linkingCandidates: false,
+          }
+          , () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument(paginate.currentPage);
+              });
+            }
+          }
+          );
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      })
+    }
+  }
+
   colDoubleClick(event, index) {
     event.preventDefault();
     const { settingsColWidth } = this.state;
@@ -1800,6 +1848,7 @@ class ExportItem extends React.Component {
           selectedImports,
           unlinkingItems,
           linkingItem,
+          linkingCandidates,
           deletingLine,
           selectAllRows,
           selectAllImports,
@@ -1860,6 +1909,9 @@ class ExportItem extends React.Component {
                         </button>
                         <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>
                             <span><FontAwesomeIcon icon="link" className="fa mr-2"/>Link Item</span>
+                        </button>
+                        <button title="Link All Item(s)" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={_.isEmpty(exportDoc.items) ? true : false} onClick={this.handleLinkCandidates}>
+                            <span><FontAwesomeIcon icon={linkingCandidates ? "spinner" : "link"} className={linkingCandidates ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Link All</span>
                         </button>
                         <button title="Generate Invoice" className="btn btn-leeuwen-blue btn-lg" disabled={exportDoc.isClosed != true ? true : false} onClick={this.handleDownloadInvoice}>
                             <span><FontAwesomeIcon icon={downloadingInvoice ? "spinner" : "dollar-sign"} className={downloadingInvoice ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Gen Invoice</span>

@@ -54,6 +54,11 @@ class ImportItem extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
+        exRate: '',
+        insurance: '',
+        freight: '',
+        totalNetWeight: '',
+        totalGrossWeight: '',
       },
       editItem: {
         _id: '',
@@ -399,15 +404,21 @@ class ImportItem extends React.Component {
   }
 
   toggleEditDoc() {
-    const { showEditDoc, importDoc, editDoc } = this.state;
+    const { showEditDoc, importDoc } = this.state;
+    const { _id, decNr, boeNr, sfiNr, boeDate, exRate, insurance, freight, totalNetWeight, totalGrossWeight } = importDoc
     this.setState({
       showEditDoc: !showEditDoc,
       editDoc: {
-        _id: importDoc._id,
-        decNr: importDoc.decNr,
-        boeNr: importDoc.boeNr,
-        sfiNr: importDoc.sfiNr,
-        boeDate: typeToString(importDoc.boeDate, 'date', getDateFormat()),
+        _id: _id,
+        decNr: decNr,
+        boeNr: boeNr,
+        sfiNr: sfiNr,
+        boeDate: typeToString(boeDate, 'date', getDateFormat()),
+        exRate: exRate || 1,
+        insurance: insurance || 0,
+        freight: freight || 0,
+        totalNetWeight: totalNetWeight,
+        totalGrossWeight: totalGrossWeight,
       }
     });
   }
@@ -522,9 +533,9 @@ class ImportItem extends React.Component {
               localStorage.removeItem('user');
               location.reload(true);
             } else if (response.status === 404) {
-              history.push({ pathname:'/notfound' });
+              history.push('/notfound');
             } else if (response.status === 500) {
-              history.push({ pathname:'/error' });
+              history.push('/error');
             } else if (response.status != 200) {
               this.setState({
                 alert: {
@@ -562,10 +573,16 @@ class ImportItem extends React.Component {
   handleEditDoc(event) {
     event.preventDefault();
     const { editDoc, editingDoc } = this.state;
-    if (!isValidFormat(editDoc.boeDate, 'date', getDateFormat())) {
+    const { _id, decNr, boeNr, sfiNr, boeDate, exRate, insurance, freight, totalNetWeight, totalGrossWeight } = editDoc;
+    if (!isValidFormat(boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
         message: 'BOE Date does not have a proper Date Format.'
+      });
+    } else if (!decNr || !boeNr) {
+      this.setState({
+        type: 'alert-danger',
+        message: 'DEC and BOE Numbers are required.'
       });
     } else if (!editingDoc) {
       this.setState({
@@ -575,11 +592,16 @@ class ImportItem extends React.Component {
           method: 'PUT',
           headers: {...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            _id: editDoc._id,
-            decNr: editDoc.decNr,
-            boeNr: editDoc.boeNr,
-            sfiNr: editDoc.sfiNr,
-            boeDate: stringToType(editDoc.boeDate, 'date', getDateFormat()),
+            _id: _id,
+            decNr: decNr,
+            boeNr: boeNr,
+            sfiNr: sfiNr,
+            boeDate: stringToType(boeDate, 'date', getDateFormat()),
+            exRate: exRate ? exRate : 1,
+            insurance: insurance ? insurance : 1,
+            freight: freight ? freight : 0,
+            totalNetWeight: totalNetWeight,
+            totalGrossWeight: totalGrossWeight,
           })
         };
         return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
@@ -674,9 +696,9 @@ class ImportItem extends React.Component {
   handleDeleteDoc(event) {
     event.preventDefault();
     const { importDoc, deletingDoc } = this.state;
-    if (!!importDoc._id && !deletingDoc) {
+    if (!!importDoc._id && !deletingDoc && confirm(`You are about to permanently delete this document. Click ok to proceed.`)) {
       this.setState({
-        deletingDoc
+        deletingDoc: true
       }, () => {
         const requestOptions = {
           method: 'DELETE',
@@ -692,7 +714,7 @@ class ImportItem extends React.Component {
               location.reload(true);
           } else if (responce.status != 200) {
               this.setState({
-                  downloadingFile: false,
+                  deletingDoc: false,
                   alert: {
                     type: 'alert-danger',
                     message: 'An error has occured.'  
@@ -700,12 +722,12 @@ class ImportItem extends React.Component {
               });
           } else {
               this.setState({
-                  downloadingFile: false,
+                  deletingDoc: false,
                   alert: {
                     type: 'alert-success',
                     message: 'Document has successfully been deleted, we will redirect you in a second.'
                   }
-              }, () => setTimeout( () => history.push({ pathname:'/importdoc' }), 1000));
+              }, () => setTimeout( () => history.push('/importdoc'), 1000));
           }
         })
         .catch( () => {
@@ -1215,7 +1237,7 @@ class ImportItem extends React.Component {
                         <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
                             <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
                         </button>
-                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEmpty(importDoc.items) ? true : false} onClick={this.toggleDuf}>
                             <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
                         </button>
                         <button title="Generate Report" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.handleDownloadReport}>
@@ -1232,6 +1254,9 @@ class ImportItem extends React.Component {
                         <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                             <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
                         </button>
+                        {/* <button title="Delete Document" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteDoc}>
+                            <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Doc</span>
+                        </button> */}
                       </div>
                     </div>
                     <div className="body-section">
@@ -1660,6 +1685,51 @@ class ImportItem extends React.Component {
                             value={editDoc.boeDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Exchange Rate"
+                            name="exRate"
+                            type="number"
+                            value={editDoc.exRate}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={false}
+                          />
+                          <Input
+                            title="Insurance (AED)"
+                            name="insurance"
+                            type="number"
+                            value={editDoc.insurance}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Freight (AED)"
+                            name="freight"
+                            type="number"
+                            value={editDoc.freight}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Net Weight"
+                            name="totalNetWeight"
+                            type="number"
+                            value={editDoc.totalNetWeight}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Gross Weight"
+                            name="totalGrossWeight"
+                            type="number"
+                            value={editDoc.totalGrossWeight}
+                            onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
                           />

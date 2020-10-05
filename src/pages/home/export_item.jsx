@@ -815,9 +815,9 @@ class ExportItem extends React.Component {
               localStorage.removeItem('user');
               location.reload(true);
             } else if (response.status === 404) {
-              history.push({ pathname:'/notfound' });
+              history.push('/notfound');
             } else if (response.status === 500) {
-              history.push({ pathname:'/error' });
+              history.push('/error');
             } else if (response.status != 200) {
               this.setState({
                 alert: {
@@ -881,9 +881,9 @@ class ExportItem extends React.Component {
               localStorage.removeItem('user');
               location.reload(true);
             } else if (response.status === 404) {
-              history.push({ pathname:'/notfound' });
+              history.push('/notfound');
             } else if (response.status === 500) {
-              history.push({ pathname:'/error' });
+              history.push('/error');
             } else if (response.status != 200) {
               this.setState({
                 alert: {
@@ -1070,9 +1070,9 @@ class ExportItem extends React.Component {
   handleDeleteDoc(event) {
     event.preventDefault();
     const { exportDoc, deletingDoc } = this.state;
-    if (!!exportDoc._id && !deletingDoc) {
+    if (!!exportDoc._id && !deletingDoc && confirm(`You are about to permanently delete this document. Click ok to proceed.`)) {
       this.setState({
-        deletingDoc
+        deletingDoc: true
       }, () => {
         const requestOptions = {
           method: 'DELETE',
@@ -1088,7 +1088,7 @@ class ExportItem extends React.Component {
               location.reload(true);
           } else if (responce.status != 200) {
               this.setState({
-                  downloadingFile: false,
+                  deletingDoc: false,
                   alert: {
                     type: 'alert-danger',
                     message: 'An error has occured.'  
@@ -1096,12 +1096,12 @@ class ExportItem extends React.Component {
               });
           } else {
               this.setState({
-                  downloadingFile: false,
+                  deletingDoc: false,
                   alert: {
                     type: 'alert-success',
                     message: 'Document has successfully been deleted, we will redirect you in a second.'
                   }
-              }, () => setTimeout( () => history.push({ pathname:'/exportdoc' }), 1000));
+              }, () => setTimeout( () => history.push('/exportdoc'), 1000));
           }
         })
         .catch( () => {

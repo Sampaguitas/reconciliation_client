@@ -1908,7 +1908,7 @@ class ExportItem extends React.Component {
                         <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleFile}>
                             <span><FontAwesomeIcon icon="file-excel" className="fa mr-2"/>Attachment</span>
                         </button>
-                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleDuf}>
+                        <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEmpty(exportDoc.items) ? true : false} onClick={this.toggleDuf}>
                             <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
                         </button>
                         <button title="Link Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={selectedRows.length != 1 ? true : false} onClick={this.toggleLink}>

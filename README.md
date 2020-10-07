@@ -6,7 +6,6 @@ The Reconciliation Database (RDB) has been devlopped to reconciliate import/expo
 - [X] Import hasFile
 - [X] Export hasFile
 - [ ] Import Duf => findCandidates
-- [ ] Export Item: Open, Pending, Closed
 
 ## External links
 

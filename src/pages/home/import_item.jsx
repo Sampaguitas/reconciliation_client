@@ -136,6 +136,7 @@ class ImportItem extends React.Component {
       downloadingDuf: false,
       downloadingReport: false,
       uploadingDuf: false,
+      linkingCandidates: false,
       deletingLine: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
@@ -180,6 +181,7 @@ class ImportItem extends React.Component {
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
     this.handleDownloadReport = this.handleDownloadReport.bind(this);
+    this.handleLinkCandidates = this.handleLinkCandidates.bind(this);
     this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
@@ -936,6 +938,52 @@ class ImportItem extends React.Component {
     }
   }
 
+  handleLinkCandidates(event) {
+    event.preventDefault();
+    const { importDoc, linkingCandidates, paginate } = this.state;
+    if (!!importDoc._id && !linkingCandidates) {
+      this.setState({
+        linkingCandidates: true
+      }, () => {
+        const requestOptions = {
+          method: 'POST',
+          headers: { ...authHeader(), 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            documentId: importDoc._id
+          })
+      };
+        return fetch(`${config.apiUrl}/importDoc/linkCandidates`, requestOptions)
+        .then(response => response.text().then(text => {
+          this.setState({
+            linkingCandidates: false,
+          }
+          , () => {
+            const data = text && JSON.parse(text);
+            const resMsg = (data && data.message) || response.statusText;
+            if (response.status === 401) {
+              localStorage.removeItem('user');
+              location.reload(true);
+            } else {
+              this.setState({
+                alert: {
+                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  message: resMsg
+                }
+              }, () => {
+                this.getDocument(paginate.currentPage);
+              });
+            }
+          }
+          );
+        }))
+        .catch( () => {
+          localStorage.removeItem('user');
+          location.reload(true);
+        });
+      })
+    }
+  }
+
   handleDeleteLine(event) {
     event.preventDefault();
     const { selectedRows, deletingLine } = this.state;
@@ -1181,6 +1229,7 @@ class ImportItem extends React.Component {
           downloadingDuf,
           downloadingReport,
           uploadingDuf,
+          linkingCandidates,
           deletingLine,
           selectAllRows,
           selectedRows,
@@ -1239,6 +1288,9 @@ class ImportItem extends React.Component {
                         </button>
                         <button title="Download/Upload File" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEmpty(importDoc.items) ? true : false} onClick={this.toggleDuf}>
                             <span><FontAwesomeIcon icon="upload" className="fa mr-2"/>DUF File</span>
+                        </button>
+                        <button title="Link All Item(s)" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={_.isEmpty(importDoc.items) ? true : false} onClick={this.handleLinkCandidates}>
+                            <span><FontAwesomeIcon icon={linkingCandidates ? "spinner" : "link"} className={linkingCandidates ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Link All</span>
                         </button>
                         <button title="Generate Report" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.handleDownloadReport}>
                             <span><FontAwesomeIcon icon={downloadingReport ? "spinner" : "download"} className={downloadingReport ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Gen Report</span>

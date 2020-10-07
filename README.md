@@ -5,7 +5,8 @@ The Reconciliation Database (RDB) has been devlopped to reconciliate import/expo
 ## Todo
 - [X] Import hasFile
 - [X] Export hasFile
-- [ ] Import Duf => findCandidates
+- [X] Import Duf => findCandidates
+- [X] Add columns Asg Pcs Asg Mtr
 
 ## External links
 

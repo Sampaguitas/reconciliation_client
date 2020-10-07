@@ -93,6 +93,8 @@ class ExportItem extends React.Component {
         unitPrice: '',
         totalPrice: '',
         documentId: '',
+        assignedPcs: '',
+        assignedMtr: '',
         remainingPcs: '',
         remainingMtr: '',
         isClosed: '',
@@ -1641,9 +1643,11 @@ class ExportItem extends React.Component {
             <TableData colIndex="7" value={exportItem.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="8" value={exportItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="9" value={exportItem.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="10" value={exportItem.remainingPcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="11" value={exportItem.remainingMtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="12" value={exportItem.status} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="10" value={exportItem.assignedPcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="11" value={exportItem.assignedMtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="12" value={exportItem.remainingPcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="13" value={exportItem.remainingMtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="14" value={exportItem.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -1651,6 +1655,8 @@ class ExportItem extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -1689,14 +1695,14 @@ class ExportItem extends React.Component {
       filtered.map(group => {
         tempRows.push(
           <tr key={group._id}>
-            <TableData colIndex="13" value={group.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="14" value={group.hsDesc} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="15" value={group.country} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="16" value={group.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="17" value={group.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="18" value={group.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="19" value={group.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="20" value={group.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="15" value={group.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="16" value={group.hsDesc} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="17" value={group.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="18" value={group.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="19" value={group.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="20" value={group.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="21" value={group.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="22" value={group.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -1726,16 +1732,16 @@ class ExportItem extends React.Component {
       candidates.map(candidate => {
         tempRows.push(
           <tr key={candidate._id} style={_.isEqual(selectedCandidate,candidate._id) ? {backgroundColor: "lightgray", cursor: 'pointer'} : {cursor: 'pointer'}} onClick={event => this.selectCandidate(event, candidate._id)}>
-            <TableData colIndex="21" value={candidate.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="22" value={candidate.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="23" value={candidate.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="24" value={candidate.country} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="25" value={candidate.hsCode} type="text" align="center"settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="26" value={candidate.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="27" value={candidate.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="28" value={candidate.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="29" value={candidate.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="30" value={candidate.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="23" value={candidate.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="24" value={candidate.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="25" value={candidate.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="26" value={candidate.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="27" value={candidate.hsCode} type="text" align="center"settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="28" value={candidate.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="29" value={candidate.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="30" value={candidate.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="31" value={candidate.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="32" value={candidate.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -1774,16 +1780,16 @@ class ExportItem extends React.Component {
               selectedRows={selectedImports}
               callback={this.updateSelectedImports}
             />
-            <TableData colIndex="31" value={importItem.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="32" value={importItem.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="33" value={importItem.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="34" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="35" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="36" value={importItem.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="37" value={importItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="38" value={importItem.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="39" value={importItem.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="40" value={importItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="33" value={importItem.decNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="34" value={importItem.boeNr} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="35" value={importItem.srNr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="36" value={importItem.country} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="37" value={importItem.hsCode} type="text" align="center" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="38" value={importItem.pcs} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="39" value={importItem.mtr} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="40" value={importItem.unitNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="41" value={importItem.unitGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="42" value={importItem.unitPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -2075,13 +2081,39 @@ class ExportItem extends React.Component {
                                         />
                                         <HeaderInput
                                             type="number"
+                                            title="Asg Pcs"
+                                            name="assignedPcs"
+                                            value={filter.assignedPcs}
+                                            onChange={this.handleChangeHeaderLine}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="10"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
+                                            title="Asg Mtr"
+                                            name="assignedMtr"
+                                            value={filter.assignedMtr}
+                                            onChange={this.handleChangeHeaderLine}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="11"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderInput
+                                            type="number"
                                             title="Rem Pcs"
                                             name="remainingPcs"
                                             value={filter.remainingPcs}
                                             onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="10"
+                                            index="12"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -2094,7 +2126,7 @@ class ExportItem extends React.Component {
                                             onChange={this.handleChangeHeaderLine}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="11"
+                                            index="13"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}
@@ -2111,7 +2143,7 @@ class ExportItem extends React.Component {
                                           onChange={this.handleChangeHeaderLine}
                                           sort={sort}
                                           toggleSort={this.toggleSort}
-                                          index="12"
+                                          index="14"
                                           colDoubleClick={this.colDoubleClick}
                                           setColWidth={this.setColWidth}
                                           settingsColWidth={settingsColWidth}
@@ -2162,7 +2194,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="13"
+                                  index="15"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2175,7 +2207,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="14"
+                                  index="16"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2188,7 +2220,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="15"
+                                  index="17"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2201,7 +2233,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="16"
+                                  index="18"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2214,7 +2246,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="17"
+                                  index="19"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2227,7 +2259,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="18"
+                                  index="20"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2240,7 +2272,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="19"
+                                  index="21"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2253,7 +2285,7 @@ class ExportItem extends React.Component {
                                   onChange={this.handleChangeHeaderGroup}
                                   sort={sortGroup}
                                   toggleSort={this.toggleSortGroup}
-                                  index="20"
+                                  index="22"
                                   colDoubleClick={this.colDoubleClick}
                                   setColWidth={this.setColWidth}
                                   settingsColWidth={settingsColWidth}
@@ -2517,7 +2549,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="21"
+                                    index="23"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2530,7 +2562,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="22"
+                                    index="24"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2543,7 +2575,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="23"
+                                    index="25"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2556,7 +2588,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="24"
+                                    index="26"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2569,7 +2601,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="25"
+                                    index="27"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2582,7 +2614,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="26"
+                                    index="28"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2595,7 +2627,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="27"
+                                    index="29"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2608,7 +2640,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="28"
+                                    index="30"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2621,7 +2653,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="29"
+                                    index="31"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2634,7 +2666,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderLink}
                                     sort={sortLink}
                                     toggleSort={this.toggleSortLink}
-                                    index="30"
+                                    index="32"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2678,7 +2710,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortLink}
-                                    index="31"
+                                    index="33"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2691,7 +2723,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortLink}
-                                    index="32"
+                                    index="34"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2704,7 +2736,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="33"
+                                    index="35"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2717,7 +2749,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="34"
+                                    index="36"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2730,7 +2762,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="35"
+                                    index="37"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2743,7 +2775,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="36"
+                                    index="38"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2756,7 +2788,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="37"
+                                    index="39"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2769,7 +2801,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="38"
+                                    index="40"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2782,7 +2814,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="39"
+                                    index="41"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}
@@ -2795,7 +2827,7 @@ class ExportItem extends React.Component {
                                     onChange={this.handleChangeHeaderImport}
                                     sort={sortImport}
                                     toggleSort={this.toggleSortImport}
-                                    index="40"
+                                    index="42"
                                     colDoubleClick={this.colDoubleClick}
                                     setColWidth={this.setColWidth}
                                     settingsColWidth={settingsColWidth}

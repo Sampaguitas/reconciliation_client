@@ -1245,7 +1245,7 @@ class ImportItem extends React.Component {
                         </button>
                       </div>
                       <div>
-                        <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
+                        {/* <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
                             <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
                         </button>
                         <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
@@ -1253,10 +1253,10 @@ class ImportItem extends React.Component {
                         </button>
                         <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
                             <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
-                        </button>
-                        {/* <button title="Delete Document" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteDoc}>
-                            <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Doc</span>
                         </button> */}
+                        <button title="Delete Document" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteDoc}>
+                            <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Doc</span>
+                        </button>
                       </div>
                     </div>
                     <div className="body-section">

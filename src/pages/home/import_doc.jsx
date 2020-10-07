@@ -36,6 +36,7 @@ class ImportDoc extends React.Component {
           totalNetWeight: '',
           totalGrossWeight: '',
           totalPrice: '',
+          hasFile: '',
           isClosed: '',
       },
       sort: {
@@ -391,7 +392,8 @@ class ImportDoc extends React.Component {
             <TableData colIndex="6" value={importDoc.totalNetWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="7" value={importDoc.totalGrossWeight} type="number" align="right" settingsColWidth={settingsColWidth}/>
             <TableData colIndex="8" value={importDoc.totalPrice} type="number" align="right" settingsColWidth={settingsColWidth}/>
-            <TableData colIndex="9" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="9" value={importDoc.hasFile} type="text" settingsColWidth={settingsColWidth}/>
+            <TableData colIndex="10" value={importDoc.status} type="text" settingsColWidth={settingsColWidth}/>
           </tr>
         );
       });
@@ -399,6 +401,7 @@ class ImportDoc extends React.Component {
       for (let i = 0; i < paginate.pageSize; i++) {
         tempRows.push(
           <tr key={i}>
+            <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
             <td><Skeleton/></td>
@@ -574,6 +577,23 @@ class ImportDoc extends React.Component {
                                             settingsColWidth={settingsColWidth}
                                         />
                                         <HeaderSelect
+                                            title="Has File"
+                                            name="hasFile"
+                                            value={filter.hasFile}
+                                            options={[
+                                              { _id: 'true', name: 'True'},
+                                              { _id: 'false', name: 'False'}
+                                            ]}
+                                            optionText="name"
+                                            onChange={this.handleChangeHeader}
+                                            sort={sort}
+                                            toggleSort={this.toggleSort}
+                                            index="9"
+                                            colDoubleClick={this.colDoubleClick}
+                                            setColWidth={this.setColWidth}
+                                            settingsColWidth={settingsColWidth}
+                                        />
+                                        <HeaderSelect
                                             title="Status"
                                             name="isClosed"
                                             value={filter.isClosed}
@@ -585,7 +605,7 @@ class ImportDoc extends React.Component {
                                             onChange={this.handleChangeHeader}
                                             sort={sort}
                                             toggleSort={this.toggleSort}
-                                            index="9"
+                                            index="10"
                                             colDoubleClick={this.colDoubleClick}
                                             setColWidth={this.setColWidth}
                                             settingsColWidth={settingsColWidth}

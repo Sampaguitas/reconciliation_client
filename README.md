@@ -2,6 +2,12 @@
 
 The Reconciliation Database (RDB) has been devlopped to reconciliate import/export bill of entries.
 
+## Todo
+- [X] Import hasFile
+- [X] Export hasFile
+- [ ] Import Duf => findCandidates
+- [ ] Export Item: Open, Pending, Closed
+
 ## External links
 
 This web application has been developed for [Van Leeuwen Pipe and Tube Group](https://www.vanleeuwen.com/en/).

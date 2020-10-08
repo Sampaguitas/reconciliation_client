@@ -1,12 +1,27 @@
-## About:
+## About
+Van Leeuwen Gulf is located in a Free Zone. In order to get duty expemtion for material exiting our yard, we need to justify how the material came in and meet a certain number of conditions:
 
-The Reconciliation Database (RDB) has been devlopped to reconciliate import/export bill of entries.
+The Reconciliation Database (RDB) has been designed to reconciliate bill of entry documents: 
+- Make sure that the Qty, Net Weight, Gross Weight, HS Codes, and Description of material received talli with those of the material delivered.
+- Make sure that the material is not being sold at a lesser price than it has been procured.
 
-## Todo
-- [X] Import hasFile
-- [X] Export hasFile
-- [X] Import Duf => findCandidates
-- [X] Add columns Asg Pcs Asg Mtr
+### How does it work
+
+The Reconciliation Database (RDB) is divided into 2 sections: The Import and the Export section. Each section is composed of two screens. The first screen contains a list of each document and their respective status. The second screen contains the list of items composing the document. Above the list of each page, you will find buttons allowing you to perfom a list of action which we will detail later on.
+
+### What are the advantages
+
+#### Accessibility
+
+Having the information stored in one database and accessible via internet has a huge advantage: Employees can work simulteniously on different bill of entries, access and update information in real time.
+
+#### Time Efficiency
+
+For convinience, the data can be uploaded from our ERP system via the download upload file. No need to type each line manually, simply download the GRN or Delivery Note from SAP system and upload it back to the portal. You can also generate  the Commercial Invoice, Delivery Advice, Summary Sheet as per Dubai Customs format in a click or a button.
+
+#### Designed for the industry
+
+ERP systems are great tools but have their limitations: Altrough it is possible to add the HS Codes / BOE numbers while preparing the  GRN, SAP does not keep track of the stock movements per BOE and remaining quantities. In the other hand, excel sheets are user friendly but become slow when we reach 100K rows, it is easy to misplace information and the document cannot be simultaneously modified by several users at the time... This web application has been designed to fill that gap.
 
 ## External links
 

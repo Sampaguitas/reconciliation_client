@@ -30,12 +30,77 @@ The Reconciliation Database (RDB) is divided into 2 sections: The Import and the
 
 This web application has been developed for [Van Leeuwen Pipe and Tube Group](https://www.vanleeuwen.com/en/).
 
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See the [deployment](https://github.com/Sampaguitas/pdb_client/blob/master/README.md#deployment) section to deploy your app on Heroku.
+
+### Prerequisites
+
+You will need to install [nodejs](https://nodejs.org/en/) and [gitbash](https://git-scm.com/downloads) (to execute git commands if you are running on windows).
+
+Make sure that you have already set up the back_end of this app: [https://github.com/Sampaguitas/reconciliation_server](https://github.com/Sampaguitas/reconciliation_server).
+
+### Installing
+
+Clone this repository:
+
+```
+$ git clone https://github.com/Sampaguitas/reconciliation_client.git
+```
+
+Install all dependencies:
+
+```
+$ npm install
+```
+In your **webpack.config.js** file, under externals: change 'https://reconciliation-server.herokuapp.com' with the address of your back_end application. This will allow your front_end to make API calls to your back_end application once deployed.
+
+```
+externals: {
+   config: JSON.stringify({
+      apiUrl: process.env.NODE_ENV === 'dev' ? 'http://localhost:5000' : 'https://reconciliation-server.herokuapp.com',
+      version: require('./package.json').version
+   })
+},
+```
+
+Run the app:
+
+```
+$ npm run dev
+```
+If everithing whent well, you should see the following logs in your terminal:
+
+![alt text](https://vanleeuwenpublic.s3.eu-west-3.amazonaws.com/setup/bundling.png "boundling")
+
+Now clear the git info with the following command:
+
+```
+git init
+```
+
+And push your application to a new Git repo... 
+
+## Deployment
+
+While setting up the back_end, we have created a pipeline in Heroku and two applications:
+
+![alt text](https://vanleeuwenpublic.s3.eu-west-3.amazonaws.com/setup/staging.png "staging")
+
+Click on your front_end application and under the deploy tab, click on use github (then link it to your git repo):
+
+![alt text](https://vanleeuwenpublic.s3.eu-west-3.amazonaws.com/setup/use+github.png "use github")
+
+We do not have config vars to be set for the front_end application.
+
 ## Built With
 
 * [node.js](https://nodejs.org/en/) - JavaScript runtime
 * [npm](https://www.npmjs.com) - Dependency Management
 * [react](reactjs.org) - The web framework used
 * [redux](https://redux.js.org/) - Predictable container for application state
+
+This application contains 71 files and 18,821 lines of code (27,897 including back_end).
 
 ## Contributing
 

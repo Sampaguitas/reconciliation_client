@@ -11,23 +11,24 @@ The Reconciliation Database (RDB) is divided into 2 sections: The Import and the
 
 ### What are the advantages
 
-#### Accessibility
+* Accessibility
 
 Having the information stored in one database and accessible via internet has a huge advantage: Employees can work simulteniously on different bill of entries, access and update information in real time.
 
-#### Time Efficiency
+* Time Efficiency
 
 For convinience, the data can be uploaded from our ERP system via the download upload file. No need to type each line manually, simply download the GRN or Delivery Note from SAP system and upload it back to the portal. You can also generate  the Commercial Invoice, Delivery Advice, Summary Sheet as per Dubai Customs format in a click or a button.
 
-#### Designed for the industry
+* Designed for the industry:
 
 ERP systems are great tools but have their limitations: Altrough it is possible to add the HS Codes / BOE numbers while preparing the  GRN, SAP does not keep track of the stock movements per BOE and remaining quantities. In the other hand, excel sheets are user friendly but become slow when we reach 100K rows, it is easy to misplace information and the document cannot be simultaneously modified by several users at the time... This web application has been designed to fill that gap.
 
 ## External links
 
-This web application has been developed for [Van Leeuwen Pipe and Tube Group](https://www.vanleeuwen.com/en/).
+* [WebApp](https://reconciliation-client.herokuapp.com/)
+* [Manual](https://timpublic.s3.eu-west-3.amazonaws.com/manuals/rdbManual.pdf)
 
-The application can be accessed via the following link: ...
+This web application has been developed for [Van Leeuwen Pipe and Tube Group](https://www.vanleeuwen.com/en/).
 
 ## Built With
 

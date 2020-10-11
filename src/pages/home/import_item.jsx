@@ -54,9 +54,9 @@ class ImportItem extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        exRate: '',
-        insurance: '',
-        freight: '',
+        // exRate: '',
+        // insurance: '',
+        // freight: '',
         totalNetWeight: '',
         totalGrossWeight: '',
       },
@@ -409,7 +409,7 @@ class ImportItem extends React.Component {
 
   toggleEditDoc() {
     const { showEditDoc, importDoc } = this.state;
-    const { _id, decNr, boeNr, sfiNr, boeDate, exRate, insurance, freight, totalNetWeight, totalGrossWeight } = importDoc
+    const { _id, decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight } = importDoc //, exRate, insurance, freight
     this.setState({
       showEditDoc: !showEditDoc,
       editDoc: {
@@ -418,9 +418,9 @@ class ImportItem extends React.Component {
         boeNr: boeNr,
         sfiNr: sfiNr,
         boeDate: typeToString(boeDate, 'date', getDateFormat()),
-        exRate: exRate || 1,
-        insurance: insurance || 0,
-        freight: freight || 0,
+        // exRate: exRate || 1,
+        // insurance: insurance || 0,
+        // freight: freight || 0,
         totalNetWeight: totalNetWeight,
         totalGrossWeight: totalGrossWeight,
       }
@@ -577,7 +577,7 @@ class ImportItem extends React.Component {
   handleEditDoc(event) {
     event.preventDefault();
     const { editDoc, editingDoc } = this.state;
-    const { _id, decNr, boeNr, sfiNr, boeDate, exRate, insurance, freight, totalNetWeight, totalGrossWeight } = editDoc;
+    const { _id, decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight } = editDoc; //, exRate, insurance, freight
     if (!isValidFormat(boeDate, 'date', getDateFormat())) {
       this.setState({
         type: 'alert-danger',
@@ -601,9 +601,9 @@ class ImportItem extends React.Component {
             boeNr: boeNr,
             sfiNr: sfiNr,
             boeDate: stringToType(boeDate, 'date', getDateFormat()),
-            exRate: exRate ? exRate : 1,
-            insurance: insurance ? insurance : 1,
-            freight: freight ? freight : 0,
+            // exRate: exRate ? exRate : 1,
+            // insurance: insurance ? insurance : 1,
+            // freight: freight ? freight : 0,
             totalNetWeight: totalNetWeight,
             totalGrossWeight: totalGrossWeight,
           })
@@ -1772,7 +1772,7 @@ class ImportItem extends React.Component {
                             inline={false}
                             required={true}
                           />
-                          <Input
+                          {/* <Input
                             title="Exchange Rate"
                             name="exRate"
                             type="number"
@@ -1798,7 +1798,7 @@ class ImportItem extends React.Component {
                             onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
-                          />
+                          /> */}
                           <Input
                             title="Net Weight"
                             name="totalNetWeight"

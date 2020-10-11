@@ -52,9 +52,9 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        exRate: '',
-        insurance: '',
-        freight: '',
+        // exRate: '',
+        // insurance: '',
+        // freight: '',
         totalNetWeight: '',
         totoalGrossWeight: '',
       },
@@ -203,9 +203,9 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        exRate: '',
-        insurance: '',
-        freight: '',
+        // exRate: '',
+        // insurance: '',
+        // freight: '',
         totalNetWeight: '',
         totalGrossWeight: '',
       },
@@ -277,7 +277,7 @@ class ImportDoc extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     const { newDoc, creating } = this.state;
-    const { decNr, boeNr, sfiNr, boeDate, exRate, insurance, freight, totalNetWeight, totalGrossWeight} = newDoc;
+    const { decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight} = newDoc; //exRate, insurance, freight, 
     if (!decNr || !boeNr || !boeDate || !totalNetWeight || !totalGrossWeight) {
       this.setState({
         alert: {
@@ -302,9 +302,9 @@ class ImportDoc extends React.Component {
             boeNr: boeNr,
             sfiNr: sfiNr,
             boeDate: stringToType(boeDate, 'date', getDateFormat()),
-            exRate: exRate ? exRate : 1,
-            insurance: insurance ? insurance : 0,
-            freight: freight ? freight : 0,
+            // exRate: exRate ? exRate : 1,
+            // insurance: insurance ? insurance : 0,
+            // freight: freight ? freight : 0,
             totalNetWeight: totalNetWeight,
             totalGrossWeight: totalGrossWeight
           })
@@ -688,7 +688,7 @@ class ImportDoc extends React.Component {
                             inline={false}
                             required={true}
                           />
-                          <Input
+                          {/* <Input
                             title="Exchange Rate"
                             name="exRate"
                             type="number"
@@ -714,7 +714,7 @@ class ImportDoc extends React.Component {
                             onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
-                          />
+                          /> */}
                           <Input
                             title="Net Weight"
                             name="totalNetWeight"

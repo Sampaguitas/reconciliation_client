@@ -849,7 +849,7 @@ class ImportItem extends React.Component {
             } else {
                 this.setState({
                     downloadingDuf: false
-                }, () => responce.blob().then(blob => saveAs(blob, 'Duf.xlsx')));
+                }, () => responce.blob().then(blob => saveAs(blob, 'Duf import.xlsx')));
             }
         })
         .catch( () => {

@@ -1103,7 +1103,7 @@ class ExportItem extends React.Component {
                     type: 'alert-success',
                     message: 'Document has successfully been deleted, we will redirect you in a second.'
                   }
-              }, () => setTimeout( () => history.push('/exportdoc'), 1000));
+              }, () => setTimeout( () => history.push('/export_doc'), 1000));
           }
         })
         .catch( () => {

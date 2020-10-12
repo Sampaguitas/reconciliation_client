@@ -300,10 +300,12 @@ class ExportDoc extends React.Component {
               // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
+            } else if (response.status == 200) {
+              history.push({ pathname:'/export_item', search: '?id=' + data.documentId })
             } else {
               this.setState({
                 alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  type: 'alert-danger',
                   message: resMsg
                 }
               }, () => {

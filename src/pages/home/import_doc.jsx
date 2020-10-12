@@ -52,9 +52,6 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        // exRate: '',
-        // insurance: '',
-        // freight: '',
         totalNetWeight: '',
         totoalGrossWeight: '',
       },
@@ -203,9 +200,6 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        // exRate: '',
-        // insurance: '',
-        // freight: '',
         totalNetWeight: '',
         totalGrossWeight: '',
       },
@@ -302,9 +296,6 @@ class ImportDoc extends React.Component {
             boeNr: boeNr,
             sfiNr: sfiNr,
             boeDate: stringToType(boeDate, 'date', getDateFormat()),
-            // exRate: exRate ? exRate : 1,
-            // insurance: insurance ? insurance : 0,
-            // freight: freight ? freight : 0,
             totalNetWeight: totalNetWeight,
             totalGrossWeight: totalGrossWeight
           })
@@ -320,10 +311,12 @@ class ImportDoc extends React.Component {
               // Unauthorized
               localStorage.removeItem('user');
               location.reload(true);
+            } else if (response.status == 200) {
+              history.push({ pathname:'/import_item', search: '?id=' + data.documentId })
             } else {
               this.setState({
                 alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
+                  type: 'alert-danger',
                   message: resMsg
                 }
               }, () => {
@@ -688,33 +681,6 @@ class ImportDoc extends React.Component {
                             inline={false}
                             required={true}
                           />
-                          {/* <Input
-                            title="Exchange Rate"
-                            name="exRate"
-                            type="number"
-                            value={newDoc.exRate}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={false}
-                          />
-                          <Input
-                            title="Insurance (AED)"
-                            name="insurance"
-                            type="number"
-                            value={newDoc.insurance}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Freight (AED)"
-                            name="freight"
-                            type="number"
-                            value={newDoc.freight}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={true}
-                          /> */}
                           <Input
                             title="Net Weight"
                             name="totalNetWeight"

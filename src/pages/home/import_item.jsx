@@ -14,8 +14,6 @@ import {
   doesMatch,
   getDateFormat,
   getPageSize,
-  isValidFormat,
-  stringToType,
   summarySorted,
   typeToString,
 } from '../../_functions';
@@ -24,7 +22,6 @@ import SelectRow from '../../_components/table/select-row';
 import HeaderInput from '../../_components/table/header-input';
 import HeaderSelect from '../../_components/table/header-select';
 import TableData from '../../_components/table/table-data';
-import Input from "../../_components/input";
 import Layout from '../../_components/layout';
 import Modal from "../../_components/modal";
 import _ from 'lodash';
@@ -48,33 +45,6 @@ class ImportItem extends React.Component {
         summary: [],
         fileName: '',
         items: [],
-      },
-      editDoc: {
-        decNr: '',
-        boeNr: '',
-        sfiNr: '',
-        boeDate: '',
-        // exRate: '',
-        // insurance: '',
-        // freight: '',
-        totalNetWeight: '',
-        totalGrossWeight: '',
-      },
-      editItem: {
-        _id: '',
-        srNr: '',
-        invNr: '',
-        poNr: '',
-        artNr: '',
-        desc: '',
-        pcs: '',
-        mtr: '',
-        totalNetWeight: '',
-        totalGrossWeight: '',
-        totalPrice: '',
-        hsCode: '',
-        hsDesc: '',
-        country: '',
       },
       fileName: '',
       fileKey: Date.now(),
@@ -125,21 +95,16 @@ class ImportItem extends React.Component {
           message: ''
       },
       showSummary: false,
-      showEditDoc: false,
-      showEditItem: false,
       showFile: false,
       showDuf: false,
       retrieving: false,
       deletingDoc: false,
-      editingDoc: false,
-      editingItem: false,
       uploadingFile: false,
       downloadingFile: false,
       downloadingDuf: false,
       downloadingReport: false,
       uploadingDuf: false,
       linkingCandidates: false,
-      deletingLine: false,
       menuItem: 'Import Documents',
       settingsColWidth: {},
       selectAllRows: false,
@@ -165,26 +130,19 @@ class ImportItem extends React.Component {
     this.toggleSortGroup = this.toggleSortGroup.bind(this);
     this.handleChangeHeader = this.handleChangeHeader.bind(this);
     this.handleChangeHeaderGroup = this.handleChangeHeaderGroup.bind(this);
-    this.handleChangeDoc = this.handleChangeDoc.bind(this);
-    this.handleChangeItem = this.handleChangeItem.bind(this);
     this.handleChangeDuf = this.handleChangeDuf.bind(this);
     this.handleChangeFile = this.handleChangeFile.bind(this);
     this.toggleSummary = this.toggleSummary.bind(this);
-    this.toggleEditDoc = this.toggleEditDoc.bind(this);
-    this.toggleEditItem = this.toggleEditItem.bind(this);
     this.toggleDuf = this.toggleDuf.bind(this);
     this.toggleFile = this.toggleFile.bind(this);
     this.getDocument = this.getDocument.bind(this);
     this.handleDeleteDoc = this.handleDeleteDoc.bind(this);
-    this.handleEditDoc = this.handleEditDoc.bind(this);
-    this.handleEditItem = this.handleEditItem.bind(this);
     this.handleUploadFile = this.handleUploadFile.bind(this);
     this.handleDownloadFile = this.handleDownloadFile.bind(this);
     this.handleUploadDuf = this.handleUploadDuf.bind(this);
     this.handleDownloadDuf = this.handleDownloadDuf.bind(this);
     this.handleDownloadReport = this.handleDownloadReport.bind(this);
     this.handleLinkCandidates = this.handleLinkCandidates.bind(this);
-    this.handleDeleteLine = this.handleDeleteLine.bind(this);
     this.colDoubleClick = this.colDoubleClick.bind(this);
     this.setColWidth = this.setColWidth.bind(this);
     this.changePage = this.changePage.bind(this);
@@ -345,28 +303,6 @@ class ImportItem extends React.Component {
     });
   }
 
-  handleChangeDoc(event) {
-    const { editDoc } = this.state;
-    const { name, value } = event.target;
-    this.setState({
-      editDoc: {
-        ...editDoc,
-        [name]: value
-      }
-    });
-  }
-
-  handleChangeItem(event) {
-    const { editItem } = this.state;
-    const { name, value } = event.target;
-    this.setState({
-      editItem: {
-        ...editItem,
-        [name]: value
-      }
-    });
-  }
-
   handleChangeDuf(event) {
     if(event.target.files.length > 0) {
       this.setState({
@@ -404,71 +340,6 @@ class ImportItem extends React.Component {
                 <td></td>
             </tr>
         );
-    }
-  }
-
-  toggleEditDoc() {
-    const { showEditDoc, importDoc } = this.state;
-    const { _id, decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight } = importDoc;
-    this.setState({
-      showEditDoc: !showEditDoc,
-      editDoc: {
-        _id: _id,
-        decNr: decNr,
-        boeNr: boeNr,
-        sfiNr: sfiNr,
-        boeDate: typeToString(boeDate, 'date', getDateFormat()),
-        totalNetWeight: totalNetWeight,
-        totalGrossWeight: totalGrossWeight,
-      }
-    });
-  }
-
-  toggleEditItem() {
-    const { showEditItem, importDoc, selectedRows } = this.state;
-    if (!!showEditItem) {
-      this.setState({
-        showEditItem: false,
-        editItem: {
-          _id: '',
-          srNr: '',
-          invNr: '',
-          poNr: '',
-          artNr: '',
-          desc: '',
-          pcs: '',
-          mtr: '',
-          totalNetWeight: '',
-          totalGrossWeight: '',
-          totalPrice: '',
-          hsCode: '',
-          hsDesc: '',
-          country: '',
-        }
-      });
-    } else if (_.isEqual(selectedRows.length, 1)) {
-      let found = importDoc.items.find(element => _.isEqual(element._id, selectedRows[0]));
-      if (!_.isUndefined(found)) {
-        this.setState({
-          showEditItem: true,
-          editItem: {
-            _id: found._id,
-            srNr: found.srNr,
-            invNr: found.invNr,
-            poNr: found.poNr,
-            artNr: found.artNr,
-            desc: found.desc,
-            pcs: found.pcs,
-            mtr: found.mtr,
-            totalNetWeight: found.totalNetWeight,
-            totalGrossWeight: found.totalGrossWeight,
-            totalPrice: found.totalPrice,
-            hsCode: found.hsCode,
-            hsDesc: found.hsDesc,
-            country: found.country,
-          }
-        });
-      }
     }
   }
 
@@ -559,126 +430,6 @@ class ImportItem extends React.Component {
                     second: data.second,
                     third: data.third
                 }
-              });
-            }
-          });
-        }))
-        .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
-        });
-      });
-    }
-  }
-
-  handleEditDoc(event) {
-    event.preventDefault();
-    const { editDoc, editingDoc } = this.state;
-    const { _id, decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight } = editDoc;
-    if (!isValidFormat(boeDate, 'date', getDateFormat())) {
-      this.setState({
-        type: 'alert-danger',
-        message: 'BOE Date does not have a proper Date Format.'
-      });
-    } else if (!decNr || !boeNr) {
-      this.setState({
-        type: 'alert-danger',
-        message: 'DEC and BOE Numbers are required.'
-      });
-    } else if (!editingDoc) {
-      this.setState({
-        editingDoc: true,
-      }, () => {
-        const requestOptions = {
-          method: 'PUT',
-          headers: {...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            _id: _id,
-            decNr: decNr,
-            boeNr: boeNr,
-            sfiNr: sfiNr,
-            boeDate: stringToType(boeDate, 'date', getDateFormat()),
-            totalNetWeight: totalNetWeight,
-            totalGrossWeight: totalGrossWeight,
-          })
-        };
-        return fetch(`${config.apiUrl}/importdoc/update`, requestOptions)
-        .then(response => response.text().then(text => {
-          this.setState({
-            editingDoc: false
-          }, () => {
-            const data = text && JSON.parse(text);
-            const resMsg = (data && data.message) || response.statusText;
-            if (response.status === 401) {
-              localStorage.removeItem('user');
-              location.reload(true);
-            } else {
-              this.setState({
-                alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
-                  message: resMsg
-                }
-              }, () => {
-                this.getDocument();
-                this.toggleEditDoc();
-              });
-            }
-          });
-        }))
-        .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
-        });
-      });
-    }
-  }
-
-  handleEditItem(event) {
-    event.preventDefault();
-    const { editItem, editingItem } = this.state;
-    if (!editingItem) {
-      this.setState({
-        editingItem: true,
-      }, () => {
-        const requestOptions = {
-          method: 'PUT',
-          headers: {...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            _id: editItem._id,
-            srNr: editItem.srNr,
-            invNr: editItem.invNr,
-            poNr: editItem.poNr,
-            artNr: editItem.artNr,
-            desc: editItem.desc,
-            pcs: editItem.pcs,
-            mtr: editItem.mtr,
-            totalNetWeight: editItem.totalNetWeight,
-            totalGrossWeight: editItem.totalGrossWeight,
-            totalPrice: editItem.totalPrice,
-            hsCode: editItem.hsCode,
-            hsDesc: editItem.hsDesc,
-            country: editItem.country,
-          })
-        };
-        return fetch(`${config.apiUrl}/importitem/update`, requestOptions)
-        .then(response => response.text().then(text => {
-          this.setState({
-            editingItem: false
-          }, () => {
-            const data = text && JSON.parse(text);
-            const resMsg = (data && data.message) || response.statusText;
-            if (response.status === 401) {
-              localStorage.removeItem('user');
-              location.reload(true);
-            } else {
-              this.setState({
-                alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
-                  message: resMsg
-                }
-              }, () => {
-                this.getDocument();
-                this.toggleEditItem();
               });
             }
           });
@@ -980,53 +731,6 @@ class ImportItem extends React.Component {
     }
   }
 
-  handleDeleteLine(event) {
-    event.preventDefault();
-    const { selectedRows, deletingLine } = this.state;
-    if (_.isEmpty(selectedRows)) {
-      this.setState({
-        alert: {
-          type: 'alert-danger',
-          message: 'Select line(s) to be deleted.'
-        }
-      });
-    } else if (!deletingLine && confirm(`You are about to permanently delete ${selectedRows.length} line(s). Click ok to proceed.`)) {
-      this.setState({
-        deletingLine: true
-      }, () => {
-        const requestOptions = {
-          method: 'DELETE',
-          headers: { ...authHeader(), 'Content-Type': 'application/json'},
-          body: JSON.stringify({selectedIds: selectedRows})
-      };
-        return fetch(`${config.apiUrl}/importitem/delete`, requestOptions)
-        .then(response => response.text().then(text => {
-          this.setState({
-            deletingLine: false,
-          }, () => {
-            const data = text && JSON.parse(text);
-            const resMsg = (data && data.message) || response.statusText;
-            if (response.status === 401) {
-              localStorage.removeItem('user');
-              location.reload(true);
-            } else {
-              this.setState({
-                alert: {
-                  type: response.status != 200 ? 'alert-danger' : 'alert-success',
-                  message: resMsg
-                }
-              }, () => this.getDocument());
-            }
-          });
-        }))
-        .catch( () => {
-          localStorage.removeItem('user');
-          location.reload(true);
-        });
-      })
-    }
-  }
-
   colDoubleClick(event, index) {
     event.preventDefault();
     const { settingsColWidth } = this.state;
@@ -1208,29 +912,22 @@ class ImportItem extends React.Component {
           sortGroup,
           settingsColWidth,
           importDoc,
-          editDoc,
-          editItem,
           fileName,
           fileKey,
           dufName,
           dufKey,
           responce,
           showSummary,
-          showEditDoc,
-          showEditItem,
           showFile,
           showDuf,
           retrieving,
           deletingDoc,
-          editingDoc,
-          editingItem,
           downloadingFile,
           uploadingFile,
           downloadingDuf,
           downloadingReport,
           uploadingDuf,
           linkingCandidates,
-          deletingLine,
           selectAllRows,
           selectedRows,
           windowHeight
@@ -1241,7 +938,7 @@ class ImportItem extends React.Component {
 
         return (
             <Layout sidemenu={sidemenu} toggleCollapse={this.toggleCollapse} menuItem={menuItem}>
-                {alert.message && !showSummary && !showEditDoc && !showFile && !showDuf &&
+                {alert.message && !showSummary && !showFile && !showDuf &&
                     <div className={`alert ${alert.type}`}>{alert.message}
                         <button className="close" onClick={(event) => this.handleClearAlert(event)}>
                             <span aria-hidden="true"><FontAwesomeIcon icon="times"/></span>
@@ -1276,7 +973,7 @@ class ImportItem extends React.Component {
                     </ol>
                   }
                 </nav>
-                <div id="import" className={alert.message && !showSummary && !showEditDoc && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
+                <div id="import" className={alert.message && !showSummary && !showFile && !showDuf ? "main-section-alert" : "main-section"}> 
                     <div className="action-row d-flex justify-content-between">
                       <div>
                         <button title="Show Summary" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleSummary}>
@@ -1297,15 +994,6 @@ class ImportItem extends React.Component {
                         </button>
                       </div>
                       <div>
-                        {/* <button title="Edit Import Document" className="btn btn-leeuwen-blue btn-lg mr-2" onClick={this.toggleEditDoc}>
-                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Doc</span>
-                        </button>
-                        <button title="Edit Line Item" className="btn btn-leeuwen-blue btn-lg mr-2" disabled={!_.isEqual(selectedRows.length, 1) ? true : false} onClick={this.toggleEditItem}>
-                            <span><FontAwesomeIcon icon="edit" className="fa mr-2"/>Edit Line</span>
-                        </button>
-                        <button title="Delete Line Item(s)" className="btn btn-leeuwen btn-lg mr-2" disabled={_.isEmpty(selectedRows) ? true : false} onClick={this.handleDeleteLine}>
-                            <span><FontAwesomeIcon icon={deletingLine ? "spinner" : "trash-alt"} className={deletingLine ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Line(s)</span>
-                        </button> */}
                         <button title="Delete Document" className="btn btn-leeuwen btn-lg mr-2" onClick={this.handleDeleteDoc}>
                             <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa fa-pulse fa-fw" : "fa mr-2"}/>Delete Doc</span>
                         </button>
@@ -1716,85 +1404,6 @@ class ImportItem extends React.Component {
                       </div>
                     </Modal>
                     <Modal
-                      show={showEditDoc}
-                      hideModal={this.toggleEditDoc}
-                      title={'Update Import Document'}
-                    >
-                        <form
-                          name="form"
-                          className="col-12"
-                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
-                          onSubmit={this.handleEditDoc}
-                        >
-                          <Input
-                            title="DEC Nr"
-                            name="decNr"
-                            type="text"
-                            value={editDoc.decNr}
-                            onChange={this.handleChangeDoc}
-                            placeholder="ddd-dddddddd-dd"
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="BOE Nr"
-                            name="boeNr"
-                            type="text"
-                            value={editDoc.boeNr}
-                            onChange={this.handleChangeDoc}
-                            placeholder="dddddddddddd"
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="SFI Nr"
-                            name="sfiNr"
-                            type="text"
-                            value={editDoc.sfiNr}
-                            onChange={this.handleChangeDoc}
-                            placeholder="ddddd"
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Date"
-                            name="boeDate"
-                            type="text"
-                            value={editDoc.boeDate}
-                            onChange={this.handleChangeDoc}
-                            placeholder={getDateFormat()}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Net Weight"
-                            name="totalNetWeight"
-                            type="number"
-                            value={editDoc.totalNetWeight}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Gross Weight"
-                            name="totalGrossWeight"
-                            type="number"
-                            value={editDoc.totalGrossWeight}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <div className="modal-footer">
-                              <button className="btn btn-leeuwen btn-lg mr-2" onClick={event => this.handleDeleteDoc(event)}>
-                                <span><FontAwesomeIcon icon={deletingDoc ? "spinner" : "trash-alt"} className={deletingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Delete</span>
-                              </button>
-                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
-                                <span><FontAwesomeIcon icon={editingDoc ? "spinner" : "edit"} className={editingDoc ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
-                              </button>
-                          </div>
-                        </form>
-                    </Modal>
-                    <Modal
                       show={showFile}
                       hideModal={this.toggleFile}
                       title="Attachment"
@@ -1926,141 +1535,6 @@ class ImportItem extends React.Component {
                               </div>
                             }
                         </div>
-                    </Modal>
-                    <Modal
-                      show={showEditItem}
-                      hideModal={this.toggleEditItem}
-                      title="Edit Line Item"
-                      size="modal-lg"
-                    >
-                        <form
-                          name="form"
-                          className="col-12"
-                          style={{marginLeft:'0px', marginRight: '0px', paddingLeft: '0px', paddingRight: '0px'}}
-                          onSubmit={this.handleEditItem}
-                        >
-                          <Input
-                            title="Serial Number"
-                            name="srNr"
-                            type="number"
-                            value={editItem.srNr}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Invoice Number"
-                            name="invNr"
-                            type="text"
-                            value={editItem.invNr}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="PO Number"
-                            name="poNr"
-                            type="text"
-                            value={editItem.poNr}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Article Number"
-                            name="artNr"
-                            type="text"
-                            value={editItem.artNr}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Article Description"
-                            name="desc"
-                            type="text"
-                            value={editItem.desc}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Pcs"
-                            name="pcs"
-                            type="number"
-                            value={editItem.pcs}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Mtr"
-                            name="mtr"
-                            type="number"
-                            value={editItem.mtr}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                          />
-                          <Input
-                            title="Net Weight (total)"
-                            name="totalNetWeight"
-                            type="number"
-                            value={editItem.totalNetWeight}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Gross Weight (total)"
-                            name="totalGrossWeight"
-                            type="number"
-                            value={editItem.totalGrossWeight}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Total Price (AED)"
-                            name="totalPrice"
-                            type="number"
-                            value={editItem.totalPrice}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="HS Code"
-                            name="hsCode"
-                            type="text"
-                            value={editItem.hsCode}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="HS Description"
-                            name="hsDesc"
-                            type="text"
-                            value={editItem.hsDesc}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Country"
-                            name="country"
-                            type="text"
-                            value={editItem.country}
-                            onChange={this.handleChangeItem}
-                            inline={false}
-                            required={true}
-                          />
-                          <div className="modal-footer">
-                              <button type="submit" className="btn btn-leeuwen-blue btn-lg">
-                                <span><FontAwesomeIcon icon={editingItem ? "spinner" : "edit"} className={editingItem ? "fa-pulse fa-fw fa mr-2" : "fa mr-2"}/>Update</span>
-                              </button>
-                          </div>
-                        </form>
                     </Modal>
                 </div>
             </Layout>

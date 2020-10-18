@@ -53,6 +53,9 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
+        exRate: '',
+        isInsurance: false,
+        freight: '',
         totalNetWeight: '',
         totoalGrossWeight: '',
       },
@@ -201,6 +204,9 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
+        exRate: '',
+        isInsurance: false,
+        freight: '',
         totalNetWeight: '',
         totalGrossWeight: '',
       },
@@ -272,7 +278,7 @@ class ImportDoc extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     const { newDoc, creating } = this.state;
-    const { decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight} = newDoc;
+    const { decNr, boeNr, sfiNr, boeDate, exRate, isInsurance, freight, totalNetWeight, totalGrossWeight} = newDoc; //exRate, insurance, freight, 
     if (!decNr || !boeNr || !boeDate || !totalNetWeight || !totalGrossWeight) {
       this.setState({
         alert: {
@@ -297,6 +303,9 @@ class ImportDoc extends React.Component {
             boeNr: boeNr,
             sfiNr: sfiNr,
             boeDate: stringToType(boeDate, 'date', getDateFormat()),
+            exRate: exRate || 1,
+            isInsurance: isInsurance || false,
+            freight: freight,
             totalNetWeight: totalNetWeight,
             totalGrossWeight: totalGrossWeight
           })
@@ -679,6 +688,37 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
+                            inline={false}
+                            required={true}
+                          />
+                          <Input
+                            title="Exchange Rate"
+                            name="exRate"
+                            type="number"
+                            value={newDoc.exRate}
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={true}
+                          />
+                          <Select
+                            title="Insurance"
+                            name="isInsurance"
+                            value={newDoc.isInsurance}
+                            options={[
+                              { _id: 'false', name: 'Not Applicable'},
+                              { _id: 'true', name: 'Applicable'},
+                            ]}
+                            optionText="name"
+                            onChange={this.handleChangeDoc}
+                            inline={false}
+                            required={false}
+                          />
+                          <Input
+                            title="Freight"
+                            name="freight"
+                            type="number"
+                            value={newDoc.freight}
+                            onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
                           />

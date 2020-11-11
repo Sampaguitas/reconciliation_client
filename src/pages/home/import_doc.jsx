@@ -53,8 +53,6 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        totalNetWeight: '',
-        totoalGrossWeight: '',
       },
       showCreate: false,
       creating: false,
@@ -201,8 +199,6 @@ class ImportDoc extends React.Component {
         boeNr: '',
         sfiNr: '',
         boeDate: '',
-        totalNetWeight: '',
-        totalGrossWeight: '',
       },
     });
   }
@@ -272,8 +268,8 @@ class ImportDoc extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     const { newDoc, creating } = this.state;
-    const { decNr, boeNr, sfiNr, boeDate, totalNetWeight, totalGrossWeight} = newDoc;
-    if (!decNr || !boeNr || !boeDate || !totalNetWeight || !totalGrossWeight) {
+    const { decNr, boeNr, sfiNr, boeDate } = newDoc;
+    if (!decNr || !boeNr || !boeDate) {
       this.setState({
         alert: {
           type: 'alert-danger',
@@ -297,8 +293,6 @@ class ImportDoc extends React.Component {
             boeNr: boeNr,
             sfiNr: sfiNr,
             boeDate: stringToType(boeDate, 'date', getDateFormat()),
-            totalNetWeight: totalNetWeight,
-            totalGrossWeight: totalGrossWeight
           })
         };
         return fetch(`${config.apiUrl}/importdoc/create`, requestOptions)
@@ -679,24 +673,6 @@ class ImportDoc extends React.Component {
                             value={newDoc.boeDate}
                             onChange={this.handleChangeDoc}
                             placeholder={getDateFormat()}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Net Weight"
-                            name="totalNetWeight"
-                            type="number"
-                            value={newDoc.totalNetWeight}
-                            onChange={this.handleChangeDoc}
-                            inline={false}
-                            required={true}
-                          />
-                          <Input
-                            title="Gross Weight"
-                            name="totalGrossWeight"
-                            type="number"
-                            value={newDoc.totalGrossWeight}
-                            onChange={this.handleChangeDoc}
                             inline={false}
                             required={true}
                           />
